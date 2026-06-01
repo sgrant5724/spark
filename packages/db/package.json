@@ -11,6 +11,7 @@
     "rls": "prisma db execute --file prisma/rls.sql --schema prisma/schema.prisma",
     "seed": "tsx prisma/seed.ts",
     "set-password": "tsx scripts/set-password.ts",
+    "bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
     "studio": "prisma studio",
     "lint": "echo \"(no lint configured for @spark/db)\"",
     "typecheck": "tsc --noEmit",
