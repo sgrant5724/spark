@@ -66,6 +66,7 @@ export const PERMISSIONS = [
   "workspace.manage", // settings, integrations, motif/prompt config
   "users.manage", // invite users, assign roles, billing
   "strategy.manage", // keywords, ideas, schedule
+  "sme.manage", // create/edit SME knowledge profiles
   "content.edit", // create/edit drafts, run generation
   "content.approve_draft", // move to draft review
   "content.approve_final", // grant final approval / publish
@@ -78,13 +79,14 @@ const ROLE_PERMISSIONS: Record<RoleName, Permission[]> = {
   admin: [...PERMISSIONS],
   strategist: [
     "strategy.manage",
+    "sme.manage",
     "content.edit",
     "content.approve_draft",
     "content.approve_final",
     "content.read",
   ],
   editor: ["content.edit", "content.approve_draft", "content.read"],
-  sme: ["content.read"], // maintains own SME profile via a dedicated scope
+  sme: ["sme.manage", "content.read"], // maintains own SME knowledge profile
   client_reviewer: ["content.approve_final", "content.read"], // only assigned items, enforced at query layer
   viewer: ["content.read"],
 };

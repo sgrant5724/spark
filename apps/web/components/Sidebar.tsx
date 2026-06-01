@@ -4,6 +4,7 @@ import Link from "next/link";
 // render a "coming soon" stub so the shell stays intact.
 const NAV: Array<{ label: string; href: (slug: string) => string }> = [
   { label: "Dashboard", href: (s) => `/w/${s}` },
+  { label: "SME Profiles", href: (s) => `/w/${s}/sme` },
   { label: "Ideas", href: (s) => `/w/${s}/ideas` },
   { label: "Content", href: (s) => `/w/${s}/content` },
   { label: "Workflow", href: (s) => `/w/${s}/workflow` },
