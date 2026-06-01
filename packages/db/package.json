@@ -1,0 +1,32 @@
+{
+  "name": "@spark/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "rls": "prisma db execute --file prisma/rls.sql --schema prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts",
+    "set-password": "tsx scripts/set-password.ts",
+    "studio": "prisma studio",
+    "lint": "echo \"(no lint configured for @spark/db)\"",
+    "typecheck": "tsc --noEmit",
+    "build": "echo \"(no build step for @spark/db)\""
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^2.4.3",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}

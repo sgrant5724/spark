@@ -1,0 +1,36 @@
+# Local dev dependencies for Spark: PostgreSQL 16 + Redis 7.
+# `docker compose up -d` then `pnpm db:setup`.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: spark-postgres
+    environment:
+      POSTGRES_USER: spark_owner
+      POSTGRES_PASSWORD: spark_owner
+      POSTGRES_DB: spark
+    ports:
+      - "5432:5432"
+    volumes:
+      - spark_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spark_owner -d spark"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: spark-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - spark_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  spark_pgdata:
+  spark_redisdata:

@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Quicksand for UI/body (Google Fonts). Kollektif (display/logo) is self-hosted
+   in a later epic; it falls back to Quicksand until then. */
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap");
+
+:root {
+  --ink: #343433;
+  --nav: #0a3a56;
+  --blue: #0d5a84;
+  --orange: #c4571c;
+  --yellow: #f8cf40;
+  --lightblue: #b1d4e0;
+  --paper: #eff3fa;
+  --white: #ffffff;
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Quicksand", system-ui, sans-serif;
+}

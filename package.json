@@ -1,0 +1,26 @@
+{
+  "name": "spark",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Spark — multi-tenant content & SEO engine for LSI Media (ideation → SME-grounded generation → SEO → assets → a11y → approval → WordPress → social → analytics).",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "db:generate": "pnpm --filter @spark/db generate",
+    "db:migrate": "pnpm --filter @spark/db migrate",
+    "db:rls": "pnpm --filter @spark/db rls",
+    "db:seed": "pnpm --filter @spark/db seed",
+    "db:setup": "pnpm db:migrate && pnpm db:rls && pnpm db:seed",
+    "dev:api": "pnpm --filter @spark/api dev",
+    "dev:web": "pnpm --filter @spark/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  }
+}

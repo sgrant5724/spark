@@ -1,0 +1,896 @@
+// ============================================================================
+// Spark data model — PostgreSQL 16.
+//
+// Conventions
+// -----------
+// * Every TENANT table carries `workspace_id` (mapped `workspaceId`). Row-Level
+//   Security policies are applied in prisma/rls.sql so a connection scoped to a
+//   workspace can only read/write its own rows. Prisma does not manage RLS, so
+//   it lives in a versioned SQL step run after `prisma migrate` (see README).
+// * Model names are PascalCase and map to snake_case tables; columns map to
+//   snake_case to match the DDL style in the build spec.
+// * FR references in comments point at spark-capability-requirements.html.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+enum Role {
+  owner
+  admin
+  strategist
+  editor
+  sme
+  client_reviewer
+  viewer
+
+  @@map("role")
+}
+
+enum WorkspaceStatus {
+  active
+  paused
+  archived
+
+  @@map("workspace_status")
+}
+
+enum RenderingType {
+  avada_fusion
+  gutenberg
+  html
+
+  @@map("rendering_type")
+}
+
+enum SeoPlugin {
+  squirrly
+  rank_math
+  yoast
+
+  @@map("seo_plugin")
+}
+
+// Open Decision #1 — blog URL/slug rule. Seeded as `needs_confirmation` until
+// verified against the live site; resolves to `root` or `blog_prefix`.
+enum BlogSlugRule {
+  root // /{slug}/
+  blog_prefix // /blog/{slug}/
+  needs_confirmation
+
+  @@map("blog_slug_rule")
+}
+
+enum ArticleState {
+  idea
+  approved_idea
+  drafting
+  draft_review
+  seo_a11y_review
+  assets_pending
+  final_approval
+  scheduled
+  published
+  distributed
+  analyzing
+
+  @@map("article_state")
+}
+
+enum IdeaSource {
+  paa
+  alsoasked
+  workbook_gap
+  competitor
+  seasonal
+  analytics
+  youtube_trend
+  manual
+
+  @@map("idea_source")
+}
+
+enum IdeaStatus {
+  discovered
+  approved
+  rejected
+  refresh
+
+  @@map("idea_status")
+}
+
+enum PageType {
+  hub
+  audience_landing
+  deliverable
+  trust
+  conversion
+  blog
+
+  @@map("page_type")
+}
+
+enum KeywordIntent {
+  informational
+  commercial
+  transactional
+  navigational
+
+  @@map("keyword_intent")
+}
+
+enum AssetKind {
+  featured
+  og
+  inbody
+
+  @@map("asset_kind")
+}
+
+enum AssetStatus {
+  pending
+  ready
+  rejected
+
+  @@map("asset_status")
+}
+
+enum SocialPlatform {
+  linkedin
+  x
+  instagram
+  facebook
+
+  @@map("social_platform")
+}
+
+enum SocialVariantStatus {
+  draft
+  approved
+  scheduled
+  posted
+  failed
+
+  @@map("social_variant_status")
+}
+
+enum AutomationMode {
+  manual
+  scheduled
+  autonomous
+
+  @@map("automation_mode")
+}
+
+enum ConnectionProvider {
+  wordpress
+  squirrly
+  rank_math
+  yoast
+  nifty
+  gsc
+  ga4
+  uniple
+  youtube
+  llm
+  slack
+
+  @@map("connection_provider")
+}
+
+enum ConnectionStatus {
+  connected
+  disconnected
+  error
+
+  @@map("connection_status")
+}
+
+enum ApprovalGate {
+  draft_review
+  seo_a11y_review
+  assets
+  final_approval
+
+  @@map("approval_gate")
+}
+
+enum ApprovalDecision {
+  approved
+  rejected
+  changes_requested
+
+  @@map("approval_decision")
+}
+
+enum RunStatus {
+  queued
+  running
+  succeeded
+  failed
+  cancelled
+
+  @@map("run_status")
+}
+
+enum JobStatus {
+  queued
+  active
+  completed
+  failed
+  delayed
+
+  @@map("job_status")
+}
+
+enum NotificationChannel {
+  in_app
+  email
+  slack
+
+  @@map("notification_channel")
+}
+
+// ============================================================================
+// Identity & tenancy
+// ============================================================================
+
+model Organization {
+  id         String          @id @default(uuid()) @db.Uuid
+  name       String
+  slug       String          @unique
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+  workspaces Workspace[]
+
+  @@map("organizations")
+}
+
+model Workspace {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  name           String
+  slug           String          @unique
+  status         WorkspaceStatus @default(active)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  organization       Organization        @relation(fields: [organizationId], references: [id])
+  memberships        Membership[]
+  brandKit           BrandKit?
+  headingStyles      HeadingStyle[]
+  imageSpec          ImageSpec?
+  renderingProfiles  RenderingProfile[]
+  motifs             Motif[]
+  motifDefaults      MotifDefault[]
+  seoSettings        SeoSettings?
+  smeProfiles        SmeProfile[]
+  keywords           Keyword[]
+  pages              Page[]
+  pageLinks          PageLink[]
+  ideas              Idea[]
+  articles           Article[]
+  articleVersions    ArticleVersion[]
+  citations          Citation[]
+  seoOutputs         SeoOutput[]
+  assets             Asset[]
+  socialVariants     SocialVariant[]
+  approvals          Approval[]
+  analyticsSnapshots AnalyticsSnapshot[]
+  schedules          Schedule[]
+  runs               Run[]
+  jobs               Job[]
+  automationSettings AutomationSetting[]
+  connections        Connection[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+
+  @@index([organizationId])
+  @@map("workspaces")
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  name          String?
+  // Auth fields are owned by Auth.js in a later epic; passwords are never set
+  // or stored by Spark on the user's behalf.
+  passwordHash  String?  @map("password_hash")
+  mfaEnabled    Boolean  @default(false) @map("mfa_enabled")
+  mfaSecret     String?  @map("mfa_secret")
+  emailVerified DateTime? @map("email_verified") @db.Timestamptz
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  memberships Membership[]
+
+  @@map("users")
+}
+
+model Membership {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  role        Role
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+// ============================================================================
+// Workspace configuration (FR-2, FR-7, FR-8, FR-18)
+// ============================================================================
+
+model BrandKit {
+  id           String   @id @default(uuid()) @db.Uuid
+  workspaceId  String   @unique @map("workspace_id") @db.Uuid
+  colors       Json     @default("{}")
+  fonts        Json     @default("{}")
+  logoUrl      String?  @map("logo_url")
+  footerCredit String?  @map("footer_credit")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("brand_kits")
+}
+
+// FR-2 — article-scoped heading styles (px). Visual only; never alters semantic order.
+model HeadingStyle {
+  id            String   @id @default(uuid()) @db.Uuid
+  workspaceId   String   @map("workspace_id") @db.Uuid
+  level         Int // 1..6
+  fontPx        Int      @map("font_px")
+  marginTopPx   Int      @map("margin_top_px")
+  marginBottomPx Int     @map("margin_bottom_px")
+  fontFamily    String?  @map("font_family")
+  fontWeight    String?  @map("font_weight")
+  lineHeight    String?  @map("line_height")
+  color         String?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, level])
+  @@map("heading_styles")
+}
+
+// FR-2 / FR-8 — editable image dimensions per workspace.
+model ImageSpec {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @unique @map("workspace_id") @db.Uuid
+  featuredW   Int      @default(1920) @map("featured_w")
+  featuredH   Int      @default(1080) @map("featured_h")
+  ogW         Int      @default(1200) @map("og_w")
+  ogH         Int      @default(630) @map("og_h")
+  brandOg     Boolean  @default(true) @map("brand_og")
+  brandInbody Boolean  @default(false) @map("brand_inbody")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("image_specs")
+}
+
+// FR-18 — design-system rendering profile (content-pattern → theme element).
+model RenderingProfile {
+  id          String        @id @default(uuid()) @db.Uuid
+  workspaceId String        @map("workspace_id") @db.Uuid
+  type        RenderingType
+  isDefault   Boolean       @default(false) @map("is_default")
+  elementMap  Json          @default("{}") @map("element_map")
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("rendering_profiles")
+}
+
+// 7 Motifs as editable, versioned style directives (FR-2; spec §3).
+model Motif {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  key         String // visionary, competitive, succinct, sincere, exclusive, social, informative
+  name        String
+  directive   Json     @default("{}") // voice, evidence type, CTA pattern
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, key])
+  @@map("motifs")
+}
+
+model MotifDefault {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  tier        Int?
+  audience    String?
+  channel     String? // null = article default; e.g. "social" for channel mapping
+  motifMix    Json     @default("{}") @map("motif_mix") // { motifKey: weight }
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("motif_defaults")
+}
+
+model SeoSettings {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @unique @map("workspace_id") @db.Uuid
+  plugin      SeoPlugin @default(squirrly)
+  blogSlugRule BlogSlugRule @default(needs_confirmation) @map("blog_slug_rule")
+  slugRules   Json      @default("{}") @map("slug_rules") // per content type
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("seo_settings")
+}
+
+// ============================================================================
+// Strategy & knowledge (FR-3, FR-4)
+// ============================================================================
+
+model SmeProfile {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  name        String
+  title       String?
+  profile     Json     @default("{}") // experience, expertise, opinions, case studies, always/never say
+  version     Int      @default(1)
+  createdBy   String?  @map("created_by") @db.Uuid
+  updatedBy   String?  @map("updated_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  articles  Article[]
+
+  @@index([workspaceId])
+  @@map("sme_profiles")
+}
+
+model Keyword {
+  id           String         @id @default(uuid()) @db.Uuid
+  workspaceId  String         @map("workspace_id") @db.Uuid
+  tier         Int // 1..4
+  phrase       String
+  service      String?
+  audience     String?
+  intent       KeywordIntent?
+  targetPageId String?        @map("target_page_id") @db.Uuid
+  // volume/difficulty are populated ONLY from real research integrations — never invented.
+  volume       Int?
+  difficulty   Int?
+  notes        String?
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  targetPage Page?     @relation(fields: [targetPageId], references: [id])
+
+  @@index([workspaceId])
+  @@index([targetPageId])
+  @@map("keywords")
+}
+
+model Page {
+  id                String   @id @default(uuid()) @db.Uuid
+  workspaceId       String   @map("workspace_id") @db.Uuid
+  url               String
+  pageType          PageType @map("page_type")
+  primaryKeyword    String?  @map("primary_keyword")
+  secondaryKeywords Json     @default("[]") @map("secondary_keywords")
+  suggestedH1       String?  @map("suggested_h1")
+  suggestedTitle    String?  @map("suggested_title")
+  suggestedMeta     String?  @map("suggested_meta")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  keywords       Keyword[]
+  ideas          Idea[]
+  // internal-link graph: pages that link out / in
+  linksFrom      PageLink[] @relation("linksFrom")
+  linksTo        PageLink[] @relation("linksTo")
+
+  @@index([workspaceId])
+  @@map("pages")
+}
+
+// Internal-link graph edges derived from page mapping (FR-4, FR-7).
+model PageLink {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  fromPageId  String   @map("from_page_id") @db.Uuid
+  toPageId    String   @map("to_page_id") @db.Uuid
+  anchorText  String?  @map("anchor_text")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  fromPage  Page      @relation("linksFrom", fields: [fromPageId], references: [id], onDelete: Cascade)
+  toPage    Page      @relation("linksTo", fields: [toPageId], references: [id], onDelete: Cascade)
+
+  @@unique([fromPageId, toPageId])
+  @@index([workspaceId])
+  @@map("page_links")
+}
+
+// ============================================================================
+// Content pipeline (FR-5, FR-6, FR-7, FR-8, FR-12, FR-17)
+// ============================================================================
+
+model Idea {
+  id              String     @id @default(uuid()) @db.Uuid
+  workspaceId     String     @map("workspace_id") @db.Uuid
+  title           String
+  source          IdeaSource
+  score           Float?
+  tier            Int?
+  audience        String?
+  targetPageId    String?    @map("target_page_id") @db.Uuid
+  suggestedMotifs Json       @default("{}") @map("suggested_motifs")
+  status          IdeaStatus @default(discovered)
+  dedupeOf        String?    @map("dedupe_of") @db.Uuid // existing article it duplicates
+  createdBy       String?    @map("created_by") @db.Uuid
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  targetPage  Page?     @relation(fields: [targetPageId], references: [id])
+  dedupeOfRef Article?  @relation("ideaDedupe", fields: [dedupeOf], references: [id])
+  articles    Article[] @relation("ideaArticles")
+
+  @@index([workspaceId])
+  @@index([status])
+  @@map("ideas")
+}
+
+// Central content record. `wordpress_post_id` is the system-of-record link.
+model Article {
+  id              String       @id @default(uuid()) @db.Uuid
+  workspaceId     String       @map("workspace_id") @db.Uuid
+  ideaId          String?      @map("idea_id") @db.Uuid
+  title           String
+  state           ArticleState @default(drafting)
+  tier            Int?         @db.SmallInt
+  audience        String?
+  motifMix        Json         @default("{}") @map("motif_mix")
+  smeProfileId    String?      @map("sme_profile_id") @db.Uuid
+  body            String?
+  wordpressPostId BigInt?      @map("wordpress_post_id")
+  publishedUrl    String?      @map("published_url")
+  refreshOf       String?      @map("refresh_of") @db.Uuid // refresh lineage (Open Decision #2)
+  createdBy       String?      @map("created_by") @db.Uuid
+  updatedBy       String?      @map("updated_by") @db.Uuid
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace      Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  idea           Idea?            @relation("ideaArticles", fields: [ideaId], references: [id])
+  smeProfile     SmeProfile?      @relation(fields: [smeProfileId], references: [id])
+  refreshOfRef   Article?         @relation("articleRefresh", fields: [refreshOf], references: [id])
+  refreshes      Article[]        @relation("articleRefresh")
+  dedupingIdeas  Idea[]           @relation("ideaDedupe")
+  versions       ArticleVersion[]
+  citations      Citation[]
+  seoOutput      SeoOutput?
+  assets         Asset[]
+  socialVariants SocialVariant[]
+  approvals      Approval[]
+  analytics      AnalyticsSnapshot[]
+
+  @@index([workspaceId])
+  @@index([state])
+  @@map("articles")
+}
+
+model ArticleVersion {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  articleId   String   @map("article_id") @db.Uuid
+  version     Int
+  title       String
+  body        String?
+  motifMix    Json     @default("{}") @map("motif_mix")
+  snapshot    Json     @default("{}") // full immutable snapshot for diffs
+  createdBy   String?  @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, version])
+  @@index([workspaceId])
+  @@map("article_versions")
+}
+
+// Source dossier (FR-6 hard rule). Publish blocked while any evidence-bearing
+// claim is unverified.
+model Citation {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  articleId   String   @map("article_id") @db.Uuid
+  claimText   String   @map("claim_text")
+  sourceUrl   String?  @map("source_url")
+  sourceTitle String?  @map("source_title")
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([articleId])
+  @@map("citations")
+}
+
+model SeoOutput {
+  id                String   @id @default(uuid()) @db.Uuid
+  workspaceId       String   @map("workspace_id") @db.Uuid
+  articleId         String   @unique @map("article_id") @db.Uuid
+  slug              String?
+  title             String?
+  titleFallback     String?  @map("title_fallback")
+  meta              String?
+  focusKeyword      String?  @map("focus_keyword")
+  secondaryKeywords Json     @default("[]") @map("secondary_keywords")
+  canonical         String?
+  ogTitle           String?  @map("og_title")
+  ogDesc            String?  @map("og_desc")
+  internalLinks     Json     @default("[]") @map("internal_links")
+  publisherNotes    String?  @map("publisher_notes")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("seo_outputs")
+}
+
+// FR-8 — article cannot reach `published` without a featured AND a branded OG
+// asset at workspace dimensions, each with alt text. Enforced in service layer.
+model Asset {
+  id          String      @id @default(uuid()) @db.Uuid
+  workspaceId String      @map("workspace_id") @db.Uuid
+  articleId   String      @map("article_id") @db.Uuid
+  kind        AssetKind
+  url         String?
+  width       Int?
+  height      Int?
+  altText     String?     @map("alt_text")
+  decorative  Boolean     @default(false)
+  status      AssetStatus @default(pending)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([articleId])
+  @@map("assets")
+}
+
+model SocialVariant {
+  id           String              @id @default(uuid()) @db.Uuid
+  workspaceId  String              @map("workspace_id") @db.Uuid
+  articleId    String              @map("article_id") @db.Uuid
+  platform     SocialPlatform
+  body         String?
+  imageAssetId String?             @map("image_asset_id") @db.Uuid
+  motif        String?
+  scheduledAt  DateTime?           @map("scheduled_at") @db.Timestamptz
+  uniplePostId String?             @map("uniple_post_id")
+  status       SocialVariantStatus @default(draft)
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([articleId])
+  @@map("social_variants")
+}
+
+// ============================================================================
+// Automation, workflow & ops (FR-10, FR-13, FR-14, FR-16)
+// ============================================================================
+
+model Schedule {
+  id           String   @id @default(uuid()) @db.Uuid
+  workspaceId  String   @map("workspace_id") @db.Uuid
+  contentTrack String   @map("content_track") // e.g. cornerstone, supporting
+  cadence      Json     @default("{}") // rule definition
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("schedules")
+}
+
+model Run {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  mode        AutomationMode
+  status      RunStatus @default(queued)
+  inputs      Json      @default("{}")
+  logs        Json      @default("[]")
+  startedAt   DateTime? @map("started_at") @db.Timestamptz
+  finishedAt  DateTime? @map("finished_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  jobs      Job[]
+
+  @@index([workspaceId])
+  @@map("runs")
+}
+
+model Job {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  runId       String?   @map("run_id") @db.Uuid
+  queue       String
+  name        String
+  status      JobStatus @default(queued)
+  attempts    Int       @default(0)
+  payload     Json      @default("{}")
+  result      Json?
+  error       String?
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  run       Run?      @relation(fields: [runId], references: [id])
+
+  @@index([workspaceId])
+  @@index([runId])
+  @@map("jobs")
+}
+
+model AutomationSetting {
+  id             String         @id @default(uuid()) @db.Uuid
+  workspaceId    String         @map("workspace_id") @db.Uuid
+  contentType    String         @map("content_type")
+  mode           AutomationMode @default(manual)
+  autoPublish    Boolean        @default(false) @map("auto_publish")
+  spendCap       Decimal?       @map("spend_cap") @db.Decimal(10, 2)
+  maxAutoPublish Int            @default(0) @map("max_auto_publish")
+  quietHours     Json           @default("{}") @map("quiet_hours")
+  globalPause    Boolean        @default(false) @map("global_pause")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, contentType])
+  @@map("automation_settings")
+}
+
+model Approval {
+  id          String           @id @default(uuid()) @db.Uuid
+  workspaceId String           @map("workspace_id") @db.Uuid
+  articleId   String           @map("article_id") @db.Uuid
+  gate        ApprovalGate
+  reviewerId  String?          @map("reviewer_id") @db.Uuid
+  decision    ApprovalDecision?
+  reason      String?
+  decidedAt   DateTime?        @map("decided_at") @db.Timestamptz
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([articleId])
+  @@map("approvals")
+}
+
+// Per workspace per provider. OAuth tokens/config stored ENCRYPTED at rest.
+model Connection {
+  id          String             @id @default(uuid()) @db.Uuid
+  workspaceId String             @map("workspace_id") @db.Uuid
+  provider    ConnectionProvider
+  status      ConnectionStatus   @default(disconnected)
+  // ciphertext only — encrypted with TOKEN_ENCRYPTION_KEY before persistence.
+  credentials Json?
+  config      Json               @default("{}")
+  createdAt   DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, provider])
+  @@map("connections")
+}
+
+model AnalyticsSnapshot {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  articleId   String   @map("article_id") @db.Uuid
+  capturedAt  DateTime @map("captured_at") @db.Timestamptz
+  impressions Int?
+  clicks      Int?
+  position    Float?
+  sessions    Int?
+  conversions Int?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  article   Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([articleId])
+  @@map("analytics_snapshots")
+}
+
+model Notification {
+  id          String              @id @default(uuid()) @db.Uuid
+  workspaceId String              @map("workspace_id") @db.Uuid
+  channel     NotificationChannel @default(in_app)
+  recipientId String?             @map("recipient_id") @db.Uuid
+  type        String
+  payload     Json                @default("{}")
+  readAt      DateTime?           @map("read_at") @db.Timestamptz
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("notifications")
+}
+
+// FR-6 / NFR — every state transition, AI action, edit, approval, override,
+// and publish is written here.
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  actorId     String?  @map("actor_id") @db.Uuid // null = system/AI
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String?  @map("entity_id") @db.Uuid
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([entityType, entityId])
+  @@map("audit_log")
+}
