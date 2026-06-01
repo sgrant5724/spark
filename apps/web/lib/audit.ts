@@ -1,5 +1,5 @@
 import "server-only";
-import { withWorkspace } from "@spark/db";
+import { Prisma, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 
 /**
@@ -26,7 +26,14 @@ export async function writeAudit(params: {
 
   await withWorkspace(db, workspaceId, async (tx) => {
     await tx.auditLog.create({
-      data: { workspaceId, actorId, action, entityType, entityId, metadata },
+      data: {
+        workspaceId,
+        actorId,
+        action,
+        entityType,
+        entityId,
+        metadata: metadata as Prisma.InputJsonValue,
+      },
     });
   });
 }

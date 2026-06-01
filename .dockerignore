@@ -1,0 +1,14 @@
+.git
+**/node_modules
+node_modules
+**/.next
+.next
+**/dist
+dist
+**/*.tsbuildinfo
+*.log
+install.log
+.env
+.env.*
+!.env.example
+packages/db/prisma/generated

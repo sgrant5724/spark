@@ -113,6 +113,51 @@ the four-tier keyword model, pages, and the internal-link graph).
 > First migration: `pnpm db:migrate` will prompt for a migration name (e.g. `init`) and
 > generate `packages/db/prisma/migrations/`. In CI we use `migrate:deploy`.
 
+## Deploying to Railway
+
+The repo is Railway-ready for the **web** service via the root [`Dockerfile`](Dockerfile) +
+[`railway.json`](railway.json). The build installs the workspace, generates the Prisma
+client, builds Next.js, then on start runs `prisma migrate deploy` + `rls.sql` before
+booting the server ([`scripts/railway-start.sh`](scripts/railway-start.sh)).
+
+**In the Railway dashboard** (these need your login — I can't click them for you):
+
+1. **New Service → GitHub Repo →** select `sgrant5724/spark`. Railway reads `railway.json`
+   and builds with the Dockerfile.
+2. **Variables** (reference your existing Postgres plugin):
+   - `DATABASE_URL = ${{Postgres.DATABASE_URL}}` — owner role; used for migrate / RLS / seed.
+   - `APP_DATABASE_URL` — the non-owner `spark_app` URL (see the RLS note below). Until you
+     set it, it falls back to `DATABASE_URL` and **RLS is not enforced**.
+   - `AUTH_SECRET` = output of `openssl rand -base64 32`.
+   - `AUTH_URL` = the service's public URL (e.g. `https://spark-web.up.railway.app`).
+   - `TOKEN_ENCRYPTION_KEY` = output of `openssl rand -base64 32`.
+   - SSO (optional): `GOOGLE_*` / `MICROSOFT_*` client id + secret, with the Railway callback URL.
+3. **Deploy.** Migrations + RLS run automatically on start.
+4. **Seed once:** `railway run pnpm db:seed` (LSI Media workspace, 7 motifs, keywords, users).
+5. **Activate a login:** `railway run pnpm --filter @spark/db set-password sabine@lsi-media.com 'your-pw'`.
+
+### RLS in production (important)
+
+Railway's default DB user is the superuser `postgres`, which **bypasses RLS** — so tenant
+isolation is only truly enforced once the runtime connects as a non-owner role. The first
+deploy's `rls.sql` creates `spark_app`. Set its password and point `APP_DATABASE_URL` at it:
+
+```sql
+-- once, via `railway connect Postgres`
+ALTER ROLE spark_app WITH LOGIN PASSWORD 'a-strong-password';
+```
+
+```
+APP_DATABASE_URL = postgresql://spark_app:a-strong-password@<host>:<port>/<db>
+```
+
+(Same host/db as `DATABASE_URL`, user swapped.) The web runtime uses `APP_DATABASE_URL`;
+migrations and seed keep using `DATABASE_URL`.
+
+> The **API** (NestJS) isn't deployed by this config yet — add a second Railway service with
+> its own Dockerfile when it has endpoints. **Redis** (BullMQ) isn't needed until
+> scheduled/autonomous jobs land (V1); add a Railway Redis plugin and set `REDIS_URL` then.
+
 ## Non-negotiable guardrails (enforced as the build grows)
 
 1. **Tenant isolation** — RLS on every tenant table; no cross-workspace access.

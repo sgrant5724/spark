@@ -10,6 +10,7 @@
   "scripts": {
     "db:generate": "pnpm --filter @spark/db generate",
     "db:migrate": "pnpm --filter @spark/db migrate",
+    "db:migrate:deploy": "pnpm --filter @spark/db migrate:deploy",
     "db:rls": "pnpm --filter @spark/db rls",
     "db:seed": "pnpm --filter @spark/db seed",
     "db:setup": "pnpm db:migrate && pnpm db:rls && pnpm db:seed",
@@ -22,5 +23,13 @@
   "devDependencies": {
     "prettier": "^3.3.3",
     "typescript": "^5.6.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild"
+    ]
   }
 }
