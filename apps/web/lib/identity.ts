@@ -14,11 +14,13 @@ const globalForPrisma = globalThis as unknown as {
   sparkIdentity?: PrismaClient;
 };
 
+// Omit datasources when DATABASE_URL is absent (build time) so construction
+// never throws; it only connects when a request actually uses it.
+const url = process.env.DATABASE_URL;
+
 export const identity =
   globalForPrisma.sparkIdentity ??
-  new PrismaClient({
-    datasources: { db: { url: process.env.DATABASE_URL } },
-  });
+  new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
 
 if (process.env.NODE_ENV !== "production")
   globalForPrisma.sparkIdentity = identity;

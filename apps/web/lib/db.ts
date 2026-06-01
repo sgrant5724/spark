@@ -9,12 +9,13 @@ import { PrismaClient } from "@spark/db";
  */
 const globalForPrisma = globalThis as unknown as { sparkDb?: PrismaClient };
 
+// Pass datasources only when a URL exists. At build time (Docker / page-data
+// collection) no DB env is set; omitting datasources lets the client construct
+// without throwing, and nothing connects until a request hits it.
+const url = process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL;
+
 export const db =
   globalForPrisma.sparkDb ??
-  new PrismaClient({
-    datasources: {
-      db: { url: process.env.APP_DATABASE_URL ?? process.env.DATABASE_URL },
-    },
-  });
+  new PrismaClient(url ? { datasources: { db: { url } } } : undefined);
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.sparkDb = db;

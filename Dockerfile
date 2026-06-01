@@ -16,10 +16,15 @@ WORKDIR /app
 COPY . .
 RUN pnpm install --frozen-lockfile
 
-# Generate the Prisma client, then build the web app. AUTH_SECRET is only needed
-# so the build can resolve the auth config; Railway supplies the real one at runtime.
+# Generate the Prisma client, then build the web app. AUTH_SECRET and a
+# placeholder DATABASE_URL are only needed so module-load code (auth config +
+# PrismaClient construction) resolves during Next's build-time page-data
+# collection. Nothing connects at build (all routes are dynamic); Railway
+# injects the real values at runtime.
 RUN pnpm db:generate
-RUN AUTH_SECRET=build-only-not-used pnpm --filter @spark/web build
+RUN AUTH_SECRET=build-only-not-used \
+    DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public" \
+    pnpm --filter @spark/web build
 
 ENV NODE_ENV=production
 # Railway injects PORT; Next `start` honours it.
