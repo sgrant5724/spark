@@ -183,6 +183,101 @@ export async function verifyCitation(formData: FormData): Promise<void> {
   revalidatePath(`/w/${slug}/content/${articleId}`);
 }
 
+// ---- SEO output generation (FR-7) — deterministic, no invented data ------------
+export async function generateSeo(formData: FormData): Promise<void> {
+  const slug = String(formData.get("slug"));
+  const id = String(formData.get("id"));
+  const { userId, workspaceId } = await requireEditor(slug);
+
+  await withWorkspace(db, workspaceId, async (tx) => {
+    const article = await tx.article.findFirst({ where: { id, workspaceId } });
+    if (!article) throw new Error("Article not found.");
+    const seoSettings = await tx.seoSettings.findUnique({ where: { workspaceId } });
+    const workspace = await tx.workspace.findFirst({ where: { id: workspaceId } });
+
+    // Focus keyword: best keyword whose phrase appears in the title, else tier-best.
+    const keywords = await tx.keyword.findMany({
+      where: { workspaceId },
+      orderBy: { tier: "asc" },
+    });
+    const titleLc = article.title.toLowerCase();
+    const focus =
+      keywords.find((k) => titleLc.includes(k.phrase.toLowerCase())) ?? keywords[0] ?? null;
+    const secondary = keywords
+      .filter((k) => k.id !== focus?.id && (k.audience ?? "") === (article.audience ?? ""))
+      .slice(0, 3)
+      .map((k) => k.phrase);
+
+    // Internal links: prefer the focus keyword's target page + linked pages.
+    const pages = await tx.page.findMany({ where: { workspaceId }, take: 50 });
+    const internalLinks: Array<{ url: string; anchor: string }> = [];
+    const target = pages.find((p) => p.id === focus?.targetPageId);
+    if (target) internalLinks.push({ url: target.url, anchor: target.primaryKeyword ?? target.url });
+    for (const p of pages) {
+      if (internalLinks.length >= 3) break;
+      if (p.id !== target?.id && p.pageType !== "blog") {
+        internalLinks.push({ url: p.url, anchor: p.primaryKeyword ?? p.url });
+      }
+    }
+
+    const { slugify, firstParagraphText, clampText, seoTitle } = await import("@/lib/checks");
+    const slugRule = seoSettings?.blogSlugRule ?? "needs_confirmation";
+    const path = slugify(article.title);
+    const slugValue = slugRule === "blog_prefix" ? `/blog/${path}/` : `/${path}/`;
+    const meta = clampText(firstParagraphText(article.body), 155);
+    const titleTag = seoTitle(article.title, workspace?.name);
+
+    const publisherNotes = [
+      `Focus keyword: ${focus?.phrase ?? "none in workbook — add one in Strategy"}${focus ? ` (T${focus.tier})` : ""}.`,
+      `Content tier: ${article.tier ?? "unset"}; audience: ${article.audience ?? "unset"}.`,
+      `Internal links: ${internalLinks.map((l) => l.url).join(", ") || "none available"}.`,
+      slugRule === "needs_confirmation"
+        ? "⚠ Blog slug rule unconfirmed (root vs /blog/) — confirm in Settings before publish."
+        : `Slug rule: ${slugRule}.`,
+      `Rendered for plugin: ${seoSettings?.plugin ?? "squirrly"}.`,
+    ].join("\n");
+
+    await tx.seoOutput.upsert({
+      where: { articleId: id },
+      update: {
+        slug: slugValue,
+        title: titleTag,
+        titleFallback: clampText(article.title, 60),
+        meta,
+        focusKeyword: focus?.phrase ?? null,
+        secondaryKeywords: secondary as Prisma.InputJsonValue,
+        ogTitle: clampText(article.title, 60),
+        ogDesc: meta,
+        internalLinks: internalLinks as Prisma.InputJsonValue,
+        publisherNotes,
+      },
+      create: {
+        workspaceId,
+        articleId: id,
+        slug: slugValue,
+        title: titleTag,
+        titleFallback: clampText(article.title, 60),
+        meta,
+        focusKeyword: focus?.phrase ?? null,
+        secondaryKeywords: secondary as Prisma.InputJsonValue,
+        ogTitle: clampText(article.title, 60),
+        ogDesc: meta,
+        internalLinks: internalLinks as Prisma.InputJsonValue,
+        publisherNotes,
+      },
+    });
+  });
+
+  await writeAudit({
+    workspaceId,
+    actorId: userId,
+    action: "article.seo_generated",
+    entityType: "seo_output",
+    entityId: id,
+  });
+  revalidatePath(`/w/${slug}/content/${id}`);
+}
+
 // ---- Workflow transitions (FR-10) -----------------------------------------------
 export async function transitionArticle(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug"));
@@ -203,6 +298,22 @@ export async function transitionArticle(formData: FormData): Promise<void> {
     const needed = TRANSITION_PERMISSION[target] ?? "content.edit";
     if (!can(role, needed)) {
       throw new Error(`Your role can't move an article to ${target}.`);
+    }
+
+    // Automated pre-gates (FR-10): a11y checks + SEO output must exist before
+    // an article can leave SEO + A11y review.
+    if (target === "assets_pending") {
+      const { runA11yChecks } = await import("@/lib/checks");
+      const failures = runA11yChecks(article.body, article.title).filter((c) => !c.pass);
+      if (failures.length > 0) {
+        throw new Error(
+          "Accessibility pre-checks failing: " + failures.map((f) => f.label).join("; "),
+        );
+      }
+      const seo = await tx.seoOutput.findUnique({ where: { articleId: id } });
+      if (!seo) {
+        throw new Error("Generate the SEO fields before approving this stage.");
+      }
     }
 
     // Truthfulness gate: nothing advances past review with unverified claims.

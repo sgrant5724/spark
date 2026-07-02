@@ -10,10 +10,12 @@ import {
 } from "@spark/shared";
 import {
   generateDraft,
+  generateSeo,
   saveArticle,
   verifyCitation,
   transitionArticle,
 } from "../actions";
+import { runA11yChecks } from "@/lib/checks";
 
 const inputCls =
   "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue";
@@ -46,6 +48,7 @@ export default async function ArticlePage({
       include: {
         citations: { orderBy: { createdAt: "asc" } },
         versions: { orderBy: { version: "desc" }, take: 5 },
+        seoOutput: true,
       },
     });
     const smeProfiles = await tx.smeProfile.findMany({
@@ -58,6 +61,8 @@ export default async function ArticlePage({
   const article = data.article;
 
   const unverified = article.citations.filter((c) => !c.verified);
+  const a11y = runA11yChecks(article.body, article.title);
+  const seo = article.seoOutput;
   const targets = (ARTICLE_TRANSITIONS[article.state as ArticleStateName] ?? []).filter(
     (t) => TARGET_LABELS[t],
   );
@@ -189,6 +194,81 @@ export default async function ArticlePage({
                   </li>
                 ))}
               </ul>
+            )}
+          </section>
+
+          <section className="rounded-brand border border-lightblue bg-white p-4">
+            <h2 className="mb-2 font-display text-sm font-semibold text-ink">Accessibility (WCAG 2.1 AA)</h2>
+            <ul className="space-y-1.5">
+              {a11y.map((c) => (
+                <li key={c.id} className="flex items-start gap-2 text-xs">
+                  <span className={c.pass ? "text-blue" : "text-orange"} aria-hidden>
+                    {c.pass ? "✓" : "✕"}
+                  </span>
+                  <span className={c.pass ? "text-ink/70" : "text-orange"}>
+                    {c.label}
+                    {!c.pass && c.detail ? ` — ${c.detail}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="rounded-brand border border-lightblue bg-white p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="font-display text-sm font-semibold text-ink">SEO</h2>
+              {canEdit && (
+                <form action={generateSeo}>
+                  <input type="hidden" name="slug" value={slug} />
+                  <input type="hidden" name="id" value={article.id} />
+                  <button className="rounded bg-blue px-2.5 py-1 text-[0.65rem] font-semibold text-white">
+                    {seo ? "Regenerate" : "Generate SEO fields"}
+                  </button>
+                </form>
+              )}
+            </div>
+            {!seo ? (
+              <p className="text-xs text-ink/50">
+                Slug, title, meta, focus keyword, and internal links — derived
+                from the strategy workbook, never invented.
+              </p>
+            ) : (
+              <dl className="space-y-2 text-xs">
+                <div>
+                  <dt className="text-[0.6rem] uppercase tracking-wide text-ink/50">
+                    Title · {seo.title?.length ?? 0}/60
+                  </dt>
+                  <dd className="text-ink">{seo.title}</dd>
+                </div>
+                <div>
+                  <dt className="text-[0.6rem] uppercase tracking-wide text-ink/50">
+                    Meta · {seo.meta?.length ?? 0}/155
+                  </dt>
+                  <dd className="text-ink">{seo.meta || "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-[0.6rem] uppercase tracking-wide text-ink/50">Slug</dt>
+                  <dd className="text-ink">{seo.slug}</dd>
+                </div>
+                <div>
+                  <dt className="text-[0.6rem] uppercase tracking-wide text-ink/50">Focus keyword</dt>
+                  <dd className="text-ink">{seo.focusKeyword ?? "— none matched"}</dd>
+                </div>
+                <div>
+                  <dt className="text-[0.6rem] uppercase tracking-wide text-ink/50">Internal links</dt>
+                  <dd className="text-ink">
+                    {((seo.internalLinks as Array<{ url: string }>) ?? [])
+                      .map((l) => l.url)
+                      .join(" · ") || "—"}
+                  </dd>
+                </div>
+                {seo.publisherNotes && (
+                  <div>
+                    <dt className="text-[0.6rem] uppercase tracking-wide text-ink/50">Publisher notes</dt>
+                    <dd className="whitespace-pre-line text-ink/70">{seo.publisherNotes}</dd>
+                  </div>
+                )}
+              </dl>
             )}
           </section>
 
