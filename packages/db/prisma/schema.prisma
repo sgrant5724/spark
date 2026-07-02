@@ -267,6 +267,7 @@ model Workspace {
 
   organization       Organization        @relation(fields: [organizationId], references: [id])
   memberships        Membership[]
+  orgProfile         OrgProfile?
   brandKit           BrandKit?
   headingStyles      HeadingStyle[]
   imageSpec          ImageSpec?
@@ -350,6 +351,28 @@ model BrandKit {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@map("brand_kits")
+}
+
+// "What this client does" — the organization knowledge that grounds every AI
+// output for the workspace (industry, services, audiences, differentiators).
+model OrgProfile {
+  id              String   @id @default(uuid()) @db.Uuid
+  workspaceId     String   @unique @map("workspace_id") @db.Uuid
+  description     String? // plain-language: what the company does
+  industry        String?
+  services        Json     @default("[]") // [{name, blurb}]
+  audiences       Json     @default("[]") // [{name, notes}]
+  differentiators String? // why clients choose them
+  credentials     String? // certifications, partnerships (real only)
+  toneNotes       String?  @map("tone_notes") // brand voice guardrails
+  websiteUrl      String?  @map("website_url")
+  updatedBy       String?  @map("updated_by") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("org_profiles")
 }
 
 // FR-2 — article-scoped heading styles (px). Visual only; never alters semantic order.

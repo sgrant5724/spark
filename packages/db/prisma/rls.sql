@@ -43,7 +43,7 @@ do $$
 declare
   t text;
   tenant_tables text[] := array[
-    'memberships','brand_kits','heading_styles','image_specs',
+    'memberships','org_profiles','brand_kits','heading_styles','image_specs',
     'rendering_profiles','motifs','motif_defaults','seo_settings',
     'sme_profiles','keywords','pages','page_links','ideas','articles',
     'article_versions','citations','seo_outputs','assets','social_variants',
