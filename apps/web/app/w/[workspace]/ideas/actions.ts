@@ -150,6 +150,72 @@ export async function setIdeaStatus(formData: FormData): Promise<void> {
   revalidatePath(`/w/${slug}/ideas`);
 }
 
+// ---- One-click pipeline run (FR-13, manual-trigger flavor) --------------------
+// For each approved idea without an article yet: create the article, generate
+// the draft, and park it at draft_review — the human gate. Capped per run to
+// bound LLM cost/latency; re-run to process more.
+export async function runPipeline(formData: FormData): Promise<void> {
+  const slug = String(formData.get("slug"));
+  const { userId, workspaceId } = await requireStrategist(slug);
+  const CAP = 2;
+
+  const ideas = await withWorkspace(db, workspaceId, (tx) =>
+    tx.idea.findMany({
+      where: { workspaceId, status: IdeaStatus.approved, articles: { none: {} } },
+      orderBy: { createdAt: "asc" },
+      take: CAP,
+    }),
+  );
+
+  const { generateDraftCore } = await import("@/lib/pipeline");
+  let processed = 0;
+  for (const idea of ideas) {
+    const article = await withWorkspace(db, workspaceId, (tx) =>
+      tx.article.create({
+        data: {
+          workspaceId,
+          ideaId: idea.id,
+          title: idea.title,
+          state: "drafting",
+          tier: idea.tier,
+          audience: idea.audience,
+          motifMix: (idea.suggestedMotifs ?? {}) as Prisma.InputJsonValue,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+      }),
+    );
+    await generateDraftCore(workspaceId, userId, article.id);
+    await withWorkspace(db, workspaceId, async (tx) => {
+      await tx.article.update({
+        where: { id: article.id },
+        data: { state: "draft_review", updatedBy: userId },
+      });
+      await tx.approval.create({
+        data: {
+          workspaceId,
+          articleId: article.id,
+          gate: "draft_review",
+          reviewerId: null,
+          decision: null, // parked at the human gate — awaiting a reviewer
+        },
+      });
+    });
+    processed++;
+  }
+
+  await writeAudit({
+    workspaceId,
+    actorId: userId,
+    action: "pipeline.run",
+    entityType: "article",
+    metadata: { processed, capped: ideas.length === CAP },
+  });
+  revalidatePath(`/w/${slug}/ideas`);
+  revalidatePath(`/w/${slug}/content`);
+  revalidatePath(`/w/${slug}/workflow`);
+}
+
 // ---- Approve → send to draft (creates the Article) ---------------------------
 export async function sendToDraft(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug"));

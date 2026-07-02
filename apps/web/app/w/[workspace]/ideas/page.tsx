@@ -2,7 +2,7 @@ import { IdeaStatus, withWorkspace } from "@spark/db";
 import { can } from "@spark/shared";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
-import { createIdea, discoverIdeas, setIdeaStatus, sendToDraft } from "./actions";
+import { createIdea, discoverIdeas, runPipeline, setIdeaStatus, sendToDraft } from "./actions";
 
 const COLUMNS: Array<{ status: IdeaStatus; title: string }> = [
   { status: IdeaStatus.discovered, title: "Discovered" },
@@ -52,12 +52,23 @@ export default async function IdeasPage({
       <header className="mb-2 flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-bold text-ink">Idea Engine</h1>
         {canManage && (
-          <form action={discoverIdeas}>
-            <input type="hidden" name="slug" value={slug} />
-            <button className="rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
-              ✦ Discover ideas (AI)
-            </button>
-          </form>
+          <div className="flex flex-wrap gap-2">
+            <form action={runPipeline}>
+              <input type="hidden" name="slug" value={slug} />
+              <button
+                className="rounded-lg bg-blue px-4 py-2 font-display text-sm font-semibold text-white"
+                title="Auto-draft up to 2 approved ideas and park them at draft review"
+              >
+                ⚡ Auto-draft approved
+              </button>
+            </form>
+            <form action={discoverIdeas}>
+              <input type="hidden" name="slug" value={slug} />
+              <button className="rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
+                ✦ Discover ideas (AI)
+              </button>
+            </form>
+          </div>
         )}
       </header>
       <p className="mb-6 max-w-2xl text-sm text-ink/60">
@@ -117,11 +128,22 @@ export default async function IdeasPage({
                       <div className="mt-2 flex flex-wrap gap-2 border-t border-paper pt-2">
                         {idea.status === IdeaStatus.discovered && (
                           <>
+                            <form action={setIdeaStatus}>
+                              <input type="hidden" name="slug" value={slug} />
+                              <input type="hidden" name="id" value={idea.id} />
+                              <input type="hidden" name="status" value="approved" />
+                              <button
+                                className="text-xs font-semibold text-blue underline"
+                                title="Approve for the auto-draft queue"
+                              >
+                                Approve
+                              </button>
+                            </form>
                             <form action={sendToDraft}>
                               <input type="hidden" name="slug" value={slug} />
                               <input type="hidden" name="id" value={idea.id} />
                               <button className="text-xs font-semibold text-blue underline">
-                                Approve → draft
+                                Draft now
                               </button>
                             </form>
                             <form action={setIdeaStatus}>

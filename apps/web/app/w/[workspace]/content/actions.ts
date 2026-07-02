@@ -5,8 +5,6 @@ import { ArticleState, Prisma, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { writeAudit } from "@/lib/audit";
-import { getLlm } from "@/lib/llm";
-import { buildGroundingContext } from "@/lib/grounding";
 import { ARTICLE_TRANSITIONS, can, type ArticleStateName, type RoleName } from "@spark/shared";
 
 // Which permission gates each transition TARGET. Everything else needs content.edit.
@@ -52,69 +50,14 @@ async function snapshotVersion(
   });
 }
 
-// ---- Generate a draft (FR-6) -------------------------------------------------
+// ---- Generate a draft (FR-6) — core shared with the pipeline run --------------
 export async function generateDraft(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug"));
   const id = String(formData.get("id"));
   const { userId, workspaceId } = await requireEditor(slug);
 
-  const article = await withWorkspace(db, workspaceId, (tx) =>
-    tx.article.findFirst({ where: { id, workspaceId } }),
-  );
-  if (!article) throw new Error("Article not found.");
-
-  const grounding = await buildGroundingContext(workspaceId, {
-    smeProfileId: article.smeProfileId,
-  });
-  const motifMix = (article.motifMix as Record<string, number>) ?? {};
-  const motifLine = Object.entries(motifMix)
-    .map(([k, w]) => `${k} (${Math.round(Number(w) * 100)}%)`)
-    .join(", ");
-
-  const lengthTarget =
-    article.tier && article.tier <= 2 ? "2,000+ words (cornerstone)" : "1,200-1,800 words";
-
-  const system = [
-    "You are Spark's article generator writing a blog draft for the organization below.",
-    "House template (FR-6): (1) question-reframing intro; (2) sectioned body with H2/H3 in strict order; (3) a 'mindset shift' takeaway section; (4) a CTA aligned to the motif; (5) if any evidence-bearing claims exist, a final 'Sources' H2 listing them.",
-    `Voice: blend these motifs — ${motifLine || "informative (100%)"}. The dominant motif sets structure; secondary colors the intro and CTA.`,
-    `Length target: ${lengthTarget}.`,
-    "Output clean semantic HTML ONLY (no <html>/<head>/<body>, no markdown, no code fences). Start with a <p> intro — the H1/title is provided separately. Use <h2>/<h3> for sections, <ul>/<ol> for lists, <blockquote> for pull-quotes.",
-    "Accessibility: descriptive link text, no skipped heading levels, meaningful list structure (WCAG 2.1 AA).",
-    "Truthfulness: NEVER invent statistics, studies, quotes, or citations. If a claim would need evidence, either write it without the claim or mark it inline exactly as [NEEDS SOURCE: short description of the claim].",
-    "",
-    grounding,
-  ].join("\n");
-
-  const llm = getLlm();
-  const body = await llm.complete({
-    system,
-    messages: [
-      { role: "user", content: `Write the article titled: "${article.title}"${article.audience ? ` for the ${article.audience} audience` : ""}.` },
-    ],
-    maxTokens: 8192,
-  });
-
-  // Extract [NEEDS SOURCE: ...] flags into the citation dossier (verified=false).
-  const claims = [...body.matchAll(/\[NEEDS SOURCE:([^\]]+)\]/g)].map((m) => m[1].trim());
-
-  await withWorkspace(db, workspaceId, async (tx) => {
-    await tx.article.update({
-      where: { id },
-      data: { body, updatedBy: userId },
-    });
-    for (const claim of claims) {
-      const existing = await tx.citation.findFirst({
-        where: { articleId: id, claimText: claim },
-      });
-      if (!existing) {
-        await tx.citation.create({
-          data: { workspaceId, articleId: id, claimText: claim, verified: false },
-        });
-      }
-    }
-    await snapshotVersion(tx, id, workspaceId, userId);
-  });
+  const { generateDraftCore } = await import("@/lib/pipeline");
+  const result = await generateDraftCore(workspaceId, userId, id);
 
   await writeAudit({
     workspaceId,
@@ -122,7 +65,7 @@ export async function generateDraft(formData: FormData): Promise<void> {
     action: "article.generated",
     entityType: "article",
     entityId: id,
-    metadata: { provider: llm.provider, needsSource: claims.length },
+    metadata: { provider: result.provider, needsSource: result.needsSource },
   });
   revalidatePath(`/w/${slug}/content/${id}`);
 }
