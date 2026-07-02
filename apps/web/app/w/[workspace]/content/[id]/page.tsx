@@ -9,6 +9,8 @@ import {
   type RoleName,
 } from "@spark/shared";
 import {
+  addAsset,
+  attachInfographic,
   generateDraft,
   generateSeo,
   saveArticle,
@@ -49,13 +51,22 @@ export default async function ArticlePage({
         citations: { orderBy: { createdAt: "asc" } },
         versions: { orderBy: { version: "desc" }, take: 5 },
         seoOutput: true,
+        assets: { orderBy: { createdAt: "asc" } },
       },
     });
     const smeProfiles = await tx.smeProfile.findMany({
       where: { workspaceId },
       orderBy: { name: "asc" },
     });
-    return { article, smeProfiles };
+    const spec = await tx.imageSpec.findUnique({ where: { workspaceId } });
+    const publishedCount = await tx.article.count({
+      where: {
+        workspaceId,
+        state: { in: ["published", "distributed", "analyzing"] },
+        id: { not: params.id },
+      },
+    });
+    return { article, smeProfiles, spec, publishedCount };
   });
   if (!data.article) notFound();
   const article = data.article;
@@ -63,6 +74,13 @@ export default async function ArticlePage({
   const unverified = article.citations.filter((c) => !c.verified);
   const a11y = runA11yChecks(article.body, article.title);
   const seo = article.seoOutput;
+  const featured = article.assets.find((a) => a.kind === "featured");
+  const og = article.assets.find((a) => a.kind === "og");
+  const infographic = article.assets.find(
+    (a) => a.kind === "inbody" && a.url?.includes("infographic.svg"),
+  );
+  // Every 3rd article gets an infographic (workspace-wide cadence).
+  const infographicDue = (data.publishedCount + 1) % 3 === 0;
   const targets = (ARTICLE_TRANSITIONS[article.state as ArticleStateName] ?? []).filter(
     (t) => TARGET_LABELS[t],
   );
@@ -270,6 +288,93 @@ export default async function ArticlePage({
                 )}
               </dl>
             )}
+          </section>
+
+          <section className="rounded-brand border border-lightblue bg-white p-4">
+            <h2 className="mb-2 font-display text-sm font-semibold text-ink">
+              Assets (required to publish)
+            </h2>
+            <ul className="space-y-3 text-xs">
+              {(
+                [
+                  ["featured", featured, `${data.spec?.featuredW ?? 1920}×${data.spec?.featuredH ?? 1080}`],
+                  ["og", og, `${data.spec?.ogW ?? 1200}×${data.spec?.ogH ?? 630} · branded`],
+                ] as const
+              ).map(([kind, asset, dims]) => (
+                <li key={kind} className="border-t border-paper pt-2 first:border-t-0 first:pt-0">
+                  <p className="flex items-center gap-2">
+                    <span className={asset ? "text-blue" : "text-orange"} aria-hidden>
+                      {asset ? "✓" : "○"}
+                    </span>
+                    <span className="font-semibold uppercase tracking-wide text-ink/70">
+                      {kind === "og" ? "OG image" : "Featured image"}
+                    </span>
+                    <span className="text-ink/40">{dims}px</span>
+                  </p>
+                  {asset ? (
+                    <p className="mt-1 break-all text-[0.65rem] text-ink/60">
+                      {asset.url} · alt: “{asset.altText}”
+                    </p>
+                  ) : canEdit ? (
+                    <form action={addAsset} className="mt-1 space-y-1">
+                      <input type="hidden" name="slug" value={slug} />
+                      <input type="hidden" name="articleId" value={article.id} />
+                      <input type="hidden" name="kind" value={kind} />
+                      <input
+                        name="url"
+                        required
+                        placeholder="Image URL…"
+                        className="w-full rounded border border-lightblue px-2 py-1 text-[0.65rem] outline-none focus:border-blue"
+                      />
+                      <div className="flex gap-1">
+                        <input
+                          name="altText"
+                          required
+                          placeholder="Alt text (required)"
+                          className="w-full rounded border border-lightblue px-2 py-1 text-[0.65rem] outline-none focus:border-blue"
+                        />
+                        <button className="rounded bg-blue px-2 py-1 text-[0.65rem] font-semibold text-white">
+                          Add
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <p className="mt-1 text-[0.65rem] text-orange">Missing</p>
+                  )}
+                </li>
+              ))}
+              <li className="border-t border-paper pt-2">
+                <p className="flex items-center gap-2">
+                  <span className={infographic ? "text-blue" : "text-ink/40"} aria-hidden>
+                    {infographic ? "✓" : "○"}
+                  </span>
+                  <span className="font-semibold uppercase tracking-wide text-ink/70">Infographic</span>
+                  {infographicDue && !infographic && (
+                    <span className="rounded-full border border-yellow bg-yellow/20 px-2 py-0.5 text-[0.6rem] text-ink">
+                      due — every 3rd article
+                    </span>
+                  )}
+                </p>
+                <div className="mt-1 flex items-center gap-2">
+                  <a
+                    href={`/w/${slug}/content/${article.id}/infographic.svg`}
+                    target="_blank"
+                    className="text-[0.65rem] text-blue underline"
+                  >
+                    Preview brand SVG
+                  </a>
+                  {canEdit && !infographic && (
+                    <form action={attachInfographic}>
+                      <input type="hidden" name="slug" value={slug} />
+                      <input type="hidden" name="articleId" value={article.id} />
+                      <button className="rounded bg-blue px-2 py-1 text-[0.65rem] font-semibold text-white">
+                        Attach to article
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </li>
+            </ul>
           </section>
 
           <section className="rounded-brand border border-lightblue bg-white p-4">

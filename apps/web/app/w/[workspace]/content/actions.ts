@@ -278,6 +278,90 @@ export async function generateSeo(formData: FormData): Promise<void> {
   revalidatePath(`/w/${slug}/content/${id}`);
 }
 
+// ---- Assets (FR-8): featured + branded OG required; infographic every 3rd -------
+export async function addAsset(formData: FormData): Promise<void> {
+  const slug = String(formData.get("slug"));
+  const articleId = String(formData.get("articleId"));
+  const kindRaw = String(formData.get("kind"));
+  const url = String(formData.get("url") ?? "").trim();
+  const altText = String(formData.get("altText") ?? "").trim();
+  const { userId, workspaceId } = await requireEditor(slug);
+
+  if (!["featured", "og", "inbody"].includes(kindRaw)) throw new Error("Invalid asset kind.");
+  const kind = kindRaw as "featured" | "og" | "inbody";
+  if (!url) throw new Error("Image URL is required.");
+  if (!altText) throw new Error("Alt text is required for every meaningful image (FR-8).");
+
+  await withWorkspace(db, workspaceId, async (tx) => {
+    const article = await tx.article.findFirst({ where: { id: articleId, workspaceId } });
+    if (!article) throw new Error("Article not found.");
+    const spec = await tx.imageSpec.findUnique({ where: { workspaceId } });
+    const width = kind === "og" ? spec?.ogW ?? 1200 : spec?.featuredW ?? 1920;
+    const height = kind === "og" ? spec?.ogH ?? 630 : spec?.featuredH ?? 1080;
+
+    // One asset per kind for featured/og — replace on re-add.
+    if (kind !== "inbody") {
+      await tx.asset.deleteMany({ where: { articleId, workspaceId, kind } });
+    }
+    await tx.asset.create({
+      data: {
+        workspaceId,
+        articleId,
+        kind,
+        url,
+        width,
+        height,
+        altText,
+        status: "ready",
+      },
+    });
+  });
+
+  await writeAudit({
+    workspaceId,
+    actorId: userId,
+    action: "asset.added",
+    entityType: "asset",
+    entityId: articleId,
+    metadata: { kind },
+  });
+  revalidatePath(`/w/${slug}/content/${articleId}`);
+}
+
+export async function attachInfographic(formData: FormData): Promise<void> {
+  const slug = String(formData.get("slug"));
+  const articleId = String(formData.get("articleId"));
+  const { userId, workspaceId } = await requireEditor(slug);
+
+  await withWorkspace(db, workspaceId, async (tx) => {
+    const article = await tx.article.findFirst({ where: { id: articleId, workspaceId } });
+    if (!article) throw new Error("Article not found.");
+    const existing = await tx.asset.findFirst({
+      where: { articleId, workspaceId, kind: "inbody", url: { contains: "infographic.svg" } },
+    });
+    if (existing) return;
+    await tx.asset.create({
+      data: {
+        workspaceId,
+        articleId,
+        kind: "inbody",
+        url: `/w/${slug}/content/${articleId}/infographic.svg`,
+        altText: `Infographic: key takeaways from "${article.title}"`,
+        status: "ready",
+      },
+    });
+  });
+
+  await writeAudit({
+    workspaceId,
+    actorId: userId,
+    action: "asset.infographic_attached",
+    entityType: "asset",
+    entityId: articleId,
+  });
+  revalidatePath(`/w/${slug}/content/${articleId}`);
+}
+
 // ---- Workflow transitions (FR-10) -----------------------------------------------
 export async function transitionArticle(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug"));
@@ -324,6 +408,15 @@ export async function transitionArticle(formData: FormData): Promise<void> {
       if (unverified > 0) {
         throw new Error(
           `${unverified} claim(s) still need a verified source before this can ship.`,
+        );
+      }
+      // FR-8 gate: featured AND branded OG asset, each with alt text.
+      const assets = await tx.asset.findMany({ where: { articleId: id, workspaceId } });
+      const featured = assets.find((a) => a.kind === "featured" && a.altText);
+      const og = assets.find((a) => a.kind === "og" && a.altText);
+      if (!featured || !og) {
+        throw new Error(
+          "A featured image AND a branded OG image (each with alt text) are required before this can ship (FR-8).",
         );
       }
     }
