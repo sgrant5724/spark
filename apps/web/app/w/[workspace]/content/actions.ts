@@ -362,6 +362,112 @@ export async function attachInfographic(formData: FormData): Promise<void> {
   revalidatePath(`/w/${slug}/content/${articleId}`);
 }
 
+// ---- WordPress publish (FR-11) ---------------------------------------------------
+export async function publishToWordPress(formData: FormData): Promise<void> {
+  const slug = String(formData.get("slug"));
+  const id = String(formData.get("id"));
+  const { userId, membership } = await requireMembership(slug);
+  if (!can(membership.role as RoleName, "content.approve_final")) {
+    throw new Error("Only final approvers can publish.");
+  }
+  const workspaceId = membership.workspaceId;
+
+  const { decryptJson } = await import("@/lib/crypto");
+  const { WpRestAdapter } = await import("@/lib/wordpress");
+  type Enc = import("@/lib/crypto").Encrypted;
+  type Creds = import("@/lib/wordpress").WpCredentials;
+
+  // Assemble everything inside the tenant scope; publish outside the txn.
+  const prep = await withWorkspace(db, workspaceId, async (tx) => {
+    const article = await tx.article.findFirst({
+      where: { id, workspaceId },
+      include: { seoOutput: true, assets: true, citations: true },
+    });
+    if (!article) throw new Error("Article not found.");
+    if (article.state !== "scheduled") {
+      throw new Error("Article must be in 'scheduled' state (final approved) to publish.");
+    }
+    if (article.citations.some((c) => !c.verified)) {
+      throw new Error("Unverified claims remain — publishing is blocked.");
+    }
+    const featured = article.assets.find((a) => a.kind === "featured" && a.altText);
+    const og = article.assets.find((a) => a.kind === "og" && a.altText);
+    if (!featured || !og) throw new Error("Featured + OG images with alt text required (FR-8).");
+    if (!article.seoOutput) throw new Error("Generate SEO fields before publishing.");
+
+    const conn = await tx.connection.findUnique({
+      where: { workspaceId_provider: { workspaceId, provider: "wordpress" } },
+    });
+    if (!conn || conn.status !== "connected" || !conn.credentials) {
+      throw new Error("No connected WordPress site — connect one in Settings → Integrations.");
+    }
+
+    const infographic = article.assets.find(
+      (a) => a.kind === "inbody" && a.url?.includes("infographic.svg"),
+    );
+    let contentHtml = article.body ?? "";
+    if (infographic) {
+      // Note: route URL is workspace-internal; WP needs a public asset. Embed the
+      // figure with the app URL — replaced by media sideload in a later pass.
+      const appUrl = process.env.AUTH_URL?.replace(/\/$/, "") ?? "";
+      contentHtml += `\n<figure><img src="${appUrl}${infographic.url}" alt="${infographic.altText}" width="1200"/><figcaption>Key takeaways</figcaption></figure>`;
+    }
+
+    const slugSegment =
+      article.seoOutput.slug?.split("/").filter(Boolean).pop() ?? article.id;
+
+    return {
+      creds: decryptJson<Creds>(conn.credentials as unknown as Enc),
+      payload: {
+        title: article.title,
+        slug: slugSegment,
+        contentHtml,
+        excerpt: article.seoOutput.meta ?? "",
+        status: "publish" as const,
+        featuredImageUrl: featured.url ?? undefined,
+        featuredImageAlt: featured.altText ?? undefined,
+      },
+    };
+  });
+
+  const adapter = new WpRestAdapter(prep.creds);
+  const result = await adapter.publish(prep.payload);
+
+  await withWorkspace(db, workspaceId, async (tx) => {
+    await tx.article.update({
+      where: { id },
+      data: {
+        state: "published",
+        wordpressPostId: BigInt(result.postId),
+        publishedUrl: result.link,
+        updatedBy: userId,
+      },
+    });
+    await tx.approval.create({
+      data: {
+        workspaceId,
+        articleId: id,
+        gate: "final_approval",
+        reviewerId: userId,
+        decision: "approved",
+        reason: "Published to WordPress",
+        decidedAt: new Date(),
+      },
+    });
+  });
+
+  await writeAudit({
+    workspaceId,
+    actorId: userId,
+    action: "article.published_wordpress",
+    entityType: "article",
+    entityId: id,
+    metadata: { postId: result.postId, link: result.link },
+  });
+  revalidatePath(`/w/${slug}/content/${id}`);
+  revalidatePath(`/w/${slug}/content`);
+}
+
 // ---- Workflow transitions (FR-10) -----------------------------------------------
 export async function transitionArticle(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug"));

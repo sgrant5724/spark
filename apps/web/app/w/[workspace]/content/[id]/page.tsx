@@ -13,6 +13,7 @@ import {
   attachInfographic,
   generateDraft,
   generateSeo,
+  publishToWordPress,
   saveArticle,
   verifyCitation,
   transitionArticle,
@@ -66,7 +67,11 @@ export default async function ArticlePage({
         id: { not: params.id },
       },
     });
-    return { article, smeProfiles, spec, publishedCount };
+    const wpConnection = await tx.connection.findUnique({
+      where: { workspaceId_provider: { workspaceId, provider: "wordpress" } },
+      select: { status: true, config: true },
+    });
+    return { article, smeProfiles, spec, publishedCount, wpConnection };
   });
   if (!data.article) notFound();
   const article = data.article;
@@ -411,6 +416,56 @@ export default async function ArticlePage({
               </div>
             )}
           </section>
+
+          {article.state === "scheduled" && (
+            <section className="rounded-brand border-2 border-orange bg-white p-4">
+              <h2 className="mb-2 font-display text-sm font-semibold text-ink">
+                Publish to WordPress
+              </h2>
+              {data.wpConnection?.status === "connected" ? (
+                <>
+                  <details className="mb-2 rounded-lg border border-lightblue bg-paper p-2 text-xs">
+                    <summary className="cursor-pointer font-semibold text-blue">
+                      Dry run — exactly what will be sent
+                    </summary>
+                    <dl className="mt-2 space-y-1 text-[0.7rem] text-ink/80">
+                      <div><dt className="inline font-semibold">Site: </dt><dd className="inline">{String((data.wpConnection.config as Record<string, unknown>)?.siteUrl ?? "")}</dd></div>
+                      <div><dt className="inline font-semibold">Title: </dt><dd className="inline">{article.title}</dd></div>
+                      <div><dt className="inline font-semibold">Slug: </dt><dd className="inline">{seo?.slug}</dd></div>
+                      <div><dt className="inline font-semibold">Excerpt: </dt><dd className="inline">{seo?.meta}</dd></div>
+                      <div><dt className="inline font-semibold">Featured: </dt><dd className="inline break-all">{featured?.url} (alt: {featured?.altText})</dd></div>
+                      <div><dt className="inline font-semibold">Infographic: </dt><dd className="inline">{infographic ? "embedded as figure" : "none"}</dd></div>
+                      <div><dt className="inline font-semibold">Status: </dt><dd className="inline">publish</dd></div>
+                    </dl>
+                  </details>
+                  {can(role, "content.approve_final") ? (
+                    <form action={publishToWordPress}>
+                      <input type="hidden" name="slug" value={slug} />
+                      <input type="hidden" name="id" value={article.id} />
+                      <button className="w-full rounded-lg bg-orange px-3 py-2 font-display text-sm font-semibold text-white">
+                        🚀 Publish now
+                      </button>
+                    </form>
+                  ) : (
+                    <p className="text-xs text-ink/60">Awaiting a final approver to publish.</p>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-orange">
+                  No connected WordPress site — connect one in Settings → Integrations.
+                </p>
+              )}
+            </section>
+          )}
+
+          {article.state === "published" && article.publishedUrl && (
+            <section className="rounded-brand border border-yellow bg-yellow/10 p-4">
+              <h2 className="mb-1 font-display text-sm font-semibold text-ink">Live</h2>
+              <a href={article.publishedUrl} target="_blank" className="break-all text-xs text-blue underline">
+                {article.publishedUrl}
+              </a>
+            </section>
+          )}
 
           {article.versions.length > 0 && (
             <section className="rounded-brand border border-lightblue bg-white p-4">

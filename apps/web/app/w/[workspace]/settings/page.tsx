@@ -15,6 +15,7 @@ import {
   saveRenderingProfile,
   saveMotifs,
 } from "./actions";
+import { connectWordPress, disconnectWordPress } from "./integrations-actions";
 
 const inputCls =
   "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue disabled:bg-paper disabled:text-ink/60";
@@ -82,7 +83,10 @@ export default async function SettingsPage({
     const motifDefaults = await tx.motifDefault.findMany({
       where: { workspaceId },
     });
-    return { brand, image, headings, seo, profiles, motifs, motifDefaults };
+    const wpConnection = await tx.connection.findUnique({
+      where: { workspaceId_provider: { workspaceId, provider: "wordpress" } },
+    });
+    return { brand, image, headings, seo, profiles, motifs, motifDefaults, wpConnection };
   });
 
   const colorsRaw = (cfg.brand?.colors as Record<string, string>) ?? {};
@@ -324,12 +328,64 @@ export default async function SettingsPage({
           )}
         </Section>
 
-        {/* Integrations (V1) */}
-        <Section title="Integrations" desc="WordPress, GSC/GA4, Nifty, Uniple, YouTube.">
-          <p className="text-sm text-ink/60">
-            Connections are configured here in a later epic (V1). They&apos;ll be
-            stored as encrypted, per-workspace OAuth tokens.
-          </p>
+        {/* Integrations */}
+        <Section
+          title="Integrations — WordPress"
+          desc="Connect the workspace's WordPress site with an Application Password (created in wp-admin → Users → Profile). Stored encrypted."
+        >
+          {cfg.wpConnection ? (
+            <div className="space-y-3">
+              <p className="text-sm">
+                <span
+                  className={
+                    cfg.wpConnection.status === "connected" ? "text-blue" : "text-orange"
+                  }
+                >
+                  ● {cfg.wpConnection.status}
+                </span>{" "}
+                <span className="text-ink/70">
+                  {String((cfg.wpConnection.config as Record<string, unknown>)?.siteUrl ?? "")}
+                </span>
+              </p>
+              <p className="text-xs text-ink/50">
+                {String((cfg.wpConnection.config as Record<string, unknown>)?.detail ?? "")}
+              </p>
+              {canManage && (
+                <form action={disconnectWordPress}>
+                  <input type="hidden" name="slug" value={slug} />
+                  <button className="rounded-lg border border-orange/40 px-3 py-1.5 text-xs text-orange">
+                    Disconnect
+                  </button>
+                </form>
+              )}
+            </div>
+          ) : canManage ? (
+            <form action={connectWordPress} className="space-y-3">
+              <input type="hidden" name="slug" value={slug} />
+              <label className="block">
+                <span className={labelCls}>Site URL</span>
+                <input name="siteUrl" required placeholder="https://example.com" className={inputCls} />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label>
+                  <span className={labelCls}>WP username</span>
+                  <input name="username" required className={inputCls} />
+                </label>
+                <label>
+                  <span className={labelCls}>Application password</span>
+                  <input name="appPassword" type="password" required className={inputCls} />
+                </label>
+              </div>
+              <button className="rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
+                Connect &amp; verify
+              </button>
+              <p className="text-[0.7rem] text-ink/50">
+                GSC/GA4, Nifty, Uniple, and YouTube connectors follow in V1.
+              </p>
+            </form>
+          ) : (
+            <p className="text-sm text-ink/60">Not connected. Ask an owner/admin.</p>
+          )}
         </Section>
       </div>
     </div>
