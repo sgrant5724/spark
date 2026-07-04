@@ -19,6 +19,7 @@ import {
   transitionArticle,
 } from "../actions";
 import { runA11yChecks } from "@/lib/checks";
+import { mapToPlugin } from "@/lib/seo-plugins";
 
 const inputCls =
   "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue";
@@ -71,7 +72,8 @@ export default async function ArticlePage({
       where: { workspaceId_provider: { workspaceId, provider: "wordpress" } },
       select: { status: true, config: true },
     });
-    return { article, smeProfiles, spec, publishedCount, wpConnection };
+    const seoSettings = await tx.seoSettings.findUnique({ where: { workspaceId } });
+    return { article, smeProfiles, spec, publishedCount, wpConnection, seoSettings };
   });
   if (!data.article) notFound();
   const article = data.article;
@@ -291,6 +293,26 @@ export default async function ArticlePage({
                     <dd className="whitespace-pre-line text-ink/70">{seo.publisherNotes}</dd>
                   </div>
                 )}
+                <details className="pt-1">
+                  <summary className="cursor-pointer text-[0.65rem] font-semibold text-blue">
+                    Plugin fields ({data.seoSettings?.plugin ?? "squirrly"}) — set on publish
+                  </summary>
+                  <ul className="mt-1 space-y-0.5 text-[0.62rem] text-ink/60">
+                    {mapToPlugin(data.seoSettings?.plugin ?? "squirrly", {
+                      title: seo.title,
+                      meta: seo.meta,
+                      focusKeyword: seo.focusKeyword,
+                      canonical: seo.canonical,
+                      ogTitle: seo.ogTitle,
+                      ogDesc: seo.ogDesc,
+                    }).map((f) => (
+                      <li key={f.key}>
+                        <code className="text-blue">{f.key}</code> = {f.value.slice(0, 60)}
+                        {f.value.length > 60 ? "…" : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               </dl>
             )}
           </section>

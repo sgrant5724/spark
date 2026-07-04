@@ -16,6 +16,9 @@ export type WpPublishPayload = {
   status: "draft" | "publish";
   featuredImageUrl?: string;
   featuredImageAlt?: string;
+  /** Plugin-specific post meta (Squirrly/Rank Math/Yoast keys). WP ignores
+   *  unregistered keys, so this is safe on sites without the plugin. */
+  meta?: Record<string, string>;
 };
 
 export type WpPublishResult = { postId: number; link: string };
@@ -103,6 +106,7 @@ export class WpRestAdapter implements WordPressAdapter {
         excerpt: payload.excerpt,
         status: payload.status,
         ...(featuredMedia ? { featured_media: featuredMedia } : {}),
+        ...(payload.meta && Object.keys(payload.meta).length ? { meta: payload.meta } : {}),
       }),
     });
     if (!res.ok) {

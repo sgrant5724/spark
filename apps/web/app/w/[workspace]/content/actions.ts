@@ -359,6 +359,18 @@ export async function publishToWordPress(formData: FormData): Promise<void> {
     const slugSegment =
       article.seoOutput.slug?.split("/").filter(Boolean).pop() ?? article.id;
 
+    // Plugin-specific SEO meta (FR-7): Squirrly / Rank Math / Yoast field keys.
+    const seoSettings = await tx.seoSettings.findUnique({ where: { workspaceId } });
+    const { pluginMetaPayload } = await import("@/lib/seo-plugins");
+    const meta = pluginMetaPayload(seoSettings?.plugin ?? "squirrly", {
+      title: article.seoOutput.title,
+      meta: article.seoOutput.meta,
+      focusKeyword: article.seoOutput.focusKeyword,
+      canonical: article.seoOutput.canonical,
+      ogTitle: article.seoOutput.ogTitle,
+      ogDesc: article.seoOutput.ogDesc,
+    });
+
     return {
       creds: decryptJson<Creds>(conn.credentials as unknown as Enc),
       payload: {
@@ -369,6 +381,7 @@ export async function publishToWordPress(formData: FormData): Promise<void> {
         status: "publish" as const,
         featuredImageUrl: featured.url ?? undefined,
         featuredImageAlt: featured.altText ?? undefined,
+        meta,
       },
     };
   });
