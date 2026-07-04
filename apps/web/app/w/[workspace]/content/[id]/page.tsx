@@ -37,8 +37,10 @@ const TARGET_LABELS: Record<string, string> = {
 
 export default async function ArticlePage({
   params,
+  searchParams,
 }: {
   params: { workspace: string; id: string };
+  searchParams?: { error?: string };
 }) {
   const slug = params.workspace;
   const { membership } = await requireMembership(slug);
@@ -95,6 +97,14 @@ export default async function ArticlePage({
 
   return (
     <div className="px-8 py-8">
+      {searchParams?.error && (
+        <p
+          role="alert"
+          className="mb-4 rounded-brand border border-orange/50 bg-orange/10 px-4 py-3 text-sm text-orange"
+        >
+          ⚠ {searchParams.error}
+        </p>
+      )}
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-ink">{article.title}</h1>

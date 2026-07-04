@@ -72,7 +72,7 @@ export function runA11yChecks(body: string | null, title: string): CheckResult[]
   // 5. Body exists at all.
   results.push({
     id: "has-body",
-    label: "Draft has content",
+    label: "Draft has enough content (200+ chars)",
     pass: html.replace(/<[^>]+>/g, "").trim().length > 200,
     detail: html ? undefined : "Body is empty",
   });

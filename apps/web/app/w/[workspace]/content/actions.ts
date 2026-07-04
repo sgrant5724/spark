@@ -1,11 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { ArticleState, Prisma, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { writeAudit } from "@/lib/audit";
 import { ARTICLE_TRANSITIONS, can, type ArticleStateName, type RoleName } from "@spark/shared";
+
+// Expected, user-fixable gate failures — surfaced as an inline banner on the
+// article page (via ?error=) instead of an error screen.
+class GateError extends Error {}
 
 // Which permission gates each transition TARGET. Everything else needs content.edit.
 const TRANSITION_PERMISSION: Partial<Record<ArticleStateName, "content.approve_draft" | "content.approve_final">> = {
@@ -320,8 +325,11 @@ export async function publishToWordPress(formData: FormData): Promise<void> {
   type Enc = import("@/lib/crypto").Encrypted;
   type Creds = import("@/lib/wordpress").WpCredentials;
 
-  // Assemble everything inside the tenant scope; publish outside the txn.
-  const prep = await withWorkspace(db, workspaceId, async (tx) => {
+  let publishError: string | null = null;
+  let result: { postId: number; link: string } | null = null;
+  try {
+    // Assemble everything inside the tenant scope; publish outside the txn.
+    const prep = await withWorkspace(db, workspaceId, async (tx) => {
     const article = await tx.article.findFirst({
       where: { id, workspaceId },
       include: { seoOutput: true, assets: true, citations: true },
@@ -371,23 +379,31 @@ export async function publishToWordPress(formData: FormData): Promise<void> {
       ogDesc: article.seoOutput.ogDesc,
     });
 
-    return {
-      creds: decryptJson<Creds>(conn.credentials as unknown as Enc),
-      payload: {
-        title: article.title,
-        slug: slugSegment,
-        contentHtml,
-        excerpt: article.seoOutput.meta ?? "",
-        status: "publish" as const,
-        featuredImageUrl: featured.url ?? undefined,
-        featuredImageAlt: featured.altText ?? undefined,
-        meta,
-      },
-    };
-  });
+      return {
+        creds: decryptJson<Creds>(conn.credentials as unknown as Enc),
+        payload: {
+          title: article.title,
+          slug: slugSegment,
+          contentHtml,
+          excerpt: article.seoOutput.meta ?? "",
+          status: "publish" as const,
+          featuredImageUrl: featured.url ?? undefined,
+          featuredImageAlt: featured.altText ?? undefined,
+          meta,
+        },
+      };
+    });
 
-  const adapter = new WpRestAdapter(prep.creds);
-  const result = await adapter.publish(prep.payload);
+    const adapter = new WpRestAdapter(prep.creds);
+    result = await adapter.publish(prep.payload);
+  } catch (e) {
+    publishError = e instanceof Error ? e.message : "Publishing failed.";
+  }
+  if (publishError || !result) {
+    redirect(
+      `/w/${slug}/content/${id}?error=${encodeURIComponent(publishError ?? "Publishing failed.")}`,
+    );
+  }
 
   await withWorkspace(db, workspaceId, async (tx) => {
     await tx.article.update({
@@ -433,78 +449,90 @@ export async function transitionArticle(formData: FormData): Promise<void> {
   const workspaceId = membership.workspaceId;
   const role = membership.role as RoleName;
 
-  await withWorkspace(db, workspaceId, async (tx) => {
-    const article = await tx.article.findFirst({ where: { id, workspaceId } });
-    if (!article) throw new Error("Article not found.");
+  let gateError: string | null = null;
+  try {
+    await withWorkspace(db, workspaceId, async (tx) => {
+      const article = await tx.article.findFirst({ where: { id, workspaceId } });
+      if (!article) throw new GateError("Article not found.");
 
-    const allowed = ARTICLE_TRANSITIONS[article.state as ArticleStateName] ?? [];
-    if (!allowed.includes(target)) {
-      throw new Error(`Cannot move from ${article.state} to ${target}.`);
-    }
-    const needed = TRANSITION_PERMISSION[target] ?? "content.edit";
-    if (!can(role, needed)) {
-      throw new Error(`Your role can't move an article to ${target}.`);
-    }
-
-    // Automated pre-gates (FR-10): a11y checks + SEO output must exist before
-    // an article can leave SEO + A11y review.
-    if (target === "assets_pending") {
-      const { runA11yChecks } = await import("@/lib/checks");
-      const failures = runA11yChecks(article.body, article.title).filter((c) => !c.pass);
-      if (failures.length > 0) {
-        throw new Error(
-          "Accessibility pre-checks failing: " + failures.map((f) => f.label).join("; "),
-        );
+      const allowed = ARTICLE_TRANSITIONS[article.state as ArticleStateName] ?? [];
+      if (!allowed.includes(target)) {
+        throw new GateError(`Cannot move from ${article.state} to ${target}.`);
       }
-      const seo = await tx.seoOutput.findUnique({ where: { articleId: id } });
-      if (!seo) {
-        throw new Error("Generate the SEO fields before approving this stage.");
+      const needed = TRANSITION_PERMISSION[target] ?? "content.edit";
+      if (!can(role, needed)) {
+        throw new GateError(`Your role can't move an article to ${target}.`);
       }
-    }
 
-    // Truthfulness gate: nothing advances past review with unverified claims.
-    if (target === "scheduled" || target === "published") {
-      const unverified = await tx.citation.count({
-        where: { articleId: id, verified: false },
+      // Automated pre-gates (FR-10): a11y checks + SEO output must exist before
+      // an article can leave SEO + A11y review.
+      if (target === "assets_pending") {
+        const { runA11yChecks } = await import("@/lib/checks");
+        const failures = runA11yChecks(article.body, article.title).filter((c) => !c.pass);
+        if (failures.length > 0) {
+          throw new GateError(
+            "Accessibility pre-checks failing: " + failures.map((f) => f.label).join("; "),
+          );
+        }
+        const seo = await tx.seoOutput.findUnique({ where: { articleId: id } });
+        if (!seo) {
+          throw new GateError("Generate the SEO fields before approving this stage.");
+        }
+      }
+
+      // Truthfulness gate: nothing advances past review with unverified claims.
+      if (target === "scheduled" || target === "published") {
+        const unverified = await tx.citation.count({
+          where: { articleId: id, verified: false },
+        });
+        if (unverified > 0) {
+          throw new GateError(
+            `${unverified} claim(s) still need a verified source before this can ship.`,
+          );
+        }
+        // FR-8 gate: featured AND branded OG asset, each with alt text.
+        const assets = await tx.asset.findMany({ where: { articleId: id, workspaceId } });
+        const featured = assets.find((a) => a.kind === "featured" && a.altText);
+        const og = assets.find((a) => a.kind === "og" && a.altText);
+        if (!featured || !og) {
+          throw new GateError(
+            "A featured image AND a branded OG image (each with alt text) are required before this can ship (FR-8).",
+          );
+        }
+      }
+
+      await tx.article.update({
+        where: { id },
+        data: { state: target as ArticleState, updatedBy: userId },
       });
-      if (unverified > 0) {
-        throw new Error(
-          `${unverified} claim(s) still need a verified source before this can ship.`,
-        );
-      }
-      // FR-8 gate: featured AND branded OG asset, each with alt text.
-      const assets = await tx.asset.findMany({ where: { articleId: id, workspaceId } });
-      const featured = assets.find((a) => a.kind === "featured" && a.altText);
-      const og = assets.find((a) => a.kind === "og" && a.altText);
-      if (!featured || !og) {
-        throw new Error(
-          "A featured image AND a branded OG image (each with alt text) are required before this can ship (FR-8).",
-        );
-      }
+      await tx.approval.create({
+        data: {
+          workspaceId,
+          articleId: id,
+          gate:
+            target === "scheduled" || target === "published"
+              ? "final_approval"
+              : target === "seo_a11y_review"
+                ? "draft_review"
+                : target === "assets_pending"
+                  ? "seo_a11y_review"
+                  : "draft_review",
+          reviewerId: userId,
+          decision: target === "drafting" ? "changes_requested" : "approved",
+          decidedAt: new Date(),
+        },
+      });
+    });
+  } catch (e) {
+    if (e instanceof GateError) {
+      gateError = e.message;
+    } else {
+      throw e;
     }
-
-    await tx.article.update({
-      where: { id },
-      data: { state: target as ArticleState, updatedBy: userId },
-    });
-    await tx.approval.create({
-      data: {
-        workspaceId,
-        articleId: id,
-        gate:
-          target === "scheduled" || target === "published"
-            ? "final_approval"
-            : target === "seo_a11y_review"
-              ? "draft_review"
-              : target === "assets_pending"
-                ? "seo_a11y_review"
-                : "draft_review",
-        reviewerId: userId,
-        decision: target === "drafting" ? "changes_requested" : "approved",
-        decidedAt: new Date(),
-      },
-    });
-  });
+  }
+  if (gateError) {
+    redirect(`/w/${slug}/content/${id}?error=${encodeURIComponent(gateError)}`);
+  }
 
   await writeAudit({
     workspaceId,
