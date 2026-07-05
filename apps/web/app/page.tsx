@@ -3,14 +3,15 @@ import Link from "next/link";
 import { SparkLogo } from "@/components/SparkLogo";
 import { getSessionUserId, getUserMemberships } from "@/lib/auth-helpers";
 
-// Entry point: send signed-out users to /login, route members straight into
-// their workspace, and show a chooser when they belong to several.
+// Entry point: signed-out → /login; one workspace → straight in; several →
+// the Agency Console portfolio view; none → a friendly message.
 export default async function Home() {
   const userId = await getSessionUserId();
   if (!userId) redirect("/login");
 
   const memberships = await getUserMemberships(userId);
   if (memberships.length === 1) redirect(`/w/${memberships[0].workspaceSlug}`);
+  if (memberships.length > 1) redirect("/agency");
 
   return (
     <main className="mx-auto min-h-screen max-w-lg px-8 py-20">

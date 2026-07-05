@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SparkLogo } from "@/components/SparkLogo";
 import { Sidebar } from "@/components/Sidebar";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
@@ -46,6 +47,12 @@ export default async function WorkspaceLayout({
           </form>
         </div>
         <div className="flex flex-col gap-2 px-3 pb-1 md:pb-2">
+          <Link
+            href="/agency"
+            className="flex items-center gap-1.5 px-1 text-[0.68rem] font-semibold uppercase tracking-wide text-cyan hover:text-white"
+          >
+            ◂ All clients
+          </Link>
           <WorkspaceSwitcher
             memberships={memberships}
             currentSlug={params.workspace}

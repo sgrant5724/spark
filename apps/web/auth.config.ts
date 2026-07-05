@@ -16,9 +16,10 @@ export const authConfig: NextAuthConfig = {
   trustHost: true,
   providers: [Google, MicrosoftEntraID],
   callbacks: {
-    // Gate /w/* — Auth.js redirects unauthorized requests to pages.signIn.
+    // Gate /w/* and /agency — Auth.js redirects unauthorized requests to signIn.
     authorized({ auth, request }) {
-      const isProtected = request.nextUrl.pathname.startsWith("/w");
+      const p = request.nextUrl.pathname;
+      const isProtected = p.startsWith("/w") || p.startsWith("/agency");
       if (!isProtected) return true;
       return Boolean(auth?.user);
     },
