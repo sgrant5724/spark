@@ -611,6 +611,8 @@ model Article {
   wordpressPostId BigInt?      @map("wordpress_post_id")
   publishedUrl    String?      @map("published_url")
   refreshOf       String?      @map("refresh_of") @db.Uuid // refresh lineage (Open Decision #2)
+  // FR-14 / hard constraint: shield a high-performing post from disruptive rewrites.
+  protectedFromRewrite Boolean @default(false) @map("protected_from_rewrite")
   createdBy       String?      @map("created_by") @db.Uuid
   updatedBy       String?      @map("updated_by") @db.Uuid
   createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz

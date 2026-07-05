@@ -61,6 +61,16 @@ export async function generateDraft(formData: FormData): Promise<void> {
   const id = String(formData.get("id"));
   const { userId, workspaceId } = await requireEditor(slug);
 
+  // FR-14: never disruptively rewrite a protected top performer.
+  const guard = await withWorkspace(db, workspaceId, (tx) =>
+    tx.article.findFirst({ where: { id, workspaceId }, select: { protectedFromRewrite: true } }),
+  );
+  if (guard?.protectedFromRewrite) {
+    redirect(
+      `/w/${slug}/content/${id}?error=${encodeURIComponent("This article is protected from rewrites (top performer). Unprotect it in Analytics first.")}`,
+    );
+  }
+
   const { generateDraftCore } = await import("@/lib/pipeline");
   const result = await generateDraftCore(workspaceId, userId, id);
 
