@@ -13,10 +13,13 @@ const config: Config = {
           DEFAULT: "#0D5A84", // primary blue
           bright: "#1A7AAB",
         },
+        nav2: "#072B40", // deepest nav (gradient end)
         orange: "#C4571C", // CTA / spark accent
         yellow: "#F8CF40", // highlights / live states
         lightblue: "#B1D4E0", // soft accents/tints
+        cyan: "#B1D4E0", // brand light-blue accent (semantic alias)
         paper: "#EFF3FA", // surfaces
+        paper2: "#E2EAF4", // slightly deeper surface tint
         // semantic aliases (no green in palette)
         success: "#0D5A84",
         warning: "#C4571C",

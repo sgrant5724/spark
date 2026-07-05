@@ -2,15 +2,48 @@ import Link from "next/link";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { getCurrentUser, requireMembership } from "@/lib/auth-helpers";
+import {
+  Widget,
+  Kpi,
+  Sparkline,
+  PipelineBars,
+  MiniCalendar,
+  ActivityFeed,
+  QueueList,
+} from "@/components/widgets";
 
-const REVIEW_STATES = [
-  "draft_review",
-  "seo_a11y_review",
-  "assets_pending",
-  "final_approval",
-] as const;
+const REVIEW_STATES = ["draft_review", "seo_a11y_review", "assets_pending", "final_approval"] as const;
+const LIVE_STATES = ["published", "distributed", "analyzing"] as const;
 
-export default async function DashboardPage({
+function activityText(action: string, meta: Record<string, unknown>): { text: string; hot?: boolean } {
+  switch (action) {
+    case "article.generated":
+      return { text: `Draft generated${meta.needsSource ? ` · ${meta.needsSource} claim(s) to source` : ""}` };
+    case "idea.ai_discovery":
+      return { text: `AI proposed ${meta.created ?? "several"} topic ideas` };
+    case "pipeline.run":
+      return { text: `Pipeline run · ${meta.processed ?? 0} auto-drafted`, hot: true };
+    case "article.published_wordpress":
+      return { text: "Published to WordPress", hot: true };
+    case "user.invited":
+      return { text: `Invited ${meta.email ?? "a teammate"}` };
+    case "citation.verified":
+      return { text: "A source was verified" };
+    default:
+      return { text: action.replace(/[._]/g, " ") };
+  }
+}
+
+const rel = (d: Date) => {
+  const mins = Math.round((Date.now() - new Date(d).getTime()) / 60000);
+  if (mins < 60) return `${Math.max(mins, 1)}m ago`;
+  if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
+  return `${Math.round(mins / 1440)}d ago`;
+};
+
+const fmt = (n: number) => (n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "k" : String(n));
+
+export default async function MissionControl({
   params,
 }: {
   params: { workspace: string };
@@ -21,151 +54,203 @@ export default async function DashboardPage({
   const user = await getCurrentUser();
   const firstName = user?.name?.split(" ")[0] ?? "there";
 
+  const now = new Date();
+
   const d = await withWorkspace(db, workspaceId, async (tx) => {
-    const inWorkflow = await tx.article.count({
-      where: { workspaceId, state: { in: ["drafting", ...REVIEW_STATES] } },
+    const byState = await tx.article.groupBy({
+      by: ["state"],
+      where: { workspaceId },
+      _count: { _all: true },
     });
-    const awaitingApproval = await tx.article.count({
-      where: { workspaceId, state: { in: ["final_approval", "scheduled"] } },
-    });
-    const published = await tx.article.count({
-      where: { workspaceId, state: { in: ["published", "distributed", "analyzing"] } },
-    });
-    const ideasDiscovered = await tx.idea.count({
-      where: { workspaceId, status: "discovered" },
-    });
-    const needsAttention = await tx.article.findMany({
+    const ideasReady = await tx.idea.count({ where: { workspaceId, status: "discovered" } });
+    const ideasApproved = await tx.idea.count({ where: { workspaceId, status: "approved" } });
+    const needsYou = await tx.article.findMany({
       where: { workspaceId, state: { in: [...REVIEW_STATES] } },
       orderBy: { updatedAt: "asc" },
       take: 5,
       include: { citations: { where: { verified: false }, select: { id: true } } },
     });
-    const org = await tx.orgProfile.findUnique({ where: { workspaceId } });
+    const cadence = await tx.article.findMany({
+      where: {
+        workspaceId,
+        state: { in: ["scheduled", ...LIVE_STATES] },
+        updatedAt: {
+          gte: new Date(now.getFullYear(), now.getMonth(), 1),
+          lt: new Date(now.getFullYear(), now.getMonth() + 1, 1),
+        },
+      },
+      select: { state: true, updatedAt: true },
+    });
+    const snaps = await tx.analyticsSnapshot.findMany({
+      where: { workspaceId },
+      orderBy: { capturedAt: "asc" },
+      select: { capturedAt: true, clicks: true },
+    });
+    const activity = await tx.auditLog.findMany({
+      where: {
+        workspaceId,
+        action: {
+          in: [
+            "article.generated",
+            "idea.ai_discovery",
+            "pipeline.run",
+            "article.published_wordpress",
+            "citation.verified",
+            "user.invited",
+          ],
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+    const automation = await tx.automationSetting.findMany({ where: { workspaceId } });
+    const org = await tx.orgProfile.findUnique({ where: { workspaceId }, select: { description: true } });
     const wp = await tx.connection.findUnique({
       where: { workspaceId_provider: { workspaceId, provider: "wordpress" } },
       select: { status: true },
     });
-    return { inWorkflow, awaitingApproval, published, ideasDiscovered, needsAttention, org, wp };
+    return { byState, ideasReady, ideasApproved, needsYou, cadence, snaps, activity, automation, org, wp };
   });
 
-  const llmConfigured = Boolean(process.env.ANTHROPIC_API_KEY ?? process.env.LLM_API_KEY);
+  const count = (states: readonly string[]) =>
+    d.byState.filter((b) => states.includes(b.state)).reduce((a, b) => a + b._count._all, 0);
+  const inPipeline = count(["drafting", ...REVIEW_STATES]);
+  const published = count(LIVE_STATES);
 
-  const setupSteps = [
-    {
-      done: Boolean(d.org?.description),
-      label: "Fill in the Organization profile (grounds all AI output)",
-      href: `/w/${slug}/organization`,
-    },
-    {
-      done: llmConfigured,
-      label: "Add ANTHROPIC_API_KEY in Railway (enables real AI generation)",
-      href: null,
-    },
-    {
-      done: d.wp?.status === "connected",
-      label: "Connect the WordPress site (Settings → Integrations)",
-      href: `/w/${slug}/settings`,
-    },
-  ].filter((s) => !s.done);
+  // Clicks by month → sparkline (last 6).
+  const byMonth = new Map<string, number>();
+  for (const s of d.snaps) {
+    if (s.clicks == null) continue;
+    const k = `${new Date(s.capturedAt).getFullYear()}-${new Date(s.capturedAt).getMonth()}`;
+    byMonth.set(k, (byMonth.get(k) ?? 0) + s.clicks);
+  }
+  const clicksSeries = [...byMonth.values()].slice(-6);
+  const clicks28 = clicksSeries.length ? clicksSeries[clicksSeries.length - 1] : 0;
 
-  const metrics = [
-    { label: "In workflow", value: d.inWorkflow, href: `/w/${slug}/workflow` },
-    { label: "Awaiting approval", value: d.awaitingApproval, href: `/w/${slug}/workflow` },
-    { label: "Published", value: d.published, href: `/w/${slug}/content` },
-    { label: "Ideas discovered", value: d.ideasDiscovered, href: `/w/${slug}/ideas` },
-  ];
+  // Cadence calendar marks.
+  const marks: Record<number, "published" | "scheduled"> = {};
+  for (const a of d.cadence) {
+    const day = new Date(a.updatedAt).getDate();
+    marks[day] = a.state === "scheduled" ? "scheduled" : "published";
+  }
+
+  const automation = d.automation;
+  const globalPause = automation.some((a) => a.globalPause);
+  const autoPublish = automation.some((a) => a.autoPublish);
+  const spendCap = automation.reduce<number | null>((m, a) => {
+    const v = a.spendCap ? Number(a.spendCap) : null;
+    return v != null && (m == null || v > m) ? v : m;
+  }, null);
+
+  const setup: Array<{ label: string; href?: string }> = [];
+  if (!d.org?.description) setup.push({ label: "Fill in the Organization profile", href: `/w/${slug}/organization` });
+  if (d.wp?.status !== "connected") setup.push({ label: "Connect WordPress", href: `/w/${slug}/settings` });
 
   return (
-    <div className="px-8 py-8">
-      <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-bold text-ink">
-          Good day, {firstName}
-        </h1>
-        <Link
-          href={`/w/${slug}/ideas`}
-          className="rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white"
-        >
-          + New content
-        </Link>
+    <div className="px-6 py-6 lg:px-8">
+      <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-[0.65rem] uppercase tracking-[0.16em] text-blue">Mission Control · {membership.workspaceName}</p>
+          <h1 className="font-display text-2xl font-bold text-ink">Good day, {firstName}</h1>
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/w/${slug}/ideas`} className="rounded-lg border border-lightblue bg-white px-4 py-2 font-display text-sm font-semibold text-blue hover:border-blue">
+            ✦ Discover ideas
+          </Link>
+          <Link href={`/w/${slug}/ideas`} className="rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
+            ⚡ Run pipeline
+          </Link>
+        </div>
       </header>
 
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {metrics.map((m) => (
-          <Link
-            key={m.label}
-            href={m.href}
-            className="rounded-brand border border-lightblue bg-white p-4 hover:border-blue"
-          >
-            <p className="text-[0.65rem] uppercase tracking-wide text-ink/50">{m.label}</p>
-            <p className="font-display text-3xl font-bold text-ink">{m.value}</p>
-          </Link>
-        ))}
-      </div>
+      {/* Bento grid */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {/* KPI row */}
+        <Kpi label="In pipeline" value={inPipeline} delta={count(REVIEW_STATES) ? `${count(REVIEW_STATES)} in review` : "all drafting"} tone={count(REVIEW_STATES) ? "warn" : "flat"} href={`/w/${slug}/workflow`} />
+        <Kpi label="Published (all)" value={published} delta="live" tone="up" href={`/w/${slug}/content`} />
+        <Kpi label="Clicks (latest)" value={clicks28 ? fmt(clicks28) : "—"} delta={clicksSeries.length > 1 ? "trend below" : "no data"} tone={clicksSeries.length > 1 ? "up" : "flat"} href={`/w/${slug}/analytics`} />
+        <Kpi label="Ideas ready" value={d.ideasReady} delta={`${d.ideasApproved} approved`} tone={d.ideasReady ? "up" : "flat"} href={`/w/${slug}/ideas`} />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <section className="rounded-brand border border-lightblue bg-white p-4">
-          <h2 className="mb-3 font-display text-sm font-semibold text-ink">
-            Needs your attention
-          </h2>
-          {d.needsAttention.length === 0 ? (
-            <p className="text-sm text-ink/50">
-              Nothing waiting on review. Approve an idea to start a new draft.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {d.needsAttention.map((a) => (
-                <li key={a.id}>
-                  <Link
-                    href={`/w/${slug}/content/${a.id}`}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-paper bg-paper/60 px-3 py-2 hover:border-blue"
-                  >
-                    <span className="text-sm font-medium text-ink">{a.title}</span>
-                    <span className="flex gap-1.5 text-[0.6rem]">
-                      {a.citations.length > 0 && (
-                        <span className="rounded border border-orange/40 bg-white px-1.5 py-0.5 text-orange">
-                          {a.citations.length} needs source
-                        </span>
-                      )}
-                      <span className="rounded border border-lightblue bg-white px-1.5 py-0.5 text-blue">
-                        {a.state.replace(/_/g, " ")}
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        {/* Pipeline shape (2 wide) */}
+        <Widget title="Pipeline shape" className="col-span-2" action={<Link href={`/w/${slug}/workflow`} className="text-[0.62rem] font-semibold text-blue hover:underline">Open board →</Link>}>
+          <PipelineBars
+            stages={[
+              { label: "Drafting", count: count(["drafting"]), tone: "blue" },
+              { label: "In review", count: count(["draft_review", "seo_a11y_review", "assets_pending"]), tone: "orange" },
+              { label: "Approval", count: count(["final_approval", "scheduled"]), tone: "yellow" },
+              { label: "Live", count: published, tone: "blue" },
+            ]}
+          />
+        </Widget>
 
-        <section className="rounded-brand border border-lightblue bg-white p-4">
-          <h2 className="mb-3 font-display text-sm font-semibold text-ink">
-            {setupSteps.length ? "Finish setting up" : "Workspace status"}
-          </h2>
-          {setupSteps.length === 0 ? (
-            <p className="text-sm text-blue">
-              ✓ Organization profile, AI provider, and WordPress are all configured.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {setupSteps.map((s) => (
-                <li key={s.label} className="flex items-start gap-2 text-sm">
-                  <span className="text-orange" aria-hidden>○</span>
-                  {s.href ? (
-                    <Link href={s.href} className="text-blue underline">
-                      {s.label}
-                    </Link>
-                  ) : (
-                    <span className="text-ink/70">{s.label}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-4 border-t border-paper pt-3 text-xs text-ink/50">
-            Pipeline: Ideate → Personalize → Generate → Optimize → Assets →
-            Review → Publish → Distribute → Analyze
+        {/* Needs you (2 tall) */}
+        <Widget title="Needs you" className="col-span-2 row-span-2" action={d.needsYou.length ? <span className="rounded border border-orange/40 bg-orange/5 px-1.5 py-0.5 text-[0.6rem] text-orange">{d.needsYou.length}</span> : undefined}>
+          <QueueList
+            empty="Nothing waiting on review. Approve an idea to start a draft."
+            items={d.needsYou.map((a) => ({
+              href: `/w/${slug}/content/${a.id}`,
+              title: a.title,
+              chips: [
+                ...(a.citations.length ? [{ text: `${a.citations.length} needs source`, tone: "warn" as const }] : []),
+                { text: a.state.replace(/_/g, " "), tone: "ok" as const },
+              ],
+            }))}
+          />
+        </Widget>
+
+        {/* Cadence calendar */}
+        <Widget title={`Cadence · ${now.toLocaleDateString("en-US", { month: "short" })}`}>
+          <MiniCalendar year={now.getFullYear()} month={now.getMonth()} marks={marks} />
+          <div className="mt-2 flex gap-3 text-[0.55rem] text-ink/50">
+            <span className="flex items-center gap-1"><i className="h-2 w-2 rounded bg-blue" /> published</span>
+            <span className="flex items-center gap-1"><i className="h-2 w-2 rounded bg-yellow" /> scheduled</span>
           </div>
-        </section>
+        </Widget>
+
+        {/* Guardrails */}
+        <Widget title="Guardrails" action={<Link href={`/w/${slug}/settings`} className="text-[0.62rem] font-semibold text-blue hover:underline">Manage →</Link>}>
+          <ul className="flex flex-col gap-1.5 text-[0.72rem]">
+            <li className="flex items-center justify-between"><span className="text-ink/60">Publish gate</span><span className="font-semibold text-blue">{autoPublish ? "auto per type" : "human required"}</span></li>
+            <li className="flex items-center justify-between"><span className="text-ink/60">AI spend cap</span><span className="font-semibold tabular-nums text-ink">{spendCap != null ? `$${spendCap}` : "—"}</span></li>
+            <li className="flex items-center justify-between"><span className="text-ink/60">Global pause</span><span className={`font-semibold ${globalPause ? "text-orange" : "text-ink/50"}`}>{globalPause ? "PAUSED" : "off"}</span></li>
+          </ul>
+        </Widget>
+
+        {/* Clicks trend (2 wide) */}
+        <Widget title="Organic clicks · by month" className="col-span-2" action={<span className="rounded border border-lightblue px-1.5 py-0.5 text-[0.6rem] text-blue">{d.wp?.status === "connected" ? "GSC (V1)" : "manual"}</span>}>
+          {clicksSeries.length > 1 ? (
+            <Sparkline points={clicksSeries} label={`Monthly clicks, latest ${fmt(clicks28)}`} height={56} />
+          ) : (
+            <p className="py-4 text-xs text-ink/40">Record analytics snapshots to see the trend. GSC/GA4 auto-populate this in V1.</p>
+          )}
+        </Widget>
+
+        {/* AI activity */}
+        <Widget title="AI activity" className="col-span-2">
+          <ActivityFeed
+            items={d.activity.map((a) => {
+              const t = activityText(a.action, (a.metadata as Record<string, unknown>) ?? {});
+              return { text: t.text, hot: t.hot, when: rel(a.createdAt) };
+            })}
+          />
+        </Widget>
+
+        {/* Finish setup (only if incomplete) */}
+        {setup.length > 0 && (
+          <Widget title="Finish setting up" className="col-span-2">
+            <ul className="flex flex-col gap-1.5 text-sm">
+              {setup.map((s) => (
+                <li key={s.label} className="flex items-start gap-2">
+                  <span className="text-orange" aria-hidden>○</span>
+                  {s.href ? <Link href={s.href} className="text-blue underline">{s.label}</Link> : <span className="text-ink/70">{s.label}</span>}
+                </li>
+              ))}
+              {!process.env.ANTHROPIC_API_KEY && !process.env.LLM_API_KEY && (
+                <li className="flex items-start gap-2"><span className="text-orange" aria-hidden>○</span><span className="text-ink/70">Add ANTHROPIC_API_KEY for real AI generation</span></li>
+              )}
+            </ul>
+          </Widget>
+        )}
       </div>
     </div>
   );

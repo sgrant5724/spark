@@ -1,6 +1,8 @@
 import { SparkLogo } from "@/components/SparkLogo";
 import { Sidebar } from "@/components/Sidebar";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
+import { CommandPalette } from "@/components/CommandPalette";
+import { SearchTrigger } from "@/components/SearchTrigger";
 import { getUserMemberships, requireMembership } from "@/lib/auth-helpers";
 import { signOut } from "@/auth";
 
@@ -43,11 +45,12 @@ export default async function WorkspaceLayout({
             </button>
           </form>
         </div>
-        <div className="px-3 pb-1 md:pb-2">
+        <div className="flex flex-col gap-2 px-3 pb-1 md:pb-2">
           <WorkspaceSwitcher
             memberships={memberships}
             currentSlug={params.workspace}
           />
+          <SearchTrigger />
         </div>
         <Sidebar slug={params.workspace} />
         <form action={handleSignOut} className="mt-auto hidden px-3 pb-4 pt-2 md:block">
@@ -60,6 +63,8 @@ export default async function WorkspaceLayout({
       <main id="main-content" className="bg-paper">
         {children}
       </main>
+
+      <CommandPalette slug={params.workspace} />
     </div>
   );
 }
