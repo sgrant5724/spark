@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 // aria-current + visual state. Horizontal scroll strip on mobile.
 const NAV: Array<{ label: string; href: (slug: string) => string; exact?: boolean }> = [
   { label: "Dashboard", href: (s) => `/w/${s}`, exact: true },
+  { label: "Pipeline", href: (s) => `/w/${s}/pipeline` },
   { label: "Organization", href: (s) => `/w/${s}/organization` },
   { label: "SME Profiles", href: (s) => `/w/${s}/sme` },
   { label: "Strategy", href: (s) => `/w/${s}/strategy` },
