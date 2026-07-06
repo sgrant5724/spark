@@ -1,7 +1,9 @@
+import { Sparkles } from "lucide-react";
 import { withWorkspace } from "@spark/db";
 import { can } from "@spark/shared";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
+import { OnboardingSteps } from "@/components/OnboardingSteps";
 import { saveOrgProfile } from "./actions";
 
 const inputCls =
@@ -18,17 +20,23 @@ const toLines = (v: unknown) =>
 
 export default async function OrganizationPage({
   params,
+  searchParams,
 }: {
   params: { workspace: string };
+  searchParams?: { welcome?: string };
 }) {
   const slug = params.workspace;
   const { membership } = await requireMembership(slug);
   const canManage = can(membership.role, "workspace.manage");
   const disabled = !canManage;
 
-  const profile = await withWorkspace(db, membership.workspaceId, (tx) =>
-    tx.orgProfile.findUnique({ where: { workspaceId: membership.workspaceId } }),
-  );
+  const { profile, ideaCount } = await withWorkspace(db, membership.workspaceId, async (tx) => {
+    const profile = await tx.orgProfile.findUnique({
+      where: { workspaceId: membership.workspaceId },
+    });
+    const ideaCount = await tx.idea.count({ where: { workspaceId: membership.workspaceId } });
+    return { profile, ideaCount };
+  });
 
   const complete =
     !!profile?.description &&
@@ -36,8 +44,28 @@ export default async function OrganizationPage({
     Array.isArray(profile?.services) &&
     (profile.services as unknown[]).length > 0;
 
+  const welcome = searchParams?.welcome === "1";
+
   return (
     <div className="px-8 py-8">
+      {welcome && (
+        <section className="mb-6 rounded-brand border border-lightblue bg-gradient-to-br from-white to-paper p-5 shadow-sm">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange text-white" aria-hidden>
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <div>
+              <h2 className="font-display text-base font-bold text-ink">
+                Welcome to {membership.workspaceName}
+              </h2>
+              <p className="text-xs text-ink/60">
+                Three quick steps to a client that produces specific, on-brand content. Start below.
+              </p>
+            </div>
+          </div>
+          <OnboardingSteps slug={slug} current={1} orgComplete={complete} hasIdeas={ideaCount > 0} />
+        </section>
+      )}
       <header className="mb-2 flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-ink">
           Organization profile

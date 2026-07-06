@@ -47,5 +47,6 @@ export async function createClientWorkspace(formData: FormData): Promise<void> {
 
   if (err) fail(err);
   revalidatePath("/agency");
-  redirect(`/w/${slug}`);
+  // Land the owner in the onboarding flow — describe the client first (grounds AI).
+  redirect(`/w/${slug}/organization?welcome=1`);
 }
