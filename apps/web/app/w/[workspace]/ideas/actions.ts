@@ -220,6 +220,60 @@ export async function runPipeline(formData: FormData): Promise<void> {
   revalidatePath(`/w/${slug}/workflow`);
 }
 
+// ---- Bulk actions over discovered ideas (multi-select) -----------------------
+export async function bulkIdeaAction(formData: FormData): Promise<void> {
+  const slug = String(formData.get("slug"));
+  const action = String(formData.get("action"));
+  const ids = formData.getAll("ids").map(String).filter(Boolean);
+  const { userId, workspaceId } = await requireStrategist(slug);
+  if (ids.length === 0) return;
+
+  if (action === "approve" || action === "reject") {
+    const status = action === "approve" ? IdeaStatus.approved : IdeaStatus.rejected;
+    await withWorkspace(db, workspaceId, (tx) =>
+      tx.idea.updateMany({ where: { id: { in: ids }, workspaceId }, data: { status } }),
+    );
+    await writeAudit({
+      workspaceId,
+      actorId: userId,
+      action: `idea.bulk_${action}`,
+      entityType: "idea",
+      metadata: { count: ids.length },
+    });
+  } else if (action === "send_to_draft") {
+    await withWorkspace(db, workspaceId, async (tx) => {
+      const ideas = await tx.idea.findMany({ where: { id: { in: ids }, workspaceId } });
+      for (const idea of ideas) {
+        await tx.idea.update({ where: { id: idea.id }, data: { status: IdeaStatus.approved } });
+        await tx.article.create({
+          data: {
+            workspaceId,
+            ideaId: idea.id,
+            title: idea.title,
+            state: "drafting",
+            tier: idea.tier,
+            audience: idea.audience,
+            motifMix: (idea.suggestedMotifs ?? {}) as Prisma.InputJsonValue,
+            createdBy: userId,
+            updatedBy: userId,
+          },
+        });
+      }
+    });
+    await writeAudit({
+      workspaceId,
+      actorId: userId,
+      action: "idea.bulk_send_to_draft",
+      entityType: "article",
+      metadata: { count: ids.length },
+    });
+    revalidatePath(`/w/${slug}/content`);
+  } else {
+    throw new Error("Unknown bulk action.");
+  }
+  revalidatePath(`/w/${slug}/ideas`);
+}
+
 // ---- Approve → send to draft (creates the Article) ---------------------------
 export async function sendToDraft(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug"));

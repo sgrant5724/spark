@@ -4,6 +4,7 @@ import { can } from "@spark/shared";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { Button } from "@/components/ui";
+import { DiscoveredIdeas } from "./discovered";
 import { createIdea, discoverIdeas, runPipeline, setIdeaStatus, sendToDraft } from "./actions";
 
 const COLUMNS: Array<{ status: IdeaStatus; title: string }> = [
@@ -113,6 +114,19 @@ export default async function IdeasPage({
               <h2 className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/60">
                 {col.title} <span>{items.length}</span>
               </h2>
+              {col.status === IdeaStatus.discovered && canManage ? (
+                <DiscoveredIdeas
+                  slug={slug}
+                  ideas={items.map((i) => ({
+                    id: i.id,
+                    title: i.title,
+                    tier: i.tier,
+                    audience: i.audience,
+                    source: i.source,
+                    suggestedMotifs: (i.suggestedMotifs as Record<string, number>) ?? null,
+                  }))}
+                />
+              ) : (
               <div className="space-y-2">
                 {items.map((idea) => (
                   <article
@@ -174,6 +188,7 @@ export default async function IdeasPage({
                   <p className="px-1 py-3 text-center text-xs text-ink/40">Empty</p>
                 )}
               </div>
+              )}
             </section>
           );
         })}
