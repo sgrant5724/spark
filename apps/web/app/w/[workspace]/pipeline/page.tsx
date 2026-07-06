@@ -1,11 +1,17 @@
 import Link from "next/link";
-import { CircleCheck, CircleDashed } from "lucide-react";
+import { Clock, BookOpen, CircleCheck, CircleDashed, FileText, TriangleAlert } from "lucide-react";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { runA11yChecks } from "@/lib/checks";
 import { ARTICLE_TRANSITIONS, type ArticleStateName } from "@spark/shared";
+import { Gauge } from "@/components/ui";
 import { transitionArticle, generateSeo } from "../content/actions";
+
+// A stage whose oldest item has sat this long is flagged as a bottleneck.
+const BOTTLENECK_DAYS = 5;
+const idleDays = (d: Date | null) =>
+  d ? Math.floor((Date.now() - new Date(d).getTime()) / 86_400_000) : 0;
 
 // The nine-stage pipeline as the navigation spine. Ideate lives on the Ideas
 // board; the article-bearing stages are operated here in a three-pane view.
@@ -47,6 +53,7 @@ export default async function PipelinePage({
       by: ["state"],
       where: { workspaceId },
       _count: { _all: true },
+      _min: { updatedAt: true },
     });
     const ideas = await tx.idea.count({ where: { workspaceId, status: "discovered" } });
     return { byState, ideas };
@@ -54,6 +61,17 @@ export default async function PipelinePage({
 
   const stageCount = (states: ArticleStateName[]) =>
     data.byState.filter((b) => states.includes(b.state as ArticleStateName)).reduce((a, b) => a + b._count._all, 0);
+  // Oldest item age in a stage — powers the bottleneck flag on the rail.
+  const stageOldestDays = (states: ArticleStateName[]) => {
+    const mins = data.byState
+      .filter((b) => states.includes(b.state as ArticleStateName))
+      .map((b) => b._min.updatedAt)
+      .filter((d): d is Date => d != null);
+    if (mins.length === 0) return 0;
+    const oldest = mins.reduce((a, b) => (new Date(a) < new Date(b) ? a : b));
+    return idleDays(oldest);
+  };
+  const maxStageCount = Math.max(...STAGES.map((s) => stageCount(s.states)), 1);
 
   // Pick the active stage: requested, else first non-empty, else Review.
   const requested = STAGES.find((s) => s.key === searchParams?.stage);
@@ -89,7 +107,21 @@ export default async function PipelinePage({
   const targets = selected
     ? (ARTICLE_TRANSITIONS[selected.state as ArticleStateName] ?? []).filter((t) => TARGET_LABELS[t])
     : [];
-  const bodyPreview = (selected?.body ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 600);
+
+  // Readiness = share of the four publish gates currently passing.
+  const gates = [
+    unverified.length === 0,
+    a11y.length > 0 && a11y.every((c) => c.pass),
+    !!selected?.seoOutput,
+    hasFeatured && hasOg,
+  ];
+  const gatesPassed = selected ? gates.filter(Boolean).length : 0;
+  const timeInStage = selected ? idleDays(selected.updatedAt) : 0;
+
+  const bodyText = (selected?.body ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const wordCount = bodyText ? bodyText.split(" ").filter(Boolean).length : 0;
+  const readMins = Math.max(1, Math.round(wordCount / 200));
+  const bodyPreview = bodyText.slice(0, 600);
 
   const stageHref = (key: string) => `/w/${slug}/pipeline?stage=${key}`;
 
@@ -104,20 +136,39 @@ export default async function PipelinePage({
         {STAGES.map((s) => {
           const active = s.key === stage.key;
           const n = stageCount(s.states);
+          const oldest = stageOldestDays(s.states);
+          const bottleneck = n > 0 && oldest >= BOTTLENECK_DAYS;
           return (
             <Link
               key={s.key}
               href={stageHref(s.key)}
               aria-current={active ? "page" : undefined}
+              title={n ? `${n} item(s) · oldest ${oldest}d in stage` : "empty"}
               className={
-                "flex min-w-[92px] flex-col rounded-lg border px-2.5 py-1.5 " +
-                (active ? "border-transparent bg-orange" : "border-white/12 bg-white/5")
+                "flex min-w-[92px] flex-col rounded-lg border px-2.5 py-1.5 transition-colors " +
+                (active
+                  ? "border-transparent bg-orange"
+                  : bottleneck
+                    ? "border-orange/60 bg-white/5"
+                    : "border-white/12 bg-white/5")
               }
             >
-              <span className={"truncate text-[0.56rem] uppercase tracking-wide " + (active ? "text-white/85" : "text-white/50")}>
-                {s.label}
+              <span className="flex items-center justify-between gap-1">
+                <span className={"truncate text-[0.56rem] uppercase tracking-wide " + (active ? "text-white/85" : "text-white/50")}>
+                  {s.label}
+                </span>
+                {bottleneck && !active && (
+                  <TriangleAlert className="h-3 w-3 shrink-0 text-yellow" aria-label={`Bottleneck: oldest item ${oldest} days in stage`} />
+                )}
               </span>
-              <span className="text-lg font-bold tabular-nums text-white">{n}</span>
+              <span className="font-mono text-lg font-bold tabular-nums text-white">{n}</span>
+              {/* load bar relative to the busiest stage */}
+              <span className="mt-1 block h-1 overflow-hidden rounded-full bg-white/10" aria-hidden>
+                <span
+                  className={"block h-full rounded-full " + (active ? "bg-white/80" : bottleneck ? "bg-yellow" : "bg-cyan/70")}
+                  style={{ width: `${n ? Math.max((n / maxStageCount) * 100, 8) : 0}%` }}
+                />
+              </span>
             </Link>
           );
         })}
@@ -166,12 +217,33 @@ export default async function PipelinePage({
                   Open full editor →
                 </Link>
               </div>
-              <p className="mb-4 text-xs text-ink/50">
+              <p className="mb-3 text-xs text-ink/50">
                 State: <strong className="text-blue">{selected.state}</strong>
                 {selected.tier ? ` · Tier ${selected.tier}` : ""}{selected.audience ? ` · ${selected.audience}` : ""}
               </p>
+              <div className="mb-4 flex flex-wrap gap-2 text-[0.65rem]">
+                <span className="inline-flex items-center gap-1 rounded-full border border-lightblue bg-white px-2 py-0.5 text-ink/60">
+                  <FileText className="h-3 w-3" aria-hidden />
+                  <span className="font-mono tabular-nums">{wordCount}</span> words
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-lightblue bg-white px-2 py-0.5 text-ink/60">
+                  <BookOpen className="h-3 w-3" aria-hidden />
+                  <span className="font-mono tabular-nums">{readMins}</span> min read
+                </span>
+                <span
+                  className={
+                    "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 " +
+                    (timeInStage >= BOTTLENECK_DAYS
+                      ? "border-orange/40 bg-orange/5 text-orange"
+                      : "border-lightblue bg-white text-ink/60")
+                  }
+                >
+                  <Clock className="h-3 w-3" aria-hidden />
+                  <span className="font-mono tabular-nums">{timeInStage}</span>d in stage
+                </span>
+              </div>
               <article className="rounded-brand border border-lightblue bg-white p-5 text-sm leading-relaxed text-ink/80">
-                {bodyPreview ? `${bodyPreview}${bodyPreview.length >= 600 ? "…" : ""}` : "No draft body yet — generate one in the editor."}
+                {bodyPreview ? `${bodyPreview}${bodyText.length > 600 ? "…" : ""}` : "No draft body yet — generate one in the editor."}
               </article>
             </>
           )}
@@ -180,11 +252,29 @@ export default async function PipelinePage({
         {/* Gate inspector */}
         {selected && (
           <aside className="border-t border-lightblue bg-white p-4 xl:border-l xl:border-t-0">
-            <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-wide text-ink/50">Gates</p>
+            <div className="mb-3 flex items-center gap-3 rounded-brand border border-lightblue bg-paper/50 p-2.5">
+              <Gauge
+                value={gatesPassed}
+                max={gates.length}
+                label="gates"
+                meaning="score"
+                size={72}
+                format={(_pct, v, m) => `${v}/${m}`}
+              />
+              <div className="min-w-0">
+                <p className="text-[0.62rem] font-semibold uppercase tracking-wide text-ink/50">Readiness</p>
+                <p className="text-xs text-ink/70">
+                  {gatesPassed === gates.length
+                    ? "All gates pass — clear to advance."
+                    : `${gates.length - gatesPassed} gate(s) remaining before publish.`}
+                </p>
+              </div>
+            </div>
 
+            <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-wide text-ink/50">Gates</p>
             <div className="mb-3 space-y-1.5">
               <GateRow label="Sources" ok={unverified.length === 0} detail={unverified.length ? `${unverified.length} unverified` : "all verified"} />
-              <GateRow label="WCAG" ok={a11y.every((c) => c.pass)} detail={`${a11y.filter((c) => c.pass).length}/${a11y.length}`} />
+              <GateRow label="WCAG" ok={a11y.length > 0 && a11y.every((c) => c.pass)} detail={`${a11y.filter((c) => c.pass).length}/${a11y.length}`} />
               <GateRow label="SEO" ok={!!selected.seoOutput} detail={selected.seoOutput ? "ready" : "not generated"} />
               <GateRow label="Assets" ok={hasFeatured && hasOg} detail={`${(hasFeatured ? 1 : 0) + (hasOg ? 1 : 0)}/2`} />
             </div>
@@ -231,7 +321,12 @@ export default async function PipelinePage({
 
 function GateRow({ label, ok, detail }: { label: string; ok: boolean; detail: string }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-lightblue px-2.5 py-1.5 text-xs">
+    <div
+      className={
+        "flex items-center justify-between rounded-lg border border-l-4 px-2.5 py-1.5 text-xs " +
+        (ok ? "border-lightblue border-l-blue" : "border-orange/30 border-l-orange bg-orange/5")
+      }
+    >
       <span className="flex items-center gap-2">
         {ok ? (
           <CircleCheck className="h-4 w-4 shrink-0 text-blue" aria-hidden />
