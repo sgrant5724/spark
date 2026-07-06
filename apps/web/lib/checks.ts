@@ -80,6 +80,32 @@ export function runA11yChecks(body: string | null, title: string): CheckResult[]
   return results;
 }
 
+// ---- Readability (Flesch Reading Ease) — derived from the actual text --------
+
+/** Rough English syllable estimate for one word. */
+function countSyllables(raw: string): number {
+  const word = raw.toLowerCase().replace(/[^a-z]/g, "");
+  if (!word) return 0;
+  if (word.length <= 3) return 1;
+  const trimmed = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, "").replace(/^y/, "");
+  const groups = trimmed.match(/[aeiouy]{1,2}/g);
+  return groups ? groups.length : 1;
+}
+
+/**
+ * Flesch Reading Ease (0-100, higher = easier) computed from the plain text of
+ * the body. A real derived metric — not invented — used for the quality radar
+ * and readability readout. Returns null for empty/near-empty text.
+ */
+export function fleschReadingEase(text: string): number | null {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length < 20) return null; // too short to score meaningfully
+  const sentences = Math.max((text.match(/[.!?]+/g) ?? []).length, 1);
+  const syllables = Math.max(words.reduce((a, w) => a + countSyllables(w), 0), 1);
+  const score = 206.835 - 1.015 * (words.length / sentences) - 84.6 * (syllables / words.length);
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
 // ---- SEO derivation (FR-7) — deterministic; no invented data ----------------
 
 export function slugify(title: string): string {

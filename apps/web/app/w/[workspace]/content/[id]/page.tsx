@@ -11,7 +11,7 @@ import {
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
-import { Button } from "@/components/ui";
+import { Badge, Button } from "@/components/ui";
 import {
   ARTICLE_TRANSITIONS,
   can,
@@ -28,12 +28,18 @@ import {
   verifyCitation,
   transitionArticle,
 } from "../actions";
-import { runA11yChecks } from "@/lib/checks";
+import { fleschReadingEase, runA11yChecks } from "@/lib/checks";
 import { mapToPlugin } from "@/lib/seo-plugins";
+import { QualityRadar, type RadarAxis } from "./quality";
 
 const inputCls =
   "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue";
 const labelCls = "mb-1 block text-[0.65rem] uppercase tracking-wide text-ink/60";
+
+// Reference word-count targets by content tier (1 = pillar … 4 = short). The
+// measured word count is real; these are the yardstick the length axis scores
+// against, mirroring the CTR-vs-target gauge on Analytics.
+const TIER_WORD_TARGET: Record<number, number> = { 1: 2200, 2: 1400, 3: 900, 4: 600 };
 
 const TARGET_LABELS: Record<string, string> = {
   drafting: "Request changes (back to drafting)",
@@ -104,6 +110,29 @@ export default async function ArticlePage({
     (t) => TARGET_LABELS[t],
   );
   const motifMix = (article.motifMix as Record<string, number>) ?? {};
+
+  // Quality radar — five axes, each a real computed 0-100 signal.
+  const bodyText = (article.body ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const wordCount = bodyText ? bodyText.split(" ").filter(Boolean).length : 0;
+  const flesch = fleschReadingEase(bodyText);
+  const seoFields = [seo?.title, seo?.meta, seo?.slug, seo?.focusKeyword, seo?.ogTitle];
+  const seoScore = seo ? Math.round((seoFields.filter(Boolean).length / seoFields.length) * 100) : 0;
+  const a11yScore = a11y.length ? Math.round((a11y.filter((c) => c.pass).length / a11y.length) * 100) : 0;
+  const totalCitations = article.citations.length;
+  const verifiedCitations = totalCitations - unverified.length;
+  const sourcingScore = totalCitations ? Math.round((verifiedCitations / totalCitations) * 100) : 100;
+  const wordTarget = TIER_WORD_TARGET[article.tier ?? 3] ?? 900;
+  const lengthScore = Math.min(Math.round((wordCount / wordTarget) * 100), 100);
+  const radarData: RadarAxis[] = [
+    { axis: "SEO", score: seoScore },
+    { axis: "A11y", score: a11yScore },
+    { axis: "Sourcing", score: sourcingScore },
+    { axis: "Readability", score: flesch ?? 0 },
+    { axis: "Length", score: lengthScore },
+  ];
+  const overallQuality = Math.round(
+    radarData.reduce((a, r) => a + r.score, 0) / radarData.length,
+  );
 
   return (
     <div className="px-8 py-8">
@@ -192,6 +221,43 @@ export default async function ArticlePage({
 
         {/* Side panel */}
         <aside className="space-y-4">
+          <section className="rounded-brand border border-lightblue bg-white p-4">
+            <div className="mb-1 flex items-center justify-between">
+              <h2 className="font-display text-sm font-semibold text-ink">Quality snapshot</h2>
+              <Badge tone={overallQuality >= 80 ? "blue" : overallQuality >= 50 ? "warn" : "critical"}>
+                {overallQuality}/100
+              </Badge>
+            </div>
+            {wordCount === 0 ? (
+              <p className="py-6 text-center text-xs text-ink/50">
+                Generate or write a draft to see the quality radar.
+              </p>
+            ) : (
+              <>
+                <QualityRadar data={radarData} />
+                <dl className="mt-2 grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <dt className="text-[0.55rem] uppercase tracking-wide text-ink/40">Words</dt>
+                    <dd className="font-mono text-sm font-bold tabular-nums text-ink">{wordCount}</dd>
+                    <dd className="text-[0.55rem] text-ink/40">/ {wordTarget} target</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[0.55rem] uppercase tracking-wide text-ink/40">Flesch</dt>
+                    <dd className="font-mono text-sm font-bold tabular-nums text-ink">{flesch ?? "—"}</dd>
+                    <dd className="text-[0.55rem] text-ink/40">readability</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[0.55rem] uppercase tracking-wide text-ink/40">Sources</dt>
+                    <dd className="font-mono text-sm font-bold tabular-nums text-ink">
+                      {verifiedCitations}/{totalCitations}
+                    </dd>
+                    <dd className="text-[0.55rem] text-ink/40">verified</dd>
+                  </div>
+                </dl>
+              </>
+            )}
+          </section>
+
           <section className="rounded-brand border border-lightblue bg-white p-4">
             <h2 className="mb-2 font-display text-sm font-semibold text-ink">Motif voice</h2>
             {Object.keys(motifMix).length ? (
