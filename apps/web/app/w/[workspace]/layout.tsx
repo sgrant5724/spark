@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { CommandPalette } from "@/components/CommandPalette";
 import { SearchTrigger } from "@/components/SearchTrigger";
+import { ToastProvider } from "@/components/ui";
 import { getUserMemberships, requireMembership } from "@/lib/auth-helpers";
 import { signOut } from "@/auth";
 
@@ -24,6 +25,7 @@ export default async function WorkspaceLayout({
   }
 
   return (
+    <ToastProvider>
     <div className="grid min-h-screen grid-rows-[auto_1fr] md:grid-cols-[240px_1fr] md:grid-rows-1">
       <a
         href="#main-content"
@@ -75,5 +77,6 @@ export default async function WorkspaceLayout({
 
       <CommandPalette slug={params.workspace} />
     </div>
+    </ToastProvider>
   );
 }

@@ -2,8 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui";
+import { discoverIdeas, runPipeline } from "@/app/w/[workspace]/ideas/actions";
 
-type Cmd = { id: string; label: string; hint?: string; href: string };
+type Cmd = {
+  id: string;
+  label: string;
+  hint?: string;
+  href?: string;
+  run?: () => Promise<void>;
+};
 
 const NAV_LABELS: Array<[string, string]> = [
   ["Mission Control", ""],
@@ -22,9 +30,50 @@ const NAV_LABELS: Array<[string, string]> = [
 
 export function CommandPalette({ slug }: { slug: string }) {
   const router = useRouter();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
+
+  // Run a workspace server action from the palette, with toast feedback.
+  const runAction = useCallback(
+    async (label: string, action: (fd: FormData) => Promise<void>) => {
+      setOpen(false);
+      toast({ tone: "info", title: `${label}…`, description: "Working on it." });
+      try {
+        const fd = new FormData();
+        fd.set("slug", slug);
+        await action(fd);
+        toast({ tone: "success", title: `${label} complete` });
+        router.refresh();
+      } catch (e) {
+        toast({
+          tone: "error",
+          title: `${label} failed`,
+          description: e instanceof Error ? e.message : "Please try again.",
+        });
+      }
+    },
+    [slug, toast, router],
+  );
+
+  const actionCmds: Cmd[] = useMemo(
+    () => [
+      {
+        id: "act-run-pipeline",
+        label: "Run pipeline (auto-draft approved ideas)",
+        hint: "Action",
+        run: () => runAction("Run pipeline", runPipeline),
+      },
+      {
+        id: "act-discover-ideas",
+        label: "Discover ideas with AI",
+        hint: "Action",
+        run: () => runAction("Discover ideas", discoverIdeas),
+      },
+    ],
+    [runAction],
+  );
   const [remote, setRemote] = useState<{
     articles: { id: string; title: string; state: string }[];
     ideas: { id: string; title: string; status: string }[];
@@ -82,9 +131,15 @@ export function CommandPalette({ slug }: { slug: string }) {
     );
   }, [q, slug]);
 
+  const actionMatches: Cmd[] = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    return actionCmds.filter((c) => !query || c.label.toLowerCase().includes(query));
+  }, [q, actionCmds]);
+
   const items: Cmd[] = useMemo(
     () => [
       ...navMatches,
+      ...actionMatches,
       ...remote.articles.map((a) => ({
         id: `a-${a.id}`,
         label: a.title,
@@ -98,7 +153,7 @@ export function CommandPalette({ slug }: { slug: string }) {
         href: `/w/${slug}/ideas`,
       })),
     ],
-    [navMatches, remote, slug],
+    [navMatches, actionMatches, remote, slug],
   );
 
   const go = useCallback(
@@ -106,7 +161,11 @@ export function CommandPalette({ slug }: { slug: string }) {
       const target = cmd ?? items[active];
       if (!target) return;
       setOpen(false);
-      router.push(target.href);
+      if (target.run) {
+        void target.run();
+      } else if (target.href) {
+        router.push(target.href);
+      }
     },
     [items, active, router],
   );
