@@ -1,17 +1,27 @@
 import Link from "next/link";
-import { Circle, Sparkles, Zap } from "lucide-react";
+import {
+  Circle,
+  FileText,
+  GitBranch,
+  Lightbulb,
+  MousePointerClick,
+  Pause,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { getCurrentUser, requireMembership } from "@/lib/auth-helpers";
 import {
   Widget,
-  Kpi,
   Sparkline,
-  PipelineBars,
   MiniCalendar,
   ActivityFeed,
   QueueList,
 } from "@/components/widgets";
+import { Badge, Funnel, Gauge, StatCard } from "@/components/ui";
 
 const REVIEW_STATES = ["draft_review", "seo_a11y_review", "assets_pending", "final_approval"] as const;
 const LIVE_STATES = ["published", "distributed", "analyzing"] as const;
@@ -147,6 +157,16 @@ export default async function MissionControl({
   if (!d.org?.description) setup.push({ label: "Fill in the Organization profile", href: `/w/${slug}/organization` });
   if (d.wp?.status !== "connected") setup.push({ label: "Connect WordPress", href: `/w/${slug}/settings` });
 
+  // Onboarding completeness — composed from real signals only (no invented %).
+  const ideasTotal = d.ideasReady + d.ideasApproved;
+  const onboardingChecks = [
+    !!d.org?.description,
+    d.wp?.status === "connected",
+    ideasTotal > 0,
+    published > 0,
+  ];
+  const onboardingDone = onboardingChecks.filter(Boolean).length;
+
   return (
     <div className="px-6 py-6 lg:px-8">
       <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -167,19 +187,47 @@ export default async function MissionControl({
       {/* Bento grid */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {/* KPI row */}
-        <Kpi label="In pipeline" value={inPipeline} delta={count(REVIEW_STATES) ? `${count(REVIEW_STATES)} in review` : "all drafting"} tone={count(REVIEW_STATES) ? "warn" : "flat"} href={`/w/${slug}/workflow`} />
-        <Kpi label="Published (all)" value={published} delta="live" tone="up" href={`/w/${slug}/content`} />
-        <Kpi label="Clicks (latest)" value={clicks28 ? fmt(clicks28) : "—"} delta={clicksSeries.length > 1 ? "trend below" : "no data"} tone={clicksSeries.length > 1 ? "up" : "flat"} href={`/w/${slug}/analytics`} />
-        <Kpi label="Ideas ready" value={d.ideasReady} delta={`${d.ideasApproved} approved`} tone={d.ideasReady ? "up" : "flat"} href={`/w/${slug}/ideas`} />
+        <StatCard
+          icon={<GitBranch aria-hidden />}
+          iconTone="blue"
+          label="In pipeline"
+          value={inPipeline}
+          delta={count(REVIEW_STATES) ? { text: `${count(REVIEW_STATES)} in review`, dir: "flat" } : undefined}
+          href={`/w/${slug}/workflow`}
+        />
+        <StatCard
+          icon={<Rocket aria-hidden />}
+          iconTone="orange"
+          label="Published"
+          value={published}
+          href={`/w/${slug}/content`}
+        />
+        <StatCard
+          icon={<MousePointerClick aria-hidden />}
+          iconTone="nav"
+          label="Clicks (latest)"
+          value={clicks28 ? fmt(clicks28) : "—"}
+          spark={clicksSeries.length > 1 ? { points: clicksSeries, label: "Monthly clicks" } : undefined}
+          href={`/w/${slug}/analytics`}
+        />
+        <StatCard
+          icon={<Lightbulb aria-hidden />}
+          iconTone="cyan"
+          label="Ideas ready"
+          value={d.ideasReady}
+          delta={d.ideasApproved ? { text: `${d.ideasApproved} approved`, dir: "up" } : undefined}
+          href={`/w/${slug}/ideas`}
+        />
 
-        {/* Pipeline shape (2 wide) */}
-        <Widget title="Pipeline shape" className="col-span-2" action={<Link href={`/w/${slug}/workflow`} className="text-[0.62rem] font-semibold text-blue hover:underline">Open board →</Link>}>
-          <PipelineBars
+        {/* Pipeline funnel (2 wide) */}
+        <Widget title="Pipeline funnel" className="col-span-2" action={<Link href={`/w/${slug}/workflow`} className="text-[0.62rem] font-semibold text-blue hover:underline">Open board →</Link>}>
+          <Funnel
             stages={[
-              { label: "Drafting", count: count(["drafting"]), tone: "blue" },
-              { label: "In review", count: count(["draft_review", "seo_a11y_review", "assets_pending"]), tone: "orange" },
-              { label: "Approval", count: count(["final_approval", "scheduled"]), tone: "yellow" },
-              { label: "Live", count: published, tone: "blue" },
+              { label: "Ideas", count: ideasTotal },
+              { label: "Drafting", count: count(["drafting"]) },
+              { label: "In review", count: count(["draft_review", "seo_a11y_review", "assets_pending"]) },
+              { label: "Approval", count: count(["final_approval", "scheduled"]) },
+              { label: "Live", count: published },
             ]}
           />
         </Widget>
@@ -209,11 +257,43 @@ export default async function MissionControl({
         </Widget>
 
         {/* Guardrails */}
-        <Widget title="Guardrails" action={<Link href={`/w/${slug}/settings`} className="text-[0.62rem] font-semibold text-blue hover:underline">Manage →</Link>}>
-          <ul className="flex flex-col gap-1.5 text-[0.72rem]">
-            <li className="flex items-center justify-between"><span className="text-ink/60">Publish gate</span><span className="font-semibold text-blue">{autoPublish ? "auto per type" : "human required"}</span></li>
-            <li className="flex items-center justify-between"><span className="text-ink/60">AI spend cap</span><span className="font-semibold tabular-nums text-ink">{spendCap != null ? `$${spendCap}` : "—"}</span></li>
-            <li className="flex items-center justify-between"><span className="text-ink/60">Global pause</span><span className={`font-semibold ${globalPause ? "text-orange" : "text-ink/50"}`}>{globalPause ? "PAUSED" : "off"}</span></li>
+        <Widget
+          title="Guardrails"
+          action={<Link href={`/w/${slug}/settings`} className="text-[0.62rem] font-semibold text-blue hover:underline">Manage →</Link>}
+        >
+          <ul className="flex flex-col gap-2 text-[0.72rem]">
+            <li className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5 text-ink/60">
+                <ShieldCheck className="h-3.5 w-3.5 text-blue" aria-hidden /> Publish gate
+              </span>
+              <Badge tone={autoPublish ? "warn" : "blue"}>
+                {autoPublish ? "auto per type" : "human required"}
+              </Badge>
+            </li>
+            <li className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5 text-ink/60">
+                <Zap className="h-3.5 w-3.5 text-orange" aria-hidden /> AI spend cap
+              </span>
+              <span className="font-mono font-semibold tabular-nums text-ink">
+                {spendCap != null ? `$${spendCap}/mo` : "—"}
+              </span>
+            </li>
+            <li
+              className={
+                "flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 " +
+                (globalPause ? "bg-status-critical/5" : "bg-paper2/60")
+              }
+            >
+              <span className="flex items-center gap-1.5 text-ink/60">
+                <Pause className={"h-3.5 w-3.5 " + (globalPause ? "text-status-critical" : "text-ink/40")} aria-hidden />
+                Global pause
+              </span>
+              {globalPause ? (
+                <Badge tone="critical" dot>PAUSED</Badge>
+              ) : (
+                <span className="font-semibold text-ink/50">off</span>
+              )}
+            </li>
           </ul>
         </Widget>
 
@@ -239,7 +319,16 @@ export default async function MissionControl({
         {/* Finish setup (only if incomplete) */}
         {setup.length > 0 && (
           <Widget title="Finish setting up" className="col-span-2">
-            <ul className="flex flex-col gap-1.5 text-sm">
+            <div className="flex items-center gap-4">
+              <Gauge
+                value={onboardingDone}
+                max={onboardingChecks.length}
+                label="setup"
+                meaning="score"
+                size={96}
+                format={(pct) => `${Math.round(pct * 100)}%`}
+              />
+              <ul className="flex flex-1 flex-col gap-1.5 text-sm">
               {setup.map((s) => (
                 <li key={s.label} className="flex items-start gap-2">
                   <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" aria-hidden />
@@ -249,7 +338,8 @@ export default async function MissionControl({
               {!process.env.ANTHROPIC_API_KEY && !process.env.LLM_API_KEY && (
                 <li className="flex items-start gap-2"><Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" aria-hidden /><span className="text-ink/70">Add ANTHROPIC_API_KEY for real AI generation</span></li>
               )}
-            </ul>
+              </ul>
+            </div>
           </Widget>
         )}
       </div>
