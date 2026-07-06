@@ -6,6 +6,7 @@ export { StatCard } from "./StatCard";
 export { Gauge } from "./Gauge";
 export { Meter } from "./Meter";
 export { Funnel } from "./Funnel";
+export { Donut } from "./Donut";
 export { Tooltip } from "./Tooltip";
 export { Skeleton, SkeletonText } from "./Skeleton";
 export { EmptyState } from "./EmptyState";

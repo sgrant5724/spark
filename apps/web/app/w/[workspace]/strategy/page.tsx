@@ -2,6 +2,9 @@ import { KeywordIntent, PageType, withWorkspace } from "@spark/db";
 import { can } from "@spark/shared";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
+import { Widget } from "@/components/widgets";
+import { Donut } from "@/components/ui";
+import { CATEGORICAL } from "@/lib/viz";
 import {
   createKeyword,
   deleteKeyword,
@@ -10,6 +13,8 @@ import {
   createLink,
   deleteLink,
 } from "./actions";
+
+const TIER_COLORS = ["#0A3A56", "#0D5A84", "#2E7BA6", "#6FA8C4"];
 
 const inputCls =
   "w-full rounded-lg border border-lightblue px-2.5 py-1.5 text-sm text-ink outline-none focus:border-blue";
@@ -41,6 +46,24 @@ export default async function StrategyPage({
 
   const pageUrl = new Map(data.pages.map((p) => [p.id, p.url]));
 
+  // Distribution summaries (real counts from the keyword table).
+  const tierSegments = [1, 2, 3, 4].map((t, i) => ({
+    label: `Tier ${t}`,
+    value: data.keywords.filter((k) => k.tier === t).length,
+    color: TIER_COLORS[i],
+  }));
+  const intentMap = new Map<string, number>();
+  for (const k of data.keywords) {
+    const key = k.intent ?? "unset";
+    intentMap.set(key, (intentMap.get(key) ?? 0) + 1);
+  }
+  const intentSegments = [...intentMap.entries()].map(([label, value], i) => ({
+    label,
+    value,
+    color: CATEGORICAL[i % CATEGORICAL.length],
+  }));
+  const maxTier = Math.max(...tierSegments.map((s) => s.value), 1);
+
   return (
     <div className="px-8 py-8">
       <h1 className="mb-1 font-display text-2xl font-bold text-ink">Strategy</h1>
@@ -49,6 +72,35 @@ export default async function StrategyPage({
         living data (FR-4). Volume &amp; difficulty come only from real research
         integrations — never entered by hand.
       </p>
+
+      {/* ---- Distribution summary ---- */}
+      {data.keywords.length > 0 && (
+        <div className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <Widget title="Keywords by tier">
+            <div className="flex flex-col gap-2">
+              {tierSegments.map((s) => (
+                <div key={s.label} className="flex items-center gap-2.5">
+                  <span className="w-14 shrink-0 text-[0.65rem] uppercase tracking-wide text-ink/50">
+                    {s.label}
+                  </span>
+                  <div className="h-3 flex-1 overflow-hidden rounded bg-paper2">
+                    <div
+                      className="h-full rounded"
+                      style={{ width: `${s.value ? Math.max((s.value / maxTier) * 100, 6) : 0}%`, background: s.color }}
+                    />
+                  </div>
+                  <span className="w-6 shrink-0 text-right font-mono text-xs font-semibold tabular-nums text-ink">
+                    {s.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Widget>
+          <Widget title="Intent distribution">
+            <Donut segments={intentSegments} centerLabel={String(data.keywords.length)} />
+          </Widget>
+        </div>
+      )}
 
       {/* ---- Keywords ---- */}
       <section className="mb-8">
@@ -209,7 +261,14 @@ export default async function StrategyPage({
         {data.links.length === 0 ? (
           <p className="text-sm text-ink/60">No link edges yet.</p>
         ) : (
-          <ul className="space-y-2">
+          <>
+            <div className="mb-3 overflow-x-auto rounded-brand border border-lightblue bg-white p-3">
+              <LinkArcDiagram
+                pages={data.pages.map((p) => ({ id: p.id, url: p.url }))}
+                links={data.links.map((l) => ({ from: l.fromPageId, to: l.toPageId }))}
+              />
+            </div>
+            <ul className="space-y-2">
             {data.links.map((l) => (
               <li
                 key={l.id}
@@ -232,7 +291,8 @@ export default async function StrategyPage({
                 )}
               </li>
             ))}
-          </ul>
+            </ul>
+          </>
         )}
 
         {canManage && data.pages.length >= 2 && (
@@ -260,5 +320,79 @@ export default async function StrategyPage({
         )}
       </section>
     </div>
+  );
+}
+
+/**
+ * Internal-link arc diagram (SVG). Pages sit on a horizontal axis; each link is
+ * a semicircular arc from source to target. Only pages that participate in a
+ * link are plotted, so the graph stays legible. Accessible via role="img".
+ */
+function LinkArcDiagram({
+  pages,
+  links,
+}: {
+  pages: Array<{ id: string; url: string }>;
+  links: Array<{ from: string; to: string }>;
+}) {
+  const linked = new Set(links.flatMap((l) => [l.from, l.to]));
+  const nodes = pages.filter((p) => linked.has(p.id));
+  if (nodes.length < 2) return null;
+
+  const W = Math.max(360, nodes.length * 110);
+  const H = 150;
+  const pad = 40;
+  const axisY = H - 34;
+  const step = (W - pad * 2) / Math.max(nodes.length - 1, 1);
+  const x = (id: string) => {
+    const i = nodes.findIndex((n) => n.id === id);
+    return pad + i * step;
+  };
+  const short = (url: string) => (url.length > 14 ? url.slice(0, 13) + "…" : url);
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      width={W}
+      height={H}
+      role="img"
+      aria-label={`Internal link graph: ${nodes.length} pages, ${links.length} links`}
+    >
+      {/* arcs */}
+      {links.map((l, i) => {
+        const x1 = x(l.from);
+        const x2 = x(l.to);
+        if (x1 == null || x2 == null || x1 === x2) return null;
+        const r = Math.abs(x2 - x1) / 2;
+        const sweep = x2 > x1 ? 1 : 0;
+        return (
+          <path
+            key={i}
+            d={`M ${x1} ${axisY} A ${r} ${r} 0 0 ${sweep} ${x2} ${axisY}`}
+            fill="none"
+            stroke="#1A7AAB"
+            strokeWidth="1.5"
+            strokeOpacity="0.55"
+          />
+        );
+      })}
+      {/* nodes */}
+      {nodes.map((n) => (
+        <g key={n.id}>
+          <circle cx={x(n.id)} cy={axisY} r="4.5" fill="#0D5A84" />
+          <text
+            x={x(n.id)}
+            y={axisY + 18}
+            textAnchor="middle"
+            fontSize="9"
+            fill="#343433"
+            fillOpacity="0.7"
+            fontFamily="'JetBrains Mono', monospace"
+          >
+            {short(n.url)}
+          </text>
+        </g>
+      ))}
+    </svg>
   );
 }
