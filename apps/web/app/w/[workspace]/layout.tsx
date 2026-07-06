@@ -5,7 +5,10 @@ import { Sidebar } from "@/components/Sidebar";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { CommandPalette } from "@/components/CommandPalette";
 import { SearchTrigger } from "@/components/SearchTrigger";
+import { NotificationBell, type Note } from "@/components/NotificationBell";
 import { ToastProvider } from "@/components/ui";
+import { withWorkspace } from "@spark/db";
+import { db } from "@/lib/db";
 import { getUserMemberships, requireMembership } from "@/lib/auth-helpers";
 import { signOut } from "@/auth";
 
@@ -16,8 +19,27 @@ export default async function WorkspaceLayout({
   children: React.ReactNode;
   params: { workspace: string };
 }) {
-  const { userId } = await requireMembership(params.workspace);
+  const { userId, membership } = await requireMembership(params.workspace);
   const memberships = await getUserMemberships(userId);
+
+  const notes = await withWorkspace(db, membership.workspaceId, async (tx) => {
+    const items = await tx.notification.findMany({
+      where: { workspaceId: membership.workspaceId },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+    });
+    const unread = await tx.notification.count({
+      where: { workspaceId: membership.workspaceId, readAt: null },
+    });
+    return { items, unread };
+  });
+  const noteItems: Note[] = notes.items.map((n) => ({
+    id: n.id,
+    type: n.type,
+    payload: (n.payload as Record<string, unknown>) ?? null,
+    createdAt: n.createdAt.toISOString(),
+    readAt: n.readAt ? n.readAt.toISOString() : null,
+  }));
 
   async function handleSignOut() {
     "use server";
@@ -42,12 +64,19 @@ export default async function WorkspaceLayout({
               Spark
             </span>
           </div>
-          {/* Sign out lives in the header strip on mobile */}
-          <form action={handleSignOut} className="md:hidden">
-            <button className="rounded-lg border border-white/20 px-2.5 py-1 text-xs text-white/80">
-              Sign out
-            </button>
-          </form>
+          <div className="flex items-center gap-1">
+            <NotificationBell
+              slug={params.workspace}
+              items={noteItems}
+              unreadCount={notes.unread}
+            />
+            {/* Sign out lives in the header strip on mobile */}
+            <form action={handleSignOut} className="md:hidden">
+              <button className="rounded-lg border border-white/20 px-2.5 py-1 text-xs text-white/80">
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
         <div className="flex flex-col gap-2 px-3 pb-1 md:pb-2">
           <Link

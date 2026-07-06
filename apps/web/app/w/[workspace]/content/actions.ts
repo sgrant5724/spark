@@ -6,6 +6,7 @@ import { ArticleState, Prisma, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { writeAudit } from "@/lib/audit";
+import { createNotification } from "@/lib/notifications";
 import { ARTICLE_TRANSITIONS, can, type ArticleStateName, type RoleName } from "@spark/shared";
 
 // Expected, user-fixable gate failures — surfaced as an inline banner on the
@@ -337,6 +338,7 @@ export async function publishToWordPress(formData: FormData): Promise<void> {
 
   let publishError: string | null = null;
   let result: { postId: number; link: string } | null = null;
+  let publishedTitle = "";
   try {
     // Assemble everything inside the tenant scope; publish outside the txn.
     const prep = await withWorkspace(db, workspaceId, async (tx) => {
@@ -345,6 +347,7 @@ export async function publishToWordPress(formData: FormData): Promise<void> {
       include: { seoOutput: true, assets: true, citations: true },
     });
     if (!article) throw new Error("Article not found.");
+    publishedTitle = article.title;
     if (article.state !== "scheduled") {
       throw new Error("Article must be in 'scheduled' state (final approved) to publish.");
     }
@@ -446,6 +449,11 @@ export async function publishToWordPress(formData: FormData): Promise<void> {
     entityId: id,
     metadata: { postId: result.postId, link: result.link },
   });
+  await createNotification({
+    workspaceId,
+    type: "article.published",
+    payload: { title: publishedTitle, articleId: id, link: result.link },
+  });
   revalidatePath(`/w/${slug}/content/${id}`);
   revalidatePath(`/w/${slug}/content`);
 }
@@ -460,10 +468,12 @@ export async function transitionArticle(formData: FormData): Promise<void> {
   const role = membership.role as RoleName;
 
   let gateError: string | null = null;
+  let articleTitle = "";
   try {
     await withWorkspace(db, workspaceId, async (tx) => {
       const article = await tx.article.findFirst({ where: { id, workspaceId } });
       if (!article) throw new GateError("Article not found.");
+      articleTitle = article.title;
 
       const allowed = ARTICLE_TRANSITIONS[article.state as ArticleStateName] ?? [];
       if (!allowed.includes(target)) {
@@ -551,6 +561,21 @@ export async function transitionArticle(formData: FormData): Promise<void> {
     entityType: "article",
     entityId: id,
   });
+  // Notify the workspace when an article reaches the human approval gate or is
+  // sent back for changes.
+  if (target === "final_approval") {
+    await createNotification({
+      workspaceId,
+      type: "article.awaiting_approval",
+      payload: { title: articleTitle, articleId: id },
+    });
+  } else if (target === "drafting") {
+    await createNotification({
+      workspaceId,
+      type: "article.rejected",
+      payload: { title: articleTitle, articleId: id },
+    });
+  }
   revalidatePath(`/w/${slug}/content/${id}`);
   revalidatePath(`/w/${slug}/content`);
 }

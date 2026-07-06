@@ -5,6 +5,7 @@ import { IdeaSource, IdeaStatus, Prisma, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { writeAudit } from "@/lib/audit";
+import { createNotification } from "@/lib/notifications";
 import { getLlm } from "@/lib/llm";
 import { buildGroundingContext } from "@/lib/grounding";
 import { can } from "@spark/shared";
@@ -211,6 +212,9 @@ export async function runPipeline(formData: FormData): Promise<void> {
     entityType: "article",
     metadata: { processed, capped: ideas.length === CAP },
   });
+  if (processed > 0) {
+    await createNotification({ workspaceId, type: "pipeline.run", payload: { processed } });
+  }
   revalidatePath(`/w/${slug}/ideas`);
   revalidatePath(`/w/${slug}/content`);
   revalidatePath(`/w/${slug}/workflow`);
