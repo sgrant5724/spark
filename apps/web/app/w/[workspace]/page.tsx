@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Circle, Sparkles, Zap } from "lucide-react";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { getCurrentUser, requireMembership } from "@/lib/auth-helpers";
@@ -154,11 +155,11 @@ export default async function MissionControl({
           <h1 className="font-display text-2xl font-bold text-ink">Good day, {firstName}</h1>
         </div>
         <div className="flex gap-2">
-          <Link href={`/w/${slug}/ideas`} className="rounded-lg border border-lightblue bg-white px-4 py-2 font-display text-sm font-semibold text-blue hover:border-blue">
-            ✦ Discover ideas
+          <Link href={`/w/${slug}/ideas`} className="inline-flex items-center gap-1.5 rounded-lg border border-lightblue bg-white px-4 py-2 font-display text-sm font-semibold text-blue hover:border-blue">
+            <Sparkles className="h-4 w-4" aria-hidden /> Discover ideas
           </Link>
-          <Link href={`/w/${slug}/ideas`} className="rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
-            ⚡ Run pipeline
+          <Link href={`/w/${slug}/ideas`} className="inline-flex items-center gap-1.5 rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
+            <Zap className="h-4 w-4" aria-hidden /> Run pipeline
           </Link>
         </div>
       </header>
@@ -241,12 +242,12 @@ export default async function MissionControl({
             <ul className="flex flex-col gap-1.5 text-sm">
               {setup.map((s) => (
                 <li key={s.label} className="flex items-start gap-2">
-                  <span className="text-orange" aria-hidden>○</span>
+                  <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" aria-hidden />
                   {s.href ? <Link href={s.href} className="text-blue underline">{s.label}</Link> : <span className="text-ink/70">{s.label}</span>}
                 </li>
               ))}
               {!process.env.ANTHROPIC_API_KEY && !process.env.LLM_API_KEY && (
-                <li className="flex items-start gap-2"><span className="text-orange" aria-hidden>○</span><span className="text-ink/70">Add ANTHROPIC_API_KEY for real AI generation</span></li>
+                <li className="flex items-start gap-2"><Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" aria-hidden /><span className="text-ink/70">Add ANTHROPIC_API_KEY for real AI generation</span></li>
               )}
             </ul>
           </Widget>

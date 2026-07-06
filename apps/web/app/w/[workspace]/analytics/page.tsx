@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Lock } from "lucide-react";
 import { withWorkspace } from "@spark/db";
 import { can } from "@spark/shared";
 import { db } from "@/lib/db";
@@ -189,17 +190,20 @@ export default async function AnalyticsPage({
                           <input type="hidden" name="protect" value={(!x.article.protectedFromRewrite).toString()} />
                           <button
                             className={
-                              "rounded border px-1.5 py-0.5 text-[0.6rem] " +
+                              "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[0.6rem] " +
                               (x.article.protectedFromRewrite
                                 ? "border-yellow bg-yellow/20 text-ink"
                                 : "border-lightblue text-blue")
                             }
                           >
-                            {x.article.protectedFromRewrite ? "🔒 Protected" : "Protect"}
+                            {x.article.protectedFromRewrite && <Lock className="h-3 w-3" aria-hidden />}
+                            {x.article.protectedFromRewrite ? "Protected" : "Protect"}
                           </button>
                         </form>
                       ) : (
-                        x.article.protectedFromRewrite && <span className="shrink-0 text-[0.6rem] text-ink/50">🔒</span>
+                        x.article.protectedFromRewrite && (
+                          <Lock className="h-3 w-3 shrink-0 text-ink/50" aria-label="Protected from rewrites" />
+                        )
                       )}
                     </li>
                   ))}
@@ -239,7 +243,9 @@ export default async function AnalyticsPage({
                       <Link href={`/w/${slug}/content/${article.id}`} className="font-medium text-ink hover:text-blue">
                         {article.title}
                       </Link>
-                      {article.protectedFromRewrite && <span className="ml-1" title="Protected from rewrites">🔒</span>}
+                      {article.protectedFromRewrite && (
+                        <Lock className="ml-1 inline h-3 w-3 align-[-0.1em] text-ink/50" aria-label="Protected from rewrites" />
+                      )}
                       {canManage && (
                         <form action={recordSnapshot} className="mt-1.5 flex flex-wrap gap-1">
                           <input type="hidden" name="slug" value={slug} />

@@ -1,7 +1,17 @@
 import { notFound } from "next/navigation";
+import {
+  Check,
+  Circle,
+  RefreshCw,
+  Rocket,
+  Sparkles,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
+import { Button } from "@/components/ui";
 import {
   ARTICLE_TRANSITIONS,
   can,
@@ -26,12 +36,12 @@ const inputCls =
 const labelCls = "mb-1 block text-[0.65rem] uppercase tracking-wide text-ink/60";
 
 const TARGET_LABELS: Record<string, string> = {
-  drafting: "↩ Request changes (back to drafting)",
+  drafting: "Request changes (back to drafting)",
   draft_review: "Send to draft review",
   seo_a11y_review: "Approve → SEO + A11y review",
   assets_pending: "Approve → assets",
   final_approval: "Send to final approval",
-  scheduled: "✓ Final approve → schedule",
+  scheduled: "Final approve → schedule",
   published: "Publish",
 };
 
@@ -100,9 +110,10 @@ export default async function ArticlePage({
       {searchParams?.error && (
         <p
           role="alert"
-          className="mb-4 rounded-brand border border-orange/50 bg-orange/10 px-4 py-3 text-sm text-orange"
+          className="mb-4 flex items-center gap-2 rounded-brand border border-orange/50 bg-orange/10 px-4 py-3 text-sm text-orange"
         >
-          ⚠ {searchParams.error}
+          <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
+          {searchParams.error}
         </p>
       )}
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -119,9 +130,18 @@ export default async function ArticlePage({
           <form action={generateDraft}>
             <input type="hidden" name="slug" value={slug} />
             <input type="hidden" name="id" value={article.id} />
-            <button className="rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
-              {article.body ? "⟳ Regenerate draft" : "✦ Generate draft"}
-            </button>
+            <Button
+              type="submit"
+              leftIcon={
+                article.body ? (
+                  <RefreshCw className="h-4 w-4" aria-hidden />
+                ) : (
+                  <Sparkles className="h-4 w-4" aria-hidden />
+                )
+              }
+            >
+              {article.body ? "Regenerate draft" : "Generate draft"}
+            </Button>
           </form>
         )}
       </header>
@@ -207,7 +227,10 @@ export default async function ArticlePage({
                   <li key={c.id} className="border-t border-paper pt-2 first:border-t-0 first:pt-0">
                     <p className="text-xs text-ink">{c.claimText}</p>
                     {c.verified ? (
-                      <p className="mt-1 text-[0.65rem] text-blue">✓ {c.sourceUrl}</p>
+                      <p className="mt-1 flex items-center gap-1 text-[0.65rem] text-blue">
+                        <Check className="h-3 w-3 shrink-0" aria-hidden />
+                        <span className="break-all">{c.sourceUrl}</span>
+                      </p>
                     ) : canEdit ? (
                       <form action={verifyCitation} className="mt-1 flex gap-1">
                         <input type="hidden" name="slug" value={slug} />
@@ -237,9 +260,11 @@ export default async function ArticlePage({
             <ul className="space-y-1.5">
               {a11y.map((c) => (
                 <li key={c.id} className="flex items-start gap-2 text-xs">
-                  <span className={c.pass ? "text-blue" : "text-orange"} aria-hidden>
-                    {c.pass ? "✓" : "✕"}
-                  </span>
+                  {c.pass ? (
+                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue" aria-hidden />
+                  ) : (
+                    <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" aria-hidden />
+                  )}
                   <span className={c.pass ? "text-ink/70" : "text-orange"}>
                     {c.label}
                     {!c.pass && c.detail ? ` — ${c.detail}` : ""}
@@ -340,9 +365,11 @@ export default async function ArticlePage({
               ).map(([kind, asset, dims]) => (
                 <li key={kind} className="border-t border-paper pt-2 first:border-t-0 first:pt-0">
                   <p className="flex items-center gap-2">
-                    <span className={asset ? "text-blue" : "text-orange"} aria-hidden>
-                      {asset ? "✓" : "○"}
-                    </span>
+                    {asset ? (
+                      <Check className="h-3.5 w-3.5 shrink-0 text-blue" aria-hidden />
+                    ) : (
+                      <Circle className="h-3.5 w-3.5 shrink-0 text-orange" aria-hidden />
+                    )}
                     <span className="font-semibold uppercase tracking-wide text-ink/70">
                       {kind === "og" ? "OG image" : "Featured image"}
                     </span>
@@ -382,9 +409,11 @@ export default async function ArticlePage({
               ))}
               <li className="border-t border-paper pt-2">
                 <p className="flex items-center gap-2">
-                  <span className={infographic ? "text-blue" : "text-ink/40"} aria-hidden>
-                    {infographic ? "✓" : "○"}
-                  </span>
+                  {infographic ? (
+                    <Check className="h-3.5 w-3.5 shrink-0 text-blue" aria-hidden />
+                  ) : (
+                    <Circle className="h-3.5 w-3.5 shrink-0 text-ink/40" aria-hidden />
+                  )}
                   <span className="font-semibold uppercase tracking-wide text-ink/70">Infographic</span>
                   {infographicDue && !infographic && (
                     <span className="rounded-full border border-yellow bg-yellow/20 px-2 py-0.5 text-[0.6rem] text-ink">
@@ -440,9 +469,12 @@ export default async function ArticlePage({
                   </form>
                 ))}
                 {unverified.length > 0 && (
-                  <p className="text-[0.65rem] text-orange">
-                    ⚠ Scheduling/publishing is blocked while {unverified.length} claim(s)
-                    lack a verified source.
+                  <p className="flex items-start gap-1 text-[0.65rem] text-orange">
+                    <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+                    <span>
+                      Scheduling/publishing is blocked while {unverified.length} claim(s)
+                      lack a verified source.
+                    </span>
                   </p>
                 )}
               </div>
@@ -474,9 +506,13 @@ export default async function ArticlePage({
                     <form action={publishToWordPress}>
                       <input type="hidden" name="slug" value={slug} />
                       <input type="hidden" name="id" value={article.id} />
-                      <button className="w-full rounded-lg bg-orange px-3 py-2 font-display text-sm font-semibold text-white">
-                        🚀 Publish now
-                      </button>
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        leftIcon={<Rocket className="h-4 w-4" aria-hidden />}
+                      >
+                        Publish now
+                      </Button>
                     </form>
                   ) : (
                     <p className="text-xs text-ink/60">Awaiting a final approver to publish.</p>

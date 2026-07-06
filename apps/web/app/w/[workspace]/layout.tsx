@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { SparkLogo } from "@/components/SparkLogo";
 import { Sidebar } from "@/components/Sidebar";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
@@ -49,9 +50,10 @@ export default async function WorkspaceLayout({
         <div className="flex flex-col gap-2 px-3 pb-1 md:pb-2">
           <Link
             href="/agency"
-            className="flex items-center gap-1.5 px-1 text-[0.68rem] font-semibold uppercase tracking-wide text-cyan hover:text-white"
+            className="flex items-center gap-1 px-1 text-[0.68rem] font-semibold uppercase tracking-wide text-cyan hover:text-white"
           >
-            ◂ All clients
+            <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
+            All clients
           </Link>
           <WorkspaceSwitcher
             memberships={memberships}

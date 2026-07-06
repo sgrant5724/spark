@@ -1,7 +1,9 @@
+import { Sparkles, Zap } from "lucide-react";
 import { IdeaStatus, withWorkspace } from "@spark/db";
 import { can } from "@spark/shared";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
+import { Button } from "@/components/ui";
 import { createIdea, discoverIdeas, runPipeline, setIdeaStatus, sendToDraft } from "./actions";
 
 const COLUMNS: Array<{ status: IdeaStatus; title: string }> = [
@@ -55,18 +57,20 @@ export default async function IdeasPage({
           <div className="flex flex-wrap gap-2">
             <form action={runPipeline}>
               <input type="hidden" name="slug" value={slug} />
-              <button
-                className="rounded-lg bg-blue px-4 py-2 font-display text-sm font-semibold text-white"
+              <Button
+                type="submit"
+                variant="secondary"
+                leftIcon={<Zap className="h-4 w-4" aria-hidden />}
                 title="Auto-draft up to 2 approved ideas and park them at draft review"
               >
-                ⚡ Auto-draft approved
-              </button>
+                Auto-draft approved
+              </Button>
             </form>
             <form action={discoverIdeas}>
               <input type="hidden" name="slug" value={slug} />
-              <button className="rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
-                ✦ Discover ideas (AI)
-              </button>
+              <Button type="submit" leftIcon={<Sparkles className="h-4 w-4" aria-hidden />}>
+                Discover ideas (AI)
+              </Button>
             </form>
           </div>
         )}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CircleCheck, CircleDashed } from "lucide-react";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
@@ -19,12 +20,12 @@ const STAGES: Array<{ key: string; label: string; states: ArticleStateName[] }> 
 ];
 
 const TARGET_LABELS: Record<string, string> = {
-  drafting: "↩ Back to drafting",
+  drafting: "Back to drafting",
   draft_review: "Send to draft review",
   seo_a11y_review: "Approve → SEO + A11y",
   assets_pending: "Approve → assets",
   final_approval: "Send to final approval",
-  scheduled: "✓ Final approve",
+  scheduled: "Final approve",
   published: "Publish",
   distributed: "Mark distributed",
   analyzing: "Move to analyzing",
@@ -232,7 +233,11 @@ function GateRow({ label, ok, detail }: { label: string; ok: boolean; detail: st
   return (
     <div className="flex items-center justify-between rounded-lg border border-lightblue px-2.5 py-1.5 text-xs">
       <span className="flex items-center gap-2">
-        <span className={ok ? "text-blue" : "text-orange"} aria-hidden>{ok ? "✓" : "○"}</span>
+        {ok ? (
+          <CircleCheck className="h-4 w-4 shrink-0 text-blue" aria-hidden />
+        ) : (
+          <CircleDashed className="h-4 w-4 shrink-0 text-orange" aria-hidden />
+        )}
         <span className="font-semibold uppercase tracking-wide text-ink/60">{label}</span>
       </span>
       <span className={ok ? "text-ink/50" : "text-orange"}>{detail}</span>

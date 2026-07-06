@@ -1,3 +1,4 @@
+import { TriangleAlert } from "lucide-react";
 import {
   SeoPlugin,
   BlogSlugRule,
@@ -256,9 +257,12 @@ export default async function SettingsPage({
               </select>
             </label>
             {slugRule === BlogSlugRule.needs_confirmation && (
-              <p className="mt-2 text-xs text-orange">
-                ⚠ Confirm against the live site before publishing — this drives
-                slugs, canonicals, internal links, and redirects.
+              <p className="mt-2 flex items-start gap-1.5 text-xs text-orange">
+                <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span>
+                  Confirm against the live site before publishing — this drives
+                  slugs, canonicals, internal links, and redirects.
+                </span>
               </p>
             )}
             <SaveBar canManage={canManage} />
@@ -338,10 +342,12 @@ export default async function SettingsPage({
               <p className="text-sm">
                 <span
                   className={
-                    cfg.wpConnection.status === "connected" ? "text-blue" : "text-orange"
+                    "inline-flex items-center gap-1.5 " +
+                    (cfg.wpConnection.status === "connected" ? "text-blue" : "text-orange")
                   }
                 >
-                  ● {cfg.wpConnection.status}
+                  <span className="h-2 w-2 rounded-full bg-current" aria-hidden />
+                  {cfg.wpConnection.status}
                 </span>{" "}
                 <span className="text-ink/70">
                   {String((cfg.wpConnection.config as Record<string, unknown>)?.siteUrl ?? "")}

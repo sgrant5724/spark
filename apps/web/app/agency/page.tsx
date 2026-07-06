@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { TriangleAlert } from "lucide-react";
 import { ArticleState, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { getSessionUserId, getUserMemberships } from "@/lib/auth-helpers";
@@ -177,7 +178,9 @@ export default async function AgencyConsole() {
                           <span className="font-semibold text-blue">{it.client}</span>
                           · {it.state.replace(/_/g, " ")}
                           · {idleDays(it.updatedAt)}d
-                          {idleDays(it.updatedAt) >= 4 && <span className="text-orange">⚠</span>}
+                          {idleDays(it.updatedAt) >= 4 && (
+                            <TriangleAlert className="h-3 w-3 text-orange" aria-label="Idle 4+ days" />
+                          )}
                         </span>
                       </Link>
                     </li>

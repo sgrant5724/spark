@@ -1,7 +1,9 @@
+import { RefreshCw, Sparkles } from "lucide-react";
 import { withWorkspace } from "@spark/db";
 import { can } from "@spark/shared";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
+import { Button } from "@/components/ui";
 import { approveVariant, generateVariants, markPosted } from "./actions";
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -69,9 +71,19 @@ export default async function SocialPage({
                   <form action={generateVariants}>
                     <input type="hidden" name="slug" value={slug} />
                     <input type="hidden" name="articleId" value={a.id} />
-                    <button className="rounded-lg bg-orange px-3 py-1.5 font-display text-xs font-semibold text-white">
-                      {a.socialVariants.length ? "⟳ Regenerate variants" : "✦ Generate variants"}
-                    </button>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      leftIcon={
+                        a.socialVariants.length ? (
+                          <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+                        ) : (
+                          <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                        )
+                      }
+                    >
+                      {a.socialVariants.length ? "Regenerate variants" : "Generate variants"}
+                    </Button>
                   </form>
                 )}
               </div>
