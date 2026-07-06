@@ -19,6 +19,9 @@ packages/db/prisma/generated/
 *.pem
 *.key
 
+# local-only session briefs (may contain operational creds)
+*.local.md
+
 # logs
 *.log
 npm-debug.log*
