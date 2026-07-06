@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 /* Quicksand for UI/body (Google Fonts). Kollektif (display/logo) is self-hosted
-   in a later epic; it falls back to Quicksand until then. */
-@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap");
+   in a later epic; it falls back to Quicksand until then. JetBrains Mono powers
+   metrics/counts/table numerics for "technical density" (font-mono). */
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
 :root {
   --ink: #343433;
@@ -29,4 +30,18 @@ body {
   outline: 3px solid var(--orange);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* WCAG 2.3.3: honor reduced-motion app-wide. Motion added in the enrichment
+   work (count-up, gauge/bar fill, toast slide, skeleton shimmer) collapses to
+   instant/final state for users who ask for it. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
