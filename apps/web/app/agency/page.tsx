@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getSessionUserId, getUserMemberships } from "@/lib/auth-helpers";
 import { signOut } from "@/auth";
 import { SparkLogo } from "@/components/SparkLogo";
+import { AddClientForm } from "@/components/AddClientForm";
 import { Badge, Gauge, StatCard } from "@/components/ui";
 
 const LIVE: ArticleState[] = ["published", "distributed", "analyzing"];
@@ -22,10 +23,16 @@ function healthScore(orgPct: number, publishedMonth: number, idle: number): numb
   return Math.round(onboarding + cadence + freshness);
 }
 
-export default async function AgencyConsole() {
+export default async function AgencyConsole({
+  searchParams,
+}: {
+  searchParams?: { error?: string };
+}) {
   const userId = await getSessionUserId();
   if (!userId) redirect("/login?callbackUrl=/agency");
   const memberships = await getUserMemberships(userId);
+  // Only an agency owner (owner role in any workspace) can create new clients.
+  const canCreate = memberships.some((m) => m.role === "owner");
 
   const monthStart = new Date();
   monthStart.setDate(1);
@@ -121,10 +128,26 @@ export default async function AgencyConsole() {
 
       <div className="mx-auto max-w-6xl px-6 py-6">
         <h1 className="mb-1 font-display text-2xl font-bold text-ink">All clients</h1>
-        <p className="mb-6 max-w-2xl text-sm text-ink/60">
+        <p className="mb-4 max-w-2xl text-sm text-ink/60">
           Every workspace you manage, in one place. Approvals from all clients flow into a single inbox —
           each action still runs inside its own workspace, isolated.
         </p>
+
+        {searchParams?.error && (
+          <p
+            role="alert"
+            className="mb-4 flex items-center gap-2 rounded-brand border border-orange/50 bg-orange/10 px-4 py-3 text-sm text-orange"
+          >
+            <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
+            {searchParams.error}
+          </p>
+        )}
+
+        {canCreate && (
+          <div className="mb-6">
+            <AddClientForm />
+          </div>
+        )}
 
         <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatCard
