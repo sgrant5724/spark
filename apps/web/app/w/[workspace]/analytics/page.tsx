@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowUpNarrowWide,
   Eye,
+  FileText,
   Lock,
   MousePointerClick,
   Target,
@@ -174,6 +175,14 @@ export default async function AnalyticsPage({
       <header className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h1 className="font-display text-2xl font-bold text-ink">Analytics</h1>
         <div className="flex items-center gap-2">
+          <Link
+            href={`/report/${slug}`}
+            target="_blank"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-lightblue bg-white px-3 py-1.5 text-sm font-semibold text-blue transition-colors hover:bg-paper"
+          >
+            <FileText className="h-4 w-4" aria-hidden />
+            Monthly report
+          </Link>
           <CsvExportButton rows={csvRows} headers={csvHeaders} filename={`analytics-${slug}.csv`} />
           <Badge tone={data.gsc?.status === "connected" ? "blue" : "neutral"} dot>
             {data.gsc?.status === "connected"

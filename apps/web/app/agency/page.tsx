@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Activity, Inbox, Rocket, TriangleAlert, Users } from "lucide-react";
+import { Activity, FileText, Inbox, Rocket, TriangleAlert, Users } from "lucide-react";
 import { ArticleState, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { getSessionUserId, getUserMemberships } from "@/lib/auth-helpers";
@@ -175,11 +175,11 @@ export default async function AgencyConsole({
             <h2 className="mb-2 font-display text-sm font-semibold text-ink">Clients</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {clients.map((c) => (
-                <Link
+                <div
                   key={c.workspaceId}
-                  href={`/w/${c.workspaceSlug}`}
-                  className="rounded-brand border border-lightblue bg-white p-4 shadow-sm transition-colors hover:border-blue"
+                  className="flex flex-col rounded-brand border border-lightblue bg-white shadow-sm transition-colors hover:border-blue"
                 >
+                  <Link href={`/w/${c.workspaceSlug}`} className="block p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <span className="h-6 w-6 shrink-0 rounded-md bg-gradient-to-br from-orange to-cyan" aria-hidden />
                     <span className="truncate font-display text-sm font-semibold text-ink">{c.workspaceName}</span>
@@ -220,7 +220,18 @@ export default async function AgencyConsole({
                       <div className="h-full rounded" style={{ width: `${c.orgPct}%`, background: c.orgPct === 100 ? "#0D5A84" : "linear-gradient(90deg,#F8CF40,#C4571C)" }} />
                     </div>
                   </div>
-                </Link>
+                  </Link>
+                  <div className="mt-auto border-t border-paper px-4 py-2">
+                    <Link
+                      href={`/report/${c.workspaceSlug}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue hover:underline"
+                    >
+                      <FileText className="h-3.5 w-3.5" aria-hidden />
+                      Export monthly report
+                    </Link>
+                  </div>
+                </div>
               ))}
             </div>
           </section>
