@@ -17,6 +17,8 @@ import {
   saveMotifs,
 } from "./actions";
 import { connectWordPress, disconnectWordPress } from "./integrations-actions";
+import { saveLlmProvider, saveLlmKey, clearLlmKey } from "./llm-actions";
+import { getLlmSettingsView, KEY_SLOTS, MODEL_OPTIONS } from "@/lib/llm-settings";
 
 const inputCls =
   "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue disabled:bg-paper disabled:text-ink/60";
@@ -27,13 +29,21 @@ function Section({
   title,
   desc,
   children,
+  className = "",
 }: {
   title: string;
   desc?: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="rounded-brand border border-lightblue bg-white p-5">
+    <section
+      className={`relative overflow-hidden rounded-brand border border-lightblue bg-white p-5 ${className}`}
+    >
+      <span
+        className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-orange via-yellow to-blue-bright"
+        aria-hidden
+      />
       <h2 className="font-display text-lg font-semibold text-ink">{title}</h2>
       {desc && <p className="mb-3 mt-1 text-sm text-ink/60">{desc}</p>}
       <div className={desc ? "" : "mt-3"}>{children}</div>
@@ -57,14 +67,17 @@ function SaveBar({ canManage }: { canManage: boolean }) {
 
 export default async function SettingsPage({
   params,
+  searchParams,
 }: {
   params: { workspace: string };
+  searchParams?: { error?: string };
 }) {
   const slug = params.workspace;
   const { membership } = await requireMembership(slug);
   const workspaceId = membership.workspaceId;
   const canManage = can(membership.role, "workspace.manage");
   const disabled = !canManage;
+  const llm = await getLlmSettingsView(workspaceId);
 
   const cfg = await withWorkspace(db, workspaceId, async (tx) => {
     const brand = await tx.brandKit.findUnique({ where: { workspaceId } });
@@ -108,6 +121,16 @@ export default async function SettingsPage({
           {membership.role}
         </span>
       </header>
+
+      {searchParams?.error && (
+        <p
+          role="alert"
+          className="mb-5 flex items-center gap-2 rounded-brand border border-orange/50 bg-orange/10 px-4 py-3 text-sm text-orange"
+        >
+          <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
+          {searchParams.error}
+        </p>
+      )}
 
       {!canManage && (
         <p className="mb-5 rounded-lg border border-orange/40 bg-orange/5 px-4 py-2 text-sm text-orange">
@@ -392,6 +415,165 @@ export default async function SettingsPage({
           ) : (
             <p className="text-sm text-ink/60">Not connected. Ask an owner/admin.</p>
           )}
+        </Section>
+
+        {/* AI Provider */}
+        <Section
+          title="AI Provider"
+          desc="Which Claude model powers generation, and which API key it bills to. Keys are encrypted at rest and never shown again after saving."
+          className="lg:col-span-2"
+        >
+          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full border border-lightblue bg-blue/5 px-2.5 py-1 font-mono text-blue">
+              {llm.model}
+            </span>
+            <span className="rounded-full border border-lightblue bg-paper px-2.5 py-1 text-ink/70">
+              active key:{" "}
+              {llm.activeSlot === 0
+                ? llm.envKeyPresent
+                  ? "deployment key (env)"
+                  : "deployment key (env) — NOT SET, generation runs on the stub"
+                : `slot ${llm.activeSlot} · ${llm.slots[llm.activeSlot - 1]?.label ?? "?"} · …${llm.slots[llm.activeSlot - 1]?.last4 ?? ""}`}
+            </span>
+          </div>
+
+          <form action={saveLlmProvider} className="mb-5 rounded-lg border border-paper bg-paper/40 p-3">
+            <input type="hidden" name="slug" value={slug} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className={labelCls}>Model</span>
+                <select name="model" defaultValue={llm.model} disabled={disabled} className={inputCls}>
+                  {!MODEL_OPTIONS.some((m) => m.id === llm.model) && (
+                    <option value={llm.model}>{llm.model} (from env)</option>
+                  )}
+                  {MODEL_OPTIONS.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.label} — {m.hint}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <fieldset>
+                <legend className={labelCls}>Active API key</legend>
+                <div className="space-y-1 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="activeSlot"
+                      value="0"
+                      defaultChecked={llm.activeSlot === 0}
+                      disabled={disabled}
+                      className="accent-blue"
+                    />
+                    <span className="text-ink/80">
+                      Deployment key (env){" "}
+                      {llm.envKeyPresent ? (
+                        <span className="text-blue">· set</span>
+                      ) : (
+                        <span className="text-orange">· not set</span>
+                      )}
+                    </span>
+                  </label>
+                  {llm.slots.map((s, i) => (
+                    <label key={i} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="activeSlot"
+                        value={String(i + 1)}
+                        defaultChecked={llm.activeSlot === i + 1}
+                        disabled={disabled || !s}
+                        className="accent-blue"
+                      />
+                      <span className={s ? "text-ink/80" : "text-ink/40"}>
+                        Slot {i + 1}
+                        {s ? (
+                          <span>
+                            {" "}
+                            · {s.label} · <span className="font-mono">…{s.last4}</span>
+                          </span>
+                        ) : (
+                          " · empty"
+                        )}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+            <SaveBar canManage={canManage} />
+          </form>
+
+          <p className={labelCls}>API key slots (Anthropic keys — write-only)</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {Array.from({ length: KEY_SLOTS }, (_, i) => {
+              const s = llm.slots[i];
+              return (
+                <form
+                  key={i}
+                  action={saveLlmKey}
+                  className={
+                    "rounded-lg border p-3 " +
+                    (llm.activeSlot === i + 1
+                      ? "border-blue bg-blue/5"
+                      : s
+                        ? "border-lightblue bg-white"
+                        : "border-dashed border-lightblue bg-paper/30")
+                  }
+                >
+                  <input type="hidden" name="slug" value={slug} />
+                  <input type="hidden" name="slot" value={String(i + 1)} />
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-ink/60">
+                      Slot {i + 1}
+                      {llm.activeSlot === i + 1 && <span className="ml-1 text-blue">· active</span>}
+                    </span>
+                    {s ? (
+                      <span className="font-mono text-[0.65rem] text-blue">…{s.last4}</span>
+                    ) : (
+                      <span className="text-[0.65rem] text-ink/40">empty</span>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      name="label"
+                      defaultValue={s?.label ?? ""}
+                      placeholder={`Label (e.g. "Client billing")`}
+                      disabled={disabled}
+                      className={inputCls}
+                    />
+                    <input
+                      name="key"
+                      type="password"
+                      placeholder={s ? "Paste a new key to replace…" : "sk-ant-…"}
+                      autoComplete="off"
+                      disabled={disabled}
+                      className={inputCls + " font-mono"}
+                    />
+                  </div>
+                  {canManage && (
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        type="submit"
+                        className="rounded-lg bg-blue px-3 py-1.5 font-display text-xs font-semibold text-white"
+                      >
+                        {s ? "Replace key" : "Save key"}
+                      </button>
+                      {s && (
+                        <button
+                          type="submit"
+                          formAction={clearLlmKey}
+                          formNoValidate
+                          className="rounded-lg border border-orange/40 px-3 py-1.5 text-xs text-orange"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </form>
+              );
+            })}
+          </div>
         </Section>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { SocialPlatform, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { writeAudit } from "@/lib/audit";
-import { getLlm } from "@/lib/llm";
+import { resolveLlm } from "@/lib/llm-settings";
 import { buildGroundingContext } from "@/lib/grounding";
 import { can } from "@spark/shared";
 
@@ -45,7 +45,7 @@ export async function generateVariants(formData: FormData): Promise<void> {
   });
 
   const grounding = await buildGroundingContext(workspaceId);
-  const llm = getLlm();
+  const llm = await resolveLlm(workspaceId);
 
   const system = [
     "You are Spark's social distribution engine. Derive one social post per platform from the published article below.",

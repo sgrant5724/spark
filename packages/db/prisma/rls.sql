@@ -44,7 +44,7 @@ declare
   t text;
   tenant_tables text[] := array[
     'memberships','org_profiles','brand_kits','heading_styles','image_specs',
-    'rendering_profiles','motifs','motif_defaults','seo_settings',
+    'rendering_profiles','motifs','motif_defaults','seo_settings','llm_settings',
     'sme_profiles','keywords','pages','page_links','ideas','articles',
     'article_versions','citations','seo_outputs','assets','social_variants',
     'schedules','runs','jobs','automation_settings','approvals','connections',

@@ -275,6 +275,7 @@ model Workspace {
   motifs             Motif[]
   motifDefaults      MotifDefault[]
   seoSettings        SeoSettings?
+  llmSettings        LlmSettings?
   smeProfiles        SmeProfile[]
   keywords           Keyword[]
   pages              Page[]
@@ -475,6 +476,24 @@ model SeoSettings {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@map("seo_settings")
+}
+
+// Per-workspace AI provider configuration. `keys` is an array of up to 4 slots,
+// each null or { label, last4, enc } where `enc` is AES-GCM ciphertext
+// (lib/crypto.ts) — plaintext keys are never persisted. activeSlot 0 = use the
+// deployment env key (ANTHROPIC_API_KEY); 1-4 = use that stored slot.
+model LlmSettings {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @unique @map("workspace_id") @db.Uuid
+  model       String   @default("claude-sonnet-4-6")
+  activeSlot  Int      @default(0) @map("active_slot")
+  keys        Json     @default("[null,null,null,null]")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("llm_settings")
 }
 
 // ============================================================================

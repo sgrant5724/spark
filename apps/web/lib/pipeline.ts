@@ -1,7 +1,7 @@
 import "server-only";
 import { Prisma, withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
-import { getLlm } from "@/lib/llm";
+import { resolveLlm } from "@/lib/llm-settings";
 import { buildGroundingContext } from "@/lib/grounding";
 
 /**
@@ -40,7 +40,7 @@ export async function generateDraftCore(
     grounding,
   ].join("\n");
 
-  const llm = getLlm();
+  const llm = await resolveLlm(workspaceId);
   const body = await llm.complete({
     system,
     messages: [

@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { writeAudit } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
-import { getLlm } from "@/lib/llm";
+import { resolveLlm } from "@/lib/llm-settings";
 import { buildGroundingContext } from "@/lib/grounding";
 import { can } from "@spark/shared";
 
@@ -56,7 +56,7 @@ export async function discoverIdeas(formData: FormData): Promise<void> {
   const { userId, workspaceId } = await requireStrategist(slug);
 
   const grounding = await buildGroundingContext(workspaceId);
-  const llm = getLlm();
+  const llm = await resolveLlm(workspaceId);
 
   const system = [
     "You are Spark's idea-discovery engine, proposing blog topic ideas for the organization below.",

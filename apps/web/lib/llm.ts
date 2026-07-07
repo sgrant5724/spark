@@ -97,11 +97,20 @@ class StubClient implements LlmClient {
   }
 }
 
-/** Resolve the configured client. Env is read at call time (Railway vars). */
-export function getLlm(): LlmClient {
-  const apiKey = process.env.ANTHROPIC_API_KEY ?? process.env.LLM_API_KEY;
+/**
+ * Resolve the configured client. Env is read at call time (Railway vars).
+ * Optional overrides come from per-workspace LLM settings (lib/llm-settings.ts):
+ * an override apiKey/model wins over env; with no key anywhere, the stub runs.
+ */
+export function getLlm(overrides?: {
+  apiKey?: string | null;
+  model?: string | null;
+}): LlmClient {
+  const apiKey =
+    overrides?.apiKey ?? process.env.ANTHROPIC_API_KEY ?? process.env.LLM_API_KEY;
   const provider = (process.env.LLM_PROVIDER ?? "").toLowerCase();
-  const model = process.env.LLM_DEFAULT_MODEL ?? "claude-sonnet-4-6";
+  const model =
+    overrides?.model ?? process.env.LLM_DEFAULT_MODEL ?? "claude-sonnet-4-6";
   if (apiKey && provider !== "stub") {
     return new AnthropicClient(apiKey, model);
   }
