@@ -4,7 +4,7 @@ import { can } from "@spark/shared";
 import { db } from "@/lib/db";
 import { requireMembership } from "@/lib/auth-helpers";
 import { Button } from "@/components/ui";
-import { DiscoveredIdeas } from "./discovered";
+import { BulkIdeaColumn, type BoardIdea } from "./BulkIdeaColumn";
 import { createIdea, discoverIdeas, runPipeline, setIdeaStatus, sendToDraft } from "./actions";
 
 const COLUMNS: Array<{ status: IdeaStatus; title: string }> = [
@@ -114,17 +114,31 @@ export default async function IdeasPage({
               <h2 className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/60">
                 {col.title} <span>{items.length}</span>
               </h2>
-              {col.status === IdeaStatus.discovered && canManage ? (
-                <DiscoveredIdeas
+              {canManage &&
+              (col.status === IdeaStatus.discovered ||
+                col.status === IdeaStatus.approved) ? (
+                <BulkIdeaColumn
                   slug={slug}
-                  ideas={items.map((i) => ({
-                    id: i.id,
-                    title: i.title,
-                    tier: i.tier,
-                    audience: i.audience,
-                    source: i.source,
-                    suggestedMotifs: (i.suggestedMotifs as Record<string, number>) ?? null,
-                  }))}
+                  bulk={
+                    col.status === IdeaStatus.discovered
+                      ? ["approve", "send_to_draft", "reject"]
+                      : ["send_to_draft", "reject"]
+                  }
+                  quick={
+                    col.status === IdeaStatus.discovered
+                      ? ["approve", "draft", "reject"]
+                      : ["draft", "reject"]
+                  }
+                  ideas={items.map(
+                    (i): BoardIdea => ({
+                      id: i.id,
+                      title: i.title,
+                      tier: i.tier,
+                      audience: i.audience,
+                      source: i.source,
+                      suggestedMotifs: (i.suggestedMotifs as Record<string, number>) ?? null,
+                    }),
+                  )}
                 />
               ) : (
               <div className="space-y-2">

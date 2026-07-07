@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui";
 import { discoverIdeas, runPipeline } from "@/app/w/[workspace]/ideas/actions";
+import { toggleGlobalPause } from "@/app/w/[workspace]/actions";
 
 type Cmd = {
   id: string;
@@ -57,6 +58,33 @@ export function CommandPalette({ slug }: { slug: string }) {
     [slug, toast, router],
   );
 
+  // Toggle the automation kill switch, reporting the resulting state.
+  const runTogglePause = useCallback(async () => {
+    setOpen(false);
+    toast({ tone: "info", title: "Toggling global pause…" });
+    try {
+      const fd = new FormData();
+      fd.set("slug", slug);
+      const { paused } = await toggleGlobalPause(fd);
+      toast(
+        paused
+          ? {
+              tone: "error",
+              title: "Global pause ON",
+              description: "All automation is halted until you resume.",
+            }
+          : { tone: "success", title: "Automation resumed" },
+      );
+      router.refresh();
+    } catch (e) {
+      toast({
+        tone: "error",
+        title: "Couldn't toggle global pause",
+        description: e instanceof Error ? e.message : "Please try again.",
+      });
+    }
+  }, [slug, toast, router]);
+
   const actionCmds: Cmd[] = useMemo(
     () => [
       {
@@ -71,8 +99,14 @@ export function CommandPalette({ slug }: { slug: string }) {
         hint: "Action",
         run: () => runAction("Discover ideas", discoverIdeas),
       },
+      {
+        id: "act-toggle-pause",
+        label: "Toggle global pause (automation kill switch)",
+        hint: "Action",
+        run: runTogglePause,
+      },
     ],
-    [runAction],
+    [runAction, runTogglePause],
   );
   const [remote, setRemote] = useState<{
     articles: { id: string; title: string; state: string }[];

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCheck, FileText, X } from "lucide-react";
+import { CheckCheck, FileText, type LucideIcon, X } from "lucide-react";
 import { useToast, Button } from "@/components/ui";
 import { bulkIdeaAction, sendToDraft, setIdeaStatus } from "./actions";
 
-export type DiscoveredIdea = {
+export type BoardIdea = {
   id: string;
   title: string;
   tier: number | null;
@@ -15,18 +15,36 @@ export type DiscoveredIdea = {
   suggestedMotifs: Record<string, number> | null;
 };
 
+/** Server-side bulk kinds handled by bulkIdeaAction. */
+type BulkKind = "approve" | "send_to_draft" | "reject";
+/** Single-card quick actions. */
+type QuickKind = "approve" | "draft" | "reject";
+
+const BULK_DEFS: Record<
+  BulkKind,
+  { label: string; verb: string; variant: "secondary" | "ghost" | "danger"; Icon: LucideIcon }
+> = {
+  approve: { label: "Approve", verb: "Approved", variant: "secondary", Icon: CheckCheck },
+  send_to_draft: { label: "Draft", verb: "Drafting", variant: "ghost", Icon: FileText },
+  reject: { label: "Reject", verb: "Rejected", variant: "danger", Icon: X },
+};
+
 /**
- * Discovered-ideas column with multi-select bulk actions. Each card carries a
- * checkbox; when any are selected a bulk bar offers Approve / Draft / Reject over
- * the whole selection (bulkIdeaAction, permission-checked server-side), with
- * toast feedback. Single-card quick actions remain as plain server-action forms.
+ * A kanban column of ideas with multi-select bulk actions (Approve / Draft /
+ * Reject over the whole selection via bulkIdeaAction, permission-checked
+ * server-side) plus per-card quick actions. Used for the Discovered and
+ * Approved columns with different action sets.
  */
-export function DiscoveredIdeas({
+export function BulkIdeaColumn({
   slug,
   ideas,
+  bulk,
+  quick,
 }: {
   slug: string;
-  ideas: DiscoveredIdea[];
+  ideas: BoardIdea[];
+  bulk: BulkKind[];
+  quick: QuickKind[];
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -43,26 +61,24 @@ export function DiscoveredIdeas({
   const toggleAll = () =>
     setSelected(allSelected ? new Set() : new Set(ideas.map((i) => i.id)));
 
-  async function runBulk(
-    action: "approve" | "reject" | "send_to_draft",
-    label: string,
-  ) {
+  async function runBulk(kind: BulkKind) {
     const ids = [...selected];
     if (!ids.length) return;
+    const { verb } = BULK_DEFS[kind];
     const fd = new FormData();
     fd.set("slug", slug);
-    fd.set("action", action);
+    fd.set("action", kind);
     ids.forEach((id) => fd.append("ids", id));
-    toast({ tone: "info", title: `${label} ${ids.length}…`, description: "Working on it." });
+    toast({ tone: "info", title: `${verb} ${ids.length}…`, description: "Working on it." });
     try {
       await bulkIdeaAction(fd);
-      toast({ tone: "success", title: `${label} ${ids.length} idea(s)` });
+      toast({ tone: "success", title: `${verb} ${ids.length} idea(s)` });
       setSelected(new Set());
       router.refresh();
     } catch (e) {
       toast({
         tone: "error",
-        title: `${label} failed`,
+        title: `${verb} failed`,
         description: e instanceof Error ? e.message : "Please try again.",
       });
     }
@@ -81,7 +97,7 @@ export function DiscoveredIdeas({
             checked={allSelected}
             onChange={toggleAll}
             className="h-3.5 w-3.5 accent-blue"
-            aria-label="Select all discovered ideas"
+            aria-label="Select all ideas in this column"
           />
           Select all
         </label>
@@ -92,15 +108,20 @@ export function DiscoveredIdeas({
 
       {selected.size > 0 && (
         <div className="sticky top-2 z-10 flex flex-wrap gap-1.5 rounded-lg border border-blue/30 bg-white p-2 shadow-md">
-          <Button size="sm" variant="secondary" onClick={() => runBulk("approve", "Approved")} leftIcon={<CheckCheck className="h-3.5 w-3.5" aria-hidden />}>
-            Approve
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => runBulk("send_to_draft", "Drafting")} leftIcon={<FileText className="h-3.5 w-3.5" aria-hidden />}>
-            Draft
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => runBulk("reject", "Rejected")} leftIcon={<X className="h-3.5 w-3.5" aria-hidden />}>
-            Reject
-          </Button>
+          {bulk.map((kind) => {
+            const def = BULK_DEFS[kind];
+            return (
+              <Button
+                key={kind}
+                size="sm"
+                variant={def.variant}
+                onClick={() => runBulk(kind)}
+                leftIcon={<def.Icon className="h-3.5 w-3.5" aria-hidden />}
+              >
+                {def.label}
+              </Button>
+            );
+          })}
         </div>
       )}
 
@@ -138,27 +159,35 @@ export function DiscoveredIdeas({
                     ))}
                   </div>
                 )}
-                <div className="mt-2 flex flex-wrap gap-2 border-t border-paper pt-2">
-                  <form action={setIdeaStatus}>
-                    <input type="hidden" name="slug" value={slug} />
-                    <input type="hidden" name="id" value={idea.id} />
-                    <input type="hidden" name="status" value="approved" />
-                    <button className="text-xs font-semibold text-blue underline" title="Approve for the auto-draft queue">
-                      Approve
-                    </button>
-                  </form>
-                  <form action={sendToDraft}>
-                    <input type="hidden" name="slug" value={slug} />
-                    <input type="hidden" name="id" value={idea.id} />
-                    <button className="text-xs font-semibold text-blue underline">Draft now</button>
-                  </form>
-                  <form action={setIdeaStatus}>
-                    <input type="hidden" name="slug" value={slug} />
-                    <input type="hidden" name="id" value={idea.id} />
-                    <input type="hidden" name="status" value="rejected" />
-                    <button className="text-xs text-orange underline">Reject</button>
-                  </form>
-                </div>
+                {quick.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2 border-t border-paper pt-2">
+                    {quick.includes("approve") && (
+                      <form action={setIdeaStatus}>
+                        <input type="hidden" name="slug" value={slug} />
+                        <input type="hidden" name="id" value={idea.id} />
+                        <input type="hidden" name="status" value="approved" />
+                        <button className="text-xs font-semibold text-blue underline" title="Approve for the auto-draft queue">
+                          Approve
+                        </button>
+                      </form>
+                    )}
+                    {quick.includes("draft") && (
+                      <form action={sendToDraft}>
+                        <input type="hidden" name="slug" value={slug} />
+                        <input type="hidden" name="id" value={idea.id} />
+                        <button className="text-xs font-semibold text-blue underline">Draft now</button>
+                      </form>
+                    )}
+                    {quick.includes("reject") && (
+                      <form action={setIdeaStatus}>
+                        <input type="hidden" name="slug" value={slug} />
+                        <input type="hidden" name="id" value={idea.id} />
+                        <input type="hidden" name="status" value="rejected" />
+                        <button className="text-xs text-orange underline">Reject</button>
+                      </form>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </article>
