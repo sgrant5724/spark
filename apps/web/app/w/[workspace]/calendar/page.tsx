@@ -52,7 +52,7 @@ export default async function CalendarPage({
                   <li key={a.id}>
                     <Link
                       href={`/w/${slug}/content/${a.id}`}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-brand border border-lightblue bg-white px-4 py-2.5 hover:border-blue"
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-brand border border-line bg-surface px-4 py-2.5 hover:border-accent"
                     >
                       <span className="text-sm font-medium text-ink">{a.title}</span>
                       <span className="flex items-center gap-2 text-xs text-ink/50">
@@ -64,7 +64,7 @@ export default async function CalendarPage({
                           className={
                             "rounded border px-2 py-0.5 " +
                             (a.state === "scheduled"
-                              ? "border-orange/40 bg-orange/5 text-orange"
+                              ? "border-accent-warn/40 bg-orange/5 text-accent-warn"
                               : "border-yellow bg-yellow/20 text-ink")
                           }
                         >

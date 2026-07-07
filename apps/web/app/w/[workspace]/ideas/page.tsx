@@ -15,7 +15,7 @@ const COLUMNS: Array<{ status: IdeaStatus; title: string }> = [
 ];
 
 const inputCls =
-  "rounded-lg border border-lightblue px-2.5 py-1.5 text-sm text-ink outline-none focus:border-blue";
+  "rounded-lg border border-line px-2.5 py-1.5 text-sm text-ink outline-none focus:border-accent";
 
 function MotifChips({ mix }: { mix: unknown }) {
   const entries = Object.entries((mix as Record<string, number>) ?? {});
@@ -25,7 +25,7 @@ function MotifChips({ mix }: { mix: unknown }) {
       {entries.map(([k]) => (
         <span
           key={k}
-          className="rounded-full border border-lightblue bg-paper px-2 py-0.5 text-[0.6rem] text-blue"
+          className="rounded-full border border-line bg-paper px-2 py-0.5 text-[0.6rem] text-accent"
         >
           {k}
         </span>
@@ -85,7 +85,7 @@ export default async function IdeasPage({
       {canManage && (
         <form
           action={createIdea}
-          className="mb-6 flex flex-wrap items-end gap-2 rounded-brand border border-lightblue bg-white p-3"
+          className="mb-6 flex flex-wrap items-end gap-2 rounded-brand border border-line bg-surface p-3"
         >
           <input type="hidden" name="slug" value={slug} />
           <input name="title" required placeholder="Add an idea manually…" className={inputCls + " w-72"} />
@@ -108,7 +108,7 @@ export default async function IdeasPage({
           return (
             <section
               key={col.status}
-              className="rounded-brand border border-lightblue bg-paper p-3"
+              className="rounded-brand border border-line bg-paper p-3"
               aria-label={col.title}
             >
               <h2 className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/60">
@@ -145,7 +145,7 @@ export default async function IdeasPage({
                 {items.map((idea) => (
                   <article
                     key={idea.id}
-                    className="rounded-lg border border-lightblue bg-white p-3"
+                    className="rounded-lg border border-line bg-surface p-3"
                   >
                     <h3 className="text-sm font-semibold leading-snug text-ink">
                       {idea.title}
@@ -165,7 +165,7 @@ export default async function IdeasPage({
                               <input type="hidden" name="id" value={idea.id} />
                               <input type="hidden" name="status" value="approved" />
                               <button
-                                className="text-xs font-semibold text-blue underline"
+                                className="text-xs font-semibold text-accent underline"
                                 title="Approve for the auto-draft queue"
                               >
                                 Approve
@@ -174,7 +174,7 @@ export default async function IdeasPage({
                             <form action={sendToDraft}>
                               <input type="hidden" name="slug" value={slug} />
                               <input type="hidden" name="id" value={idea.id} />
-                              <button className="text-xs font-semibold text-blue underline">
+                              <button className="text-xs font-semibold text-accent underline">
                                 Draft now
                               </button>
                             </form>
@@ -182,7 +182,7 @@ export default async function IdeasPage({
                               <input type="hidden" name="slug" value={slug} />
                               <input type="hidden" name="id" value={idea.id} />
                               <input type="hidden" name="status" value="rejected" />
-                              <button className="text-xs text-orange underline">Reject</button>
+                              <button className="text-xs text-accent-warn underline">Reject</button>
                             </form>
                           </>
                         )}
@@ -191,7 +191,7 @@ export default async function IdeasPage({
                             <input type="hidden" name="slug" value={slug} />
                             <input type="hidden" name="id" value={idea.id} />
                             <input type="hidden" name="status" value="discovered" />
-                            <button className="text-xs text-blue underline">Restore</button>
+                            <button className="text-xs text-accent underline">Restore</button>
                           </form>
                         )}
                       </div>

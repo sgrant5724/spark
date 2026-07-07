@@ -23,7 +23,7 @@ import { PROVIDERS, PROVIDER_ORDER, PROVIDER_TINT } from "@/lib/llm-catalog";
 import { AiProviderForm } from "@/components/AiProviderForm";
 
 const inputCls =
-  "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue disabled:bg-paper disabled:text-ink/60";
+  "w-full rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-accent disabled:bg-paper disabled:text-ink/60";
 const labelCls =
   "mb-1 block text-[0.65rem] uppercase tracking-wide text-ink/60";
 
@@ -40,7 +40,7 @@ function Section({
 }) {
   return (
     <section
-      className={`relative overflow-hidden rounded-brand border border-lightblue bg-white p-5 ${className}`}
+      className={`relative overflow-hidden rounded-brand border border-line bg-surface p-5 ${className}`}
     >
       <span
         className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-orange via-yellow to-blue-bright"
@@ -119,7 +119,7 @@ export default async function SettingsPage({
         <h1 className="font-display text-2xl font-bold text-ink">
           Workspace settings
         </h1>
-        <span className="rounded-lg border border-lightblue bg-white px-3 py-1.5 text-xs uppercase tracking-wide text-blue">
+        <span className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs uppercase tracking-wide text-accent">
           {membership.role}
         </span>
       </header>
@@ -127,7 +127,7 @@ export default async function SettingsPage({
       {searchParams?.error && (
         <p
           role="alert"
-          className="mb-5 flex items-center gap-2 rounded-brand border border-orange/50 bg-orange/10 px-4 py-3 text-sm text-orange"
+          className="mb-5 flex items-center gap-2 rounded-brand border border-accent-warn/50 bg-orange/10 px-4 py-3 text-sm text-accent-warn"
         >
           <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
           {searchParams.error}
@@ -135,7 +135,7 @@ export default async function SettingsPage({
       )}
 
       {!canManage && (
-        <p className="mb-5 rounded-lg border border-orange/40 bg-orange/5 px-4 py-2 text-sm text-orange">
+        <p className="mb-5 rounded-lg border border-accent-warn/40 bg-orange/5 px-4 py-2 text-sm text-accent-warn">
           You have read-only access. Only owners and admins can change settings.
         </p>
       )}
@@ -147,7 +147,7 @@ export default async function SettingsPage({
             {Object.entries(colors).map(([name, hex]) => (
               <span
                 key={name}
-                className="flex items-center gap-2 rounded-lg border border-lightblue bg-paper px-2 py-1 text-[0.65rem] text-ink/70"
+                className="flex items-center gap-2 rounded-lg border border-line bg-paper px-2 py-1 text-[0.65rem] text-ink/70"
               >
                 <i
                   className="h-4 w-4 rounded"
@@ -282,7 +282,7 @@ export default async function SettingsPage({
               </select>
             </label>
             {slugRule === BlogSlugRule.needs_confirmation && (
-              <p className="mt-2 flex items-start gap-1.5 text-xs text-orange">
+              <p className="mt-2 flex items-start gap-1.5 text-xs text-accent-warn">
                 <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
                 <span>
                   Confirm against the live site before publishing — this drives
@@ -308,7 +308,7 @@ export default async function SettingsPage({
                   (m.directive as Record<string, unknown>)?.voice ?? "",
                 );
                 return (
-                  <div key={m.id} className="rounded-lg border border-lightblue p-3">
+                  <div key={m.id} className="rounded-lg border border-line p-3">
                     <div className="grid grid-cols-[1fr_2fr] gap-2">
                       <label>
                         <span className={labelCls}>Name ({m.key})</span>
@@ -343,9 +343,9 @@ export default async function SettingsPage({
                     ? `Channel: ${d.channel}`
                     : `${d.tier ? `Tier ${d.tier}` : "Any tier"}${d.audience ? ` · ${d.audience}` : ""}`;
                 return (
-                  <li key={d.id} className="flex items-center justify-between rounded-lg border border-lightblue px-3 py-2">
+                  <li key={d.id} className="flex items-center justify-between rounded-lg border border-line px-3 py-2">
                     <span className="text-ink">{label}</span>
-                    <span className="text-blue">
+                    <span className="text-accent">
                       {Object.entries(mix)
                         .map(([k, v]) => `${k} ${Math.round(Number(v) * 100)}%`)
                         .join(" · ")}
@@ -368,7 +368,7 @@ export default async function SettingsPage({
                 <span
                   className={
                     "inline-flex items-center gap-1.5 " +
-                    (cfg.wpConnection.status === "connected" ? "text-blue" : "text-orange")
+                    (cfg.wpConnection.status === "connected" ? "text-accent" : "text-accent-warn")
                   }
                 >
                   <span className="h-2 w-2 rounded-full bg-current" aria-hidden />
@@ -384,7 +384,7 @@ export default async function SettingsPage({
               {canManage && (
                 <form action={disconnectWordPress}>
                   <input type="hidden" name="slug" value={slug} />
-                  <button className="rounded-lg border border-orange/40 px-3 py-1.5 text-xs text-orange">
+                  <button className="rounded-lg border border-accent-warn/40 px-3 py-1.5 text-xs text-accent-warn">
                     Disconnect
                   </button>
                 </form>
@@ -440,10 +440,10 @@ export default async function SettingsPage({
               />
               {PROVIDERS[llm.activeProvider].label}
             </span>
-            <span className="rounded-full border border-lightblue bg-blue/5 px-2.5 py-1 font-mono text-blue">
+            <span className="rounded-full border border-line bg-blue/5 px-2.5 py-1 font-mono text-accent">
               {llm.model}
             </span>
-            <span className="rounded-full border border-lightblue bg-paper px-2.5 py-1 text-ink/70">
+            <span className="rounded-full border border-line bg-paper px-2.5 py-1 text-ink/70">
               key:{" "}
               {llm.activeSlot === 0
                 ? llm.envKeyPresent
@@ -475,10 +475,10 @@ export default async function SettingsPage({
                   className={
                     "relative overflow-hidden rounded-lg border p-3 " +
                     (llm.activeSlot === i + 1
-                      ? "border-blue bg-blue/5"
+                      ? "border-accent bg-blue/5"
                       : s
-                        ? "border-lightblue bg-white"
-                        : "border-dashed border-lightblue bg-paper/30")
+                        ? "border-line bg-surface"
+                        : "border-dashed border-line bg-paper/30")
                   }
                 >
                   {tint && (
@@ -493,7 +493,7 @@ export default async function SettingsPage({
                   <div className="mb-2 flex items-center justify-between">
                     <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-ink/60">
                       Slot {i + 1}
-                      {llm.activeSlot === i + 1 && <span className="ml-1 text-blue">· active</span>}
+                      {llm.activeSlot === i + 1 && <span className="ml-1 text-accent">· active</span>}
                     </span>
                     {s ? (
                       <span className="font-mono text-[0.65rem]" style={{ color: tint ?? undefined }}>
@@ -548,7 +548,7 @@ export default async function SettingsPage({
                           type="submit"
                           formAction={clearLlmKey}
                           formNoValidate
-                          className="rounded-lg border border-orange/40 px-3 py-1.5 text-xs text-orange"
+                          className="rounded-lg border border-accent-warn/40 px-3 py-1.5 text-xs text-accent-warn"
                         >
                           Clear
                         </button>

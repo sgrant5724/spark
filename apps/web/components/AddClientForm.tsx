@@ -31,7 +31,7 @@ export function AddClientForm() {
   return (
     <form
       action={createClientWorkspace}
-      className="rounded-brand border border-lightblue bg-white p-4 shadow-sm"
+      className="rounded-brand border border-line bg-surface p-4 shadow-sm"
     >
       <div className="mb-2 flex items-center gap-2">
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange text-white" aria-hidden>
@@ -48,7 +48,7 @@ export function AddClientForm() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Acme Nonprofit"
-            className="w-full rounded-lg border border-lightblue px-2.5 py-1.5 text-sm text-ink outline-none focus:border-blue"
+            className="w-full rounded-lg border border-line px-2.5 py-1.5 text-sm text-ink outline-none focus:border-accent"
           />
         </label>
         <label className="flex-1">
@@ -61,7 +61,7 @@ export function AddClientForm() {
               setEdited(true);
             }}
             placeholder="acme-nonprofit"
-            className="w-full rounded-lg border border-lightblue px-2.5 py-1.5 font-mono text-sm text-ink outline-none focus:border-blue"
+            className="w-full rounded-lg border border-line px-2.5 py-1.5 font-mono text-sm text-ink outline-none focus:border-accent"
           />
         </label>
         <Button type="submit" disabled={!name.trim()}>
@@ -70,7 +70,7 @@ export function AddClientForm() {
       </div>
       <p className="mt-1.5 text-[0.62rem] text-ink/50">
         Creates a fully-configured workspace at{" "}
-        <span className="font-mono text-blue">/w/{effective || "…"}</span> — you&apos;ll be its owner.
+        <span className="font-mono text-accent">/w/{effective || "…"}</span> — you&apos;ll be its owner.
       </p>
     </form>
   );

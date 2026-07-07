@@ -9,10 +9,10 @@ import { cx } from "@/lib/cx";
 type Tone = "neutral" | "blue" | "warn" | "critical" | "live";
 
 const TONES: Record<Tone, string> = {
-  neutral: "border-lightblue bg-white text-ink/70",
-  blue: "border-lightblue bg-blue/5 text-blue",
-  warn: "border-orange/40 bg-orange/5 text-orange",
-  critical: "border-status-critical/40 bg-status-critical/5 text-status-critical",
+  neutral: "border-line bg-surface text-ink/70",
+  blue: "border-line bg-blue/5 text-accent",
+  warn: "border-accent-warn/40 bg-orange/5 text-accent-warn",
+  critical: "border-accent-danger/40 bg-status-critical/5 text-accent-danger",
   live: "border-yellow bg-yellow/10 text-ink shadow-glow",
 };
 

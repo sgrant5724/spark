@@ -14,11 +14,11 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  draft: "border-lightblue bg-paper text-blue",
-  approved: "border-orange/40 bg-orange/5 text-orange",
+  draft: "border-line bg-paper text-accent",
+  approved: "border-accent-warn/40 bg-orange/5 text-accent-warn",
   scheduled: "border-yellow bg-yellow/20 text-ink",
   posted: "border-yellow bg-yellow/20 text-ink",
-  failed: "border-orange bg-orange/10 text-orange",
+  failed: "border-accent-warn bg-orange/10 text-accent-warn",
 };
 
 export default async function SocialPage({
@@ -57,12 +57,12 @@ export default async function SocialPage({
       ) : (
         <div className="space-y-6">
           {articles.map((a) => (
-            <section key={a.id} className="rounded-brand border border-lightblue bg-white p-4">
+            <section key={a.id} className="rounded-brand border border-line bg-surface p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <h2 className="font-display text-base font-semibold text-ink">{a.title}</h2>
                   {a.publishedUrl && (
-                    <a href={a.publishedUrl} target="_blank" className="break-all text-xs text-blue underline">
+                    <a href={a.publishedUrl} target="_blank" className="break-all text-xs text-accent underline">
                       {a.publishedUrl}
                     </a>
                   )}
@@ -93,7 +93,7 @@ export default async function SocialPage({
               ) : (
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {a.socialVariants.map((v) => (
-                    <article key={v.id} className="rounded-lg border border-lightblue p-3">
+                    <article key={v.id} className="rounded-lg border border-line p-3">
                       <div className="mb-1.5 flex items-center justify-between">
                         <span className="text-xs font-semibold text-ink">
                           {PLATFORM_LABELS[v.platform] ?? v.platform}
@@ -110,14 +110,14 @@ export default async function SocialPage({
                             <form action={approveVariant}>
                               <input type="hidden" name="slug" value={slug} />
                               <input type="hidden" name="id" value={v.id} />
-                              <button className="text-[0.65rem] font-semibold text-blue underline">Approve</button>
+                              <button className="text-[0.65rem] font-semibold text-accent underline">Approve</button>
                             </form>
                           )}
                           {v.status === "approved" && (
                             <form action={markPosted}>
                               <input type="hidden" name="slug" value={slug} />
                               <input type="hidden" name="id" value={v.id} />
-                              <button className="text-[0.65rem] font-semibold text-blue underline">
+                              <button className="text-[0.65rem] font-semibold text-accent underline">
                                 Mark posted
                               </button>
                             </form>

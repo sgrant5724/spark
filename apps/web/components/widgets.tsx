@@ -19,7 +19,7 @@ export function Widget({
 }) {
   return (
     <section
-      className={`relative min-w-0 overflow-hidden rounded-brand border border-lightblue bg-white p-4 ${className}`}
+      className={`relative min-w-0 overflow-hidden rounded-brand border border-line bg-surface p-4 ${className}`}
     >
       {/* brand ribbon — the Spark gradient from the logo mark */}
       <span
@@ -55,7 +55,7 @@ export function Kpi({
   href?: string;
 }) {
   const toneCls =
-    tone === "warn" ? "text-orange" : tone === "flat" ? "text-ink/50" : "text-blue";
+    tone === "warn" ? "text-accent-warn" : tone === "flat" ? "text-ink/50" : "text-accent";
   const inner = (
     <>
       <p className="text-[0.65rem] uppercase tracking-wide text-ink/50">{label}</p>
@@ -63,9 +63,9 @@ export function Kpi({
       {delta && <p className={`mt-0.5 text-[0.65rem] font-semibold ${toneCls}`}>{delta}</p>}
     </>
   );
-  const base = "block rounded-brand border border-lightblue bg-white p-4";
+  const base = "block rounded-brand border border-line bg-surface p-4";
   return href ? (
-    <Link href={href} className={`${base} transition-colors hover:border-blue`}>
+    <Link href={href} className={`${base} transition-colors hover:border-accent`}>
       {inner}
     </Link>
   ) : (
@@ -227,7 +227,7 @@ export function QueueList({
         <li key={i}>
           <Link
             href={it.href}
-            className="flex flex-wrap items-center justify-between gap-1.5 rounded-lg border border-paper bg-paper/50 px-2.5 py-1.5 hover:border-blue"
+            className="flex flex-wrap items-center justify-between gap-1.5 rounded-lg border border-paper bg-paper/50 px-2.5 py-1.5 hover:border-accent"
           >
             <span className="truncate text-[0.78rem] font-medium text-ink">{it.title}</span>
             {it.chips && (
@@ -238,8 +238,8 @@ export function QueueList({
                     className={
                       "rounded border px-1.5 py-0.5 text-[0.6rem] " +
                       (c.tone === "warn"
-                        ? "border-orange/40 bg-white text-orange"
-                        : "border-lightblue bg-white text-blue")
+                        ? "border-accent-warn/40 bg-surface text-accent-warn"
+                        : "border-line bg-surface text-accent")
                     }
                   >
                     {c.text}

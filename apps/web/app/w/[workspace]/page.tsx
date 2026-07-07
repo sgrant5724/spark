@@ -171,11 +171,11 @@ export default async function MissionControl({
     <div className="px-6 py-6 lg:px-8">
       <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[0.65rem] uppercase tracking-[0.16em] text-blue">Mission Control · {membership.workspaceName}</p>
+          <p className="text-[0.65rem] uppercase tracking-[0.16em] text-accent">Mission Control · {membership.workspaceName}</p>
           <h1 className="font-display text-2xl font-bold text-ink">Good day, {firstName}</h1>
         </div>
         <div className="flex gap-2">
-          <Link href={`/w/${slug}/ideas`} className="inline-flex items-center gap-1.5 rounded-lg border border-lightblue bg-white px-4 py-2 font-display text-sm font-semibold text-blue hover:border-blue">
+          <Link href={`/w/${slug}/ideas`} className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2 font-display text-sm font-semibold text-accent hover:border-accent">
             <Sparkles className="h-4 w-4" aria-hidden /> Discover ideas
           </Link>
           <Link href={`/w/${slug}/ideas`} className="inline-flex items-center gap-1.5 rounded-lg bg-orange px-4 py-2 font-display text-sm font-semibold text-white">
@@ -220,7 +220,7 @@ export default async function MissionControl({
         />
 
         {/* Pipeline funnel (2 wide) */}
-        <Widget title="Pipeline funnel" className="col-span-2" action={<Link href={`/w/${slug}/workflow`} className="text-[0.62rem] font-semibold text-blue hover:underline">Open board →</Link>}>
+        <Widget title="Pipeline funnel" className="col-span-2" action={<Link href={`/w/${slug}/workflow`} className="text-[0.62rem] font-semibold text-accent hover:underline">Open board →</Link>}>
           <Funnel
             stages={[
               { label: "Ideas", count: ideasTotal },
@@ -233,7 +233,7 @@ export default async function MissionControl({
         </Widget>
 
         {/* Needs you (2 tall) */}
-        <Widget title="Needs you" className="col-span-2 row-span-2" action={d.needsYou.length ? <span className="rounded border border-orange/40 bg-orange/5 px-1.5 py-0.5 text-[0.6rem] text-orange">{d.needsYou.length}</span> : undefined}>
+        <Widget title="Needs you" className="col-span-2 row-span-2" action={d.needsYou.length ? <span className="rounded border border-accent-warn/40 bg-orange/5 px-1.5 py-0.5 text-[0.6rem] text-accent-warn">{d.needsYou.length}</span> : undefined}>
           <QueueList
             empty="Nothing waiting on review. Approve an idea to start a draft."
             items={d.needsYou.map((a) => ({
@@ -259,12 +259,12 @@ export default async function MissionControl({
         {/* Guardrails */}
         <Widget
           title="Guardrails"
-          action={<Link href={`/w/${slug}/settings`} className="text-[0.62rem] font-semibold text-blue hover:underline">Manage →</Link>}
+          action={<Link href={`/w/${slug}/settings`} className="text-[0.62rem] font-semibold text-accent hover:underline">Manage →</Link>}
         >
           <ul className="flex flex-col gap-2 text-[0.72rem]">
             <li className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 text-ink/60">
-                <ShieldCheck className="h-3.5 w-3.5 text-blue" aria-hidden /> Publish gate
+                <ShieldCheck className="h-3.5 w-3.5 text-accent" aria-hidden /> Publish gate
               </span>
               <Badge tone={autoPublish ? "warn" : "blue"}>
                 {autoPublish ? "auto per type" : "human required"}
@@ -272,7 +272,7 @@ export default async function MissionControl({
             </li>
             <li className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 text-ink/60">
-                <Zap className="h-3.5 w-3.5 text-orange" aria-hidden /> AI spend cap
+                <Zap className="h-3.5 w-3.5 text-accent-warn" aria-hidden /> AI spend cap
               </span>
               <span className="font-mono font-semibold tabular-nums text-ink">
                 {spendCap != null ? `$${spendCap}/mo` : "—"}
@@ -285,7 +285,7 @@ export default async function MissionControl({
               }
             >
               <span className="flex items-center gap-1.5 text-ink/60">
-                <Pause className={"h-3.5 w-3.5 " + (globalPause ? "text-status-critical" : "text-ink/40")} aria-hidden />
+                <Pause className={"h-3.5 w-3.5 " + (globalPause ? "text-accent-danger" : "text-ink/40")} aria-hidden />
                 Global pause
               </span>
               {globalPause ? (
@@ -298,7 +298,7 @@ export default async function MissionControl({
         </Widget>
 
         {/* Clicks trend (2 wide) */}
-        <Widget title="Organic clicks · by month" className="col-span-2" action={<span className="rounded border border-lightblue px-1.5 py-0.5 text-[0.6rem] text-blue">{d.wp?.status === "connected" ? "GSC (V1)" : "manual"}</span>}>
+        <Widget title="Organic clicks · by month" className="col-span-2" action={<span className="rounded border border-line px-1.5 py-0.5 text-[0.6rem] text-accent">{d.wp?.status === "connected" ? "GSC (V1)" : "manual"}</span>}>
           {clicksSeries.length > 1 ? (
             <Sparkline points={clicksSeries} label={`Monthly clicks, latest ${fmt(clicks28)}`} height={56} />
           ) : (
@@ -331,12 +331,12 @@ export default async function MissionControl({
               <ul className="flex flex-1 flex-col gap-1.5 text-sm">
               {setup.map((s) => (
                 <li key={s.label} className="flex items-start gap-2">
-                  <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" aria-hidden />
-                  {s.href ? <Link href={s.href} className="text-blue underline">{s.label}</Link> : <span className="text-ink/70">{s.label}</span>}
+                  <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-warn" aria-hidden />
+                  {s.href ? <Link href={s.href} className="text-accent underline">{s.label}</Link> : <span className="text-ink/70">{s.label}</span>}
                 </li>
               ))}
               {!process.env.ANTHROPIC_API_KEY && !process.env.LLM_API_KEY && (
-                <li className="flex items-start gap-2"><Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" aria-hidden /><span className="text-ink/70">Add ANTHROPIC_API_KEY for real AI generation</span></li>
+                <li className="flex items-start gap-2"><Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-warn" aria-hidden /><span className="text-ink/70">Add ANTHROPIC_API_KEY for real AI generation</span></li>
               )}
               </ul>
             </div>

@@ -6,6 +6,7 @@ import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { CommandPalette } from "@/components/CommandPalette";
 import { SearchTrigger } from "@/components/SearchTrigger";
 import { NotificationBell, type Note } from "@/components/NotificationBell";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { ToastProvider } from "@/components/ui";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
@@ -54,7 +55,7 @@ export default async function WorkspaceLayout({
     <div className="grid min-h-[calc(100vh-4px)] grid-rows-[auto_1fr] md:grid-cols-[240px_1fr] md:grid-rows-1">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:text-blue"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:text-accent"
       >
         Skip to main content
       </a>
@@ -68,6 +69,7 @@ export default async function WorkspaceLayout({
             </span>
           </div>
           <div className="flex items-center gap-1">
+            <ThemeToggle />
             <NotificationBell
               slug={params.workspace}
               items={noteItems}

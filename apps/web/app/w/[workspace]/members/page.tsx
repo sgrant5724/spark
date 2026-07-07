@@ -21,7 +21,7 @@ export default async function MembersPage({
     <div className="px-8 py-8">
       <h1 className="mb-6 font-display text-2xl font-bold text-ink">Members</h1>
 
-      <table className="w-full overflow-hidden rounded-brand border border-lightblue bg-white text-sm">
+      <table className="w-full overflow-hidden rounded-brand border border-line bg-surface text-sm">
         <thead>
           <tr className="bg-gradient-to-r from-nav to-blue text-left text-white">
             <th className="px-4 py-2.5 font-display font-semibold">Email</th>
@@ -35,14 +35,14 @@ export default async function MembersPage({
             <tr key={m.id} className="border-t border-paper">
               <td className="px-4 py-2.5">{m.user.email}</td>
               <td className="px-4 py-2.5">{m.user.name ?? "—"}</td>
-              <td className="px-4 py-2.5 uppercase tracking-wide text-blue">
+              <td className="px-4 py-2.5 uppercase tracking-wide text-accent">
                 {m.role}
               </td>
               <td className="px-4 py-2.5">
                 {m.user.passwordHash || m.user.emailVerified ? (
-                  <span className="text-blue">active</span>
+                  <span className="text-accent">active</span>
                 ) : (
-                  <span className="text-orange">invited</span>
+                  <span className="text-accent-warn">invited</span>
                 )}
               </td>
             </tr>
@@ -53,7 +53,7 @@ export default async function MembersPage({
       {canManage ? (
         <form
           action={inviteMember}
-          className="mt-8 max-w-xl rounded-brand border border-lightblue bg-white p-5"
+          className="mt-8 max-w-xl rounded-brand border border-line bg-surface p-5"
         >
           <h2 className="mb-3 font-display text-lg font-semibold text-ink">
             Invite a member
@@ -68,7 +68,7 @@ export default async function MembersPage({
                 type="email"
                 name="email"
                 required
-                className="w-full rounded-lg border border-lightblue px-3 py-2 outline-none focus:border-blue"
+                className="w-full rounded-lg border border-line px-3 py-2 outline-none focus:border-accent"
               />
             </label>
             <label className="text-sm">
@@ -78,7 +78,7 @@ export default async function MembersPage({
               <select
                 name="role"
                 defaultValue="editor"
-                className="rounded-lg border border-lightblue px-3 py-2 outline-none focus:border-blue"
+                className="rounded-lg border border-line px-3 py-2 outline-none focus:border-accent"
               >
                 {ROLES.map((r) => (
                   <option key={r} value={r}>

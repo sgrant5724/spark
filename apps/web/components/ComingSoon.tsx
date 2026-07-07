@@ -14,7 +14,7 @@ export function ComingSoon({
   return (
     <div className="px-8 py-8">
       <h1 className="font-display text-2xl font-bold text-ink">{title}</h1>
-      <span className="mt-2 inline-block rounded-lg border border-lightblue bg-white px-3 py-1 text-xs uppercase tracking-wide text-blue">
+      <span className="mt-2 inline-block rounded-lg border border-line bg-surface px-3 py-1 text-xs uppercase tracking-wide text-accent">
         Coming soon
       </span>
       <p className="mt-4 max-w-xl text-ink/70">
@@ -25,7 +25,7 @@ export function ComingSoon({
       </p>
       <Link
         href={`/w/${slug}`}
-        className="mt-6 inline-block font-medium text-blue underline"
+        className="mt-6 inline-block font-medium text-accent underline"
       >
         ← Back to dashboard
       </Link>

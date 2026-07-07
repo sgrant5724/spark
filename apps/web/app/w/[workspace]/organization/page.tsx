@@ -7,7 +7,7 @@ import { OnboardingSteps } from "@/components/OnboardingSteps";
 import { saveOrgProfile } from "./actions";
 
 const inputCls =
-  "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue disabled:bg-paper disabled:text-ink/60";
+  "w-full rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-accent disabled:bg-paper disabled:text-ink/60";
 const labelCls = "mb-1 block text-[0.65rem] uppercase tracking-wide text-ink/60";
 
 type Item = { name: string; blurb?: string };
@@ -49,7 +49,7 @@ export default async function OrganizationPage({
   return (
     <div className="px-8 py-8">
       {welcome && (
-        <section className="mb-6 rounded-brand border border-lightblue bg-gradient-to-br from-white to-paper p-5 shadow-sm">
+        <section className="mb-6 rounded-brand border border-line bg-gradient-to-br from-surface to-paper p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange text-white" aria-hidden>
               <Sparkles className="h-4 w-4" />
@@ -74,8 +74,8 @@ export default async function OrganizationPage({
           className={
             "rounded-lg border px-3 py-1.5 text-xs uppercase tracking-wide " +
             (complete
-              ? "border-lightblue bg-white text-blue"
-              : "border-orange/40 bg-orange/5 text-orange")
+              ? "border-line bg-surface text-accent"
+              : "border-accent-warn/40 bg-orange/5 text-accent-warn")
           }
         >
           {complete ? "Ready for AI grounding" : "Incomplete — AI output will be generic"}

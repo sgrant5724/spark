@@ -7,21 +7,50 @@
    metrics/counts/table numerics for "technical density" (font-mono). */
 @import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
+/* Brand accents (constant across themes) used by internal CSS below. */
 :root {
-  --ink: #343433;
   --nav: #0a3a56;
   --blue: #0d5a84;
   --orange: #c4571c;
   --yellow: #f8cf40;
   --lightblue: #b1d4e0;
-  --paper: #eff3fa;
-  --white: #ffffff;
+}
+
+/* Themeable surface/text/line tokens, stored as space-separated RGB channels so
+   Tailwind's `/opacity` modifiers keep working (rgb(var(--c-x) / <alpha-value>)).
+   The token *values* flip by theme; class names never carry `dark:` variants. */
+:root,
+[data-theme="light"] {
+  --c-ink: 52 52 51; /* #343433 primary text */
+  --c-paper: 239 243 250; /* #EFF3FA page canvas */
+  --c-paper2: 226 234 244; /* #E2EAF4 deeper surface tint */
+  --c-surface: 255 255 255; /* #FFFFFF card surface */
+  --c-line: 177 212 224; /* #B1D4E0 hairline/border */
+  /* Interactive accents used as text/border ON surfaces. Light values match the
+     constant brand hexes exactly (no light-mode change); they lift in dark so
+     accent text keeps WCAG AA contrast on the dark surface. */
+  --c-accent: 13 90 132; /* #0D5A84 primary blue */
+  --c-accent-warn: 196 87 28; /* #C4571C orange */
+  --c-accent-danger: 192 57 43; /* #C0392B red */
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --c-ink: 224 234 243; /* soft near-white text */
+  --c-paper: 6 20 30; /* deep instrument canvas */
+  --c-paper2: 13 32 47; /* raised tint */
+  --c-surface: 15 39 57; /* card surface */
+  --c-line: 32 64 88; /* hairline on dark */
+  --c-accent: 123 184 222; /* lifted blue — ~7:1 on dark surface */
+  --c-accent-warn: 232 147 90; /* lifted orange — ~5:1 */
+  --c-accent-danger: 241 137 126; /* lifted red — ~5.5:1 */
+  color-scheme: dark;
 }
 
 html,
 body {
-  background: var(--paper);
-  color: var(--ink);
+  background: rgb(var(--c-paper));
+  color: rgb(var(--c-ink));
   font-family: "Quicksand", system-ui, sans-serif;
 }
 
@@ -40,6 +69,12 @@ main h1 {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   width: fit-content;
+}
+
+/* On dark, the deep-nav stop is nearly invisible — lift both stops to bright
+   cyan/light-blue so the gradient title still reads with strong contrast. */
+[data-theme="dark"] main h1 {
+  background-image: linear-gradient(100deg, #4fa3ce 15%, #b1d4e0 85%);
 }
 
 /* WCAG 2.1 AA: clearly visible keyboard focus, app-wide. */

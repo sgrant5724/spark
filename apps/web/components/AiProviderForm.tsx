@@ -69,9 +69,9 @@ export function AiProviderForm({
               <span className="text-ink/80">
                 Deployment key (env · Anthropic){" "}
                 {envKeyPresent ? (
-                  <span className="text-blue">· set</span>
+                  <span className="text-accent">· set</span>
                 ) : (
-                  <span className="text-orange">· not set</span>
+                  <span className="text-accent-warn">· not set</span>
                 )}
               </span>
             </label>
@@ -118,7 +118,7 @@ export function AiProviderForm({
             list="llm-model-options"
             placeholder={PROVIDERS[provider].defaultModel}
             disabled={!canManage}
-            className="w-full rounded-lg border border-lightblue px-2.5 py-1.5 font-mono text-sm text-ink outline-none focus:border-blue disabled:bg-paper"
+            className="w-full rounded-lg border border-line px-2.5 py-1.5 font-mono text-sm text-ink outline-none focus:border-accent disabled:bg-paper"
           />
           <datalist id="llm-model-options">
             {PROVIDERS[provider].models.map((m) => (

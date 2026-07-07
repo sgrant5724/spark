@@ -7,6 +7,7 @@ import { getSessionUserId, getUserMemberships } from "@/lib/auth-helpers";
 import { signOut } from "@/auth";
 import { SparkLogo } from "@/components/SparkLogo";
 import { AddClientForm } from "@/components/AddClientForm";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge, Gauge, StatCard } from "@/components/ui";
 
 const LIVE: ArticleState[] = ["published", "distributed", "analyzing"];
@@ -122,9 +123,12 @@ export default async function AgencyConsole({
         <span className="ml-3 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-cyan">
           {clients.length} workspace{clients.length === 1 ? "" : "s"}
         </span>
-        <form action={handleSignOut} className="ml-auto">
-          <button className="rounded-lg border border-white/20 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10">Sign out</button>
-        </form>
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
+          <form action={handleSignOut}>
+            <button className="rounded-lg border border-white/20 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10">Sign out</button>
+          </form>
+        </div>
       </header>
 
       <div className="mx-auto max-w-6xl px-6 py-6">
@@ -137,7 +141,7 @@ export default async function AgencyConsole({
         {searchParams?.error && (
           <p
             role="alert"
-            className="mb-4 flex items-center gap-2 rounded-brand border border-orange/50 bg-orange/10 px-4 py-3 text-sm text-orange"
+            className="mb-4 flex items-center gap-2 rounded-brand border border-accent-warn/50 bg-orange/10 px-4 py-3 text-sm text-accent-warn"
           >
             <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
             {searchParams.error}
@@ -177,7 +181,7 @@ export default async function AgencyConsole({
               {clients.map((c) => (
                 <div
                   key={c.workspaceId}
-                  className="flex flex-col rounded-brand border border-lightblue bg-white shadow-sm transition-colors hover:border-blue"
+                  className="flex flex-col rounded-brand border border-line bg-surface shadow-sm transition-colors hover:border-accent"
                 >
                   <Link href={`/w/${c.workspaceSlug}`} className="block p-4">
                   <div className="mb-2 flex items-center gap-2">
@@ -225,7 +229,7 @@ export default async function AgencyConsole({
                     <Link
                       href={`/report/${c.workspaceSlug}`}
                       target="_blank"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
                     >
                       <FileText className="h-3.5 w-3.5" aria-hidden />
                       Export monthly report
@@ -239,7 +243,7 @@ export default async function AgencyConsole({
           {/* Cross-workspace approvals inbox */}
           <section>
             <h2 className="mb-2 font-display text-sm font-semibold text-ink">Approvals inbox · all clients</h2>
-            <div className="rounded-brand border border-lightblue bg-white p-3">
+            <div className="rounded-brand border border-line bg-surface p-3">
               {inbox.length === 0 ? (
                 <p className="py-4 text-center text-xs text-ink/40">Nothing waiting across your clients — inbox clear.</p>
               ) : (
@@ -248,15 +252,15 @@ export default async function AgencyConsole({
                     <li key={it.id}>
                       <Link
                         href={`/w/${it.slug}/content/${it.id}`}
-                        className="block rounded-lg border border-paper bg-paper/50 px-3 py-2 hover:border-blue"
+                        className="block rounded-lg border border-paper bg-paper/50 px-3 py-2 hover:border-accent"
                       >
                         <span className="block truncate text-[0.78rem] font-medium text-ink">{it.title}</span>
                         <span className="mt-0.5 flex items-center gap-1.5 text-[0.6rem] text-ink/50">
-                          <span className="font-semibold text-blue">{it.client}</span>
+                          <span className="font-semibold text-accent">{it.client}</span>
                           · {it.state.replace(/_/g, " ")}
                           · {idleDays(it.updatedAt)}d
                           {idleDays(it.updatedAt) >= 4 && (
-                            <TriangleAlert className="h-3 w-3 text-orange" aria-label="Idle 4+ days" />
+                            <TriangleAlert className="h-3 w-3 text-accent-warn" aria-label="Idle 4+ days" />
                           )}
                         </span>
                       </Link>

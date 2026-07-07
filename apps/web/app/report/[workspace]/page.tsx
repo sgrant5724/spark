@@ -128,7 +128,7 @@ export default async function ReportPage({
   ];
 
   return (
-    <div className="min-h-screen bg-paper2 print:bg-white">
+    <div data-theme="light" className="min-h-screen bg-paper2 print:bg-surface">
       {/* Print page setup + hide app-less chrome when printing */}
       <style>{`@page { margin: 14mm; } @media print { .report-toolbar { display: none !important; } body { background: #fff; } }`}</style>
 
@@ -145,11 +145,11 @@ export default async function ReportPage({
       </div>
 
       {/* The report sheet */}
-      <article className="mx-auto max-w-3xl bg-white px-10 py-10 shadow-sm print:max-w-none print:px-0 print:py-0 print:shadow-none">
+      <article className="mx-auto max-w-3xl bg-surface px-10 py-10 shadow-sm print:max-w-none print:px-0 print:py-0 print:shadow-none">
         {/* Header band */}
-        <header className="mb-8 border-b border-lightblue pb-6">
+        <header className="mb-8 border-b border-line pb-6">
           <div className="mb-4 h-1.5 w-24 rounded-full bg-gradient-to-r from-orange via-yellow to-blue-bright" aria-hidden />
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             Monthly Performance Report
           </p>
           <h1 className="mt-1 font-display text-3xl font-bold text-ink">
@@ -172,7 +172,7 @@ export default async function ReportPage({
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {kpis.map((k) => (
-              <div key={k.label} className="rounded-brand border border-lightblue bg-paper2/40 p-4">
+              <div key={k.label} className="rounded-brand border border-line bg-paper2/40 p-4">
                 <div className="font-mono text-2xl font-bold tabular-nums text-ink">{k.value}</div>
                 <div className="mt-1 text-xs text-ink/60">{k.label}</div>
               </div>
@@ -195,7 +195,7 @@ export default async function ReportPage({
               />
             </div>
           ) : (
-            <p className="rounded-brand border border-dashed border-lightblue bg-paper2/30 p-4 text-sm text-ink/60">
+            <p className="rounded-brand border border-dashed border-line bg-paper2/30 p-4 text-sm text-ink/60">
               No analytics recorded for this period. Metrics are operator-entered
               until GSC/GA4 connectors land — none were captured, so none are shown.
             </p>
@@ -210,7 +210,7 @@ export default async function ReportPage({
           {publishedThisPeriod.length > 0 ? (
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-lightblue text-left text-xs uppercase tracking-wide text-ink/50">
+                <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink/50">
                   <th className="py-2 font-semibold">Title</th>
                   <th className="py-2 font-semibold">Tier</th>
                   <th className="py-2 font-semibold">Audience</th>
@@ -231,7 +231,7 @@ export default async function ReportPage({
               </tbody>
             </table>
           ) : (
-            <p className="rounded-brand border border-dashed border-lightblue bg-paper2/30 p-4 text-sm text-ink/60">
+            <p className="rounded-brand border border-dashed border-line bg-paper2/30 p-4 text-sm text-ink/60">
               No articles reached publish/scheduled in this period.
             </p>
           )}
@@ -247,7 +247,7 @@ export default async function ReportPage({
               {stageCounts.map((s) => (
                 <div
                   key={s.state}
-                  className="rounded-lg border border-lightblue bg-paper2/40 px-3 py-2 text-sm"
+                  className="rounded-lg border border-line bg-paper2/40 px-3 py-2 text-sm"
                 >
                   <span className="text-ink/70">{STATE_LABELS[s.state] ?? s.state}</span>{" "}
                   <span className="font-mono font-semibold tabular-nums text-ink">{s.count}</span>
@@ -255,14 +255,14 @@ export default async function ReportPage({
               ))}
             </div>
           ) : (
-            <p className="rounded-brand border border-dashed border-lightblue bg-paper2/30 p-4 text-sm text-ink/60">
+            <p className="rounded-brand border border-dashed border-line bg-paper2/30 p-4 text-sm text-ink/60">
               No articles in the pipeline right now.
             </p>
           )}
         </section>
 
         {/* Footer */}
-        <footer className="mt-10 border-t border-lightblue pt-4 text-xs text-ink/50">
+        <footer className="mt-10 border-t border-line pt-4 text-xs text-ink/50">
           Generated {generatedOn} · Prepared by LSI Media · Figures are
           operator-entered or pipeline-derived — never invented.
         </footer>
@@ -273,7 +273,7 @@ export default async function ReportPage({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-brand border border-lightblue bg-paper2/40 p-4">
+    <div className="rounded-brand border border-line bg-paper2/40 p-4">
       <div className="font-mono text-xl font-bold tabular-nums text-ink">{value}</div>
       <div className="mt-1 text-xs text-ink/60">{label}</div>
     </div>

@@ -49,11 +49,11 @@ export default async function SmeListPage({
             <li key={p.id}>
               <Link
                 href={`/w/${slug}/sme/${p.id}`}
-                className="block rounded-brand border border-lightblue bg-white px-4 py-3 hover:border-blue"
+                className="block rounded-brand border border-line bg-surface px-4 py-3 hover:border-accent"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-ink">{p.name}</span>
-                  <span className="text-xs uppercase tracking-wide text-blue">
+                  <span className="text-xs uppercase tracking-wide text-accent">
                     v{p.version}
                   </span>
                 </div>

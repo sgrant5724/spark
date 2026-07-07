@@ -11,7 +11,7 @@ const FIELD_DEFS: Array<{ key: string; label: string; hint: string }> = [
 ];
 
 const inputCls =
-  "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue disabled:bg-paper disabled:text-ink/60";
+  "w-full rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-accent disabled:bg-paper disabled:text-ink/60";
 const labelCls = "mb-1 block text-[0.65rem] uppercase tracking-wide text-ink/60";
 
 export function SmeProfileForm({
@@ -71,7 +71,7 @@ export function SmeProfileForm({
             Save profile
           </button>
         )}
-        <Link href={`/w/${slug}/sme`} className="text-sm text-blue underline">
+        <Link href={`/w/${slug}/sme`} className="text-sm text-accent underline">
           {canManage ? "Cancel" : "Back"}
         </Link>
       </div>

@@ -31,7 +31,7 @@ const VARIANTS: Record<Variant, string> = {
   secondary:
     "bg-gradient-to-br from-blue-bright to-nav text-white hover:brightness-110 active:brightness-95 shadow-sm",
   ghost:
-    "bg-transparent text-ink hover:bg-paper2 border border-lightblue",
+    "bg-transparent text-ink hover:bg-paper2 border border-line",
   danger:
     "bg-gradient-to-br from-status-critical to-orange text-white hover:brightness-105 shadow-sm",
   icon: "bg-transparent text-ink/70 hover:bg-paper2 hover:text-ink",

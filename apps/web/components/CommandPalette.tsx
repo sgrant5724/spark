@@ -228,7 +228,7 @@ export function CommandPalette({ slug }: { slug: string }) {
       onClick={() => setOpen(false)}
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-brand border border-lightblue bg-white shadow-2xl"
+        className="w-full max-w-lg overflow-hidden rounded-brand border border-line bg-surface shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <input

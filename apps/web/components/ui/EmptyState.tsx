@@ -21,12 +21,12 @@ export function EmptyState({
   return (
     <div
       className={cx(
-        "flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-lightblue bg-paper/40 px-4 py-8 text-center",
+        "flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line bg-paper/40 px-4 py-8 text-center",
         className,
       )}
     >
       {icon && (
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan/40 to-blue/15 text-blue [&>svg]:h-5 [&>svg]:w-5" aria-hidden>
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan/40 to-blue/15 text-accent [&>svg]:h-5 [&>svg]:w-5" aria-hidden>
           {icon}
         </span>
       )}

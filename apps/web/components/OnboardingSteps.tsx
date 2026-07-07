@@ -55,10 +55,10 @@ export function OnboardingSteps({
               className={cx(
                 "flex flex-1 items-center gap-2.5 rounded-lg border px-3 py-2 transition-colors",
                 active
-                  ? "border-orange bg-orange/5"
+                  ? "border-accent-warn bg-orange/5"
                   : s.done
-                    ? "border-blue/30 bg-blue/5 hover:border-blue"
-                    : "border-lightblue bg-white hover:border-blue",
+                    ? "border-accent/30 bg-blue/5 hover:border-accent"
+                    : "border-line bg-surface hover:border-accent",
               )}
             >
               <span

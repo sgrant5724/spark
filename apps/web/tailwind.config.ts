@@ -7,7 +7,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#343433", // primary gray (text)
+        // Themeable tokens (flip by [data-theme]); RGB channels enable /opacity.
+        ink: "rgb(var(--c-ink) / <alpha-value>)", // primary text
+        paper: "rgb(var(--c-paper) / <alpha-value>)", // page canvas
+        paper2: "rgb(var(--c-paper2) / <alpha-value>)", // deeper surface tint
+        surface: "rgb(var(--c-surface) / <alpha-value>)", // card surface (was bg-white)
+        line: "rgb(var(--c-line) / <alpha-value>)", // hairline/border (was border-lightblue)
+        // Interactive accents for text/border on surfaces (lift in dark for AA).
+        // Use bg-blue / bg-orange / bg-status-* for filled backgrounds instead.
+        accent: {
+          DEFAULT: "rgb(var(--c-accent) / <alpha-value>)", // was text-blue/border-blue
+          warn: "rgb(var(--c-accent-warn) / <alpha-value>)", // was text-orange/border-orange
+          danger: "rgb(var(--c-accent-danger) / <alpha-value>)", // was text/border-status-critical
+        },
+        // Brand accents — constant across themes.
         nav: "#0A3A56", // deep nav (dark surfaces)
         blue: {
           DEFAULT: "#0D5A84", // primary blue
@@ -18,8 +31,6 @@ const config: Config = {
         yellow: "#F8CF40", // highlights / live states
         lightblue: "#B1D4E0", // soft accents/tints
         cyan: "#B1D4E0", // brand light-blue accent (semantic alias)
-        paper: "#EFF3FA", // surfaces
-        paper2: "#E2EAF4", // slightly deeper surface tint
         // semantic aliases (no green in palette)
         success: "#0D5A84",
         warning: "#C4571C",

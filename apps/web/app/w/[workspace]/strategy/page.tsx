@@ -17,7 +17,7 @@ import {
 const TIER_COLORS = ["#0A3A56", "#0D5A84", "#2E7BA6", "#6FA8C4"];
 
 const inputCls =
-  "w-full rounded-lg border border-lightblue px-2.5 py-1.5 text-sm text-ink outline-none focus:border-blue";
+  "w-full rounded-lg border border-line px-2.5 py-1.5 text-sm text-ink outline-none focus:border-accent";
 const thCls = "px-3 py-2 text-left font-display text-xs font-semibold text-white";
 const tdCls = "px-3 py-2 align-top";
 
@@ -107,8 +107,8 @@ export default async function StrategyPage({
         <h2 className="mb-2 font-display text-lg font-semibold text-ink">
           Keywords ({data.keywords.length})
         </h2>
-        <div className="overflow-hidden rounded-brand border border-lightblue">
-          <table className="w-full bg-white text-sm">
+        <div className="overflow-hidden rounded-brand border border-line">
+          <table className="w-full bg-surface text-sm">
             <thead className="bg-gradient-to-r from-nav to-blue">
               <tr>
                 <th className={thCls}>Tier</th>
@@ -140,7 +140,7 @@ export default async function StrategyPage({
                       <form action={deleteKeyword}>
                         <input type="hidden" name="slug" value={slug} />
                         <input type="hidden" name="id" value={k.id} />
-                        <button className="text-xs text-orange underline">delete</button>
+                        <button className="text-xs text-accent-warn underline">delete</button>
                       </form>
                     </td>
                   )}
@@ -160,7 +160,7 @@ export default async function StrategyPage({
         {canManage && (
           <form
             action={createKeyword}
-            className="mt-3 flex flex-wrap items-end gap-2 rounded-brand border border-lightblue bg-white p-3"
+            className="mt-3 flex flex-wrap items-end gap-2 rounded-brand border border-line bg-surface p-3"
           >
             <input type="hidden" name="slug" value={slug} />
             <select name="tier" defaultValue="4" className={inputCls + " w-16"} aria-label="Tier">
@@ -195,8 +195,8 @@ export default async function StrategyPage({
         <h2 className="mb-2 font-display text-lg font-semibold text-ink">
           Pages ({data.pages.length})
         </h2>
-        <div className="overflow-hidden rounded-brand border border-lightblue">
-          <table className="w-full bg-white text-sm">
+        <div className="overflow-hidden rounded-brand border border-line">
+          <table className="w-full bg-surface text-sm">
             <thead className="bg-gradient-to-r from-nav to-blue">
               <tr>
                 <th className={thCls}>URL</th>
@@ -216,7 +216,7 @@ export default async function StrategyPage({
                       <form action={deletePage}>
                         <input type="hidden" name="slug" value={slug} />
                         <input type="hidden" name="id" value={p.id} />
-                        <button className="text-xs text-orange underline">delete</button>
+                        <button className="text-xs text-accent-warn underline">delete</button>
                       </form>
                     </td>
                   )}
@@ -236,7 +236,7 @@ export default async function StrategyPage({
         {canManage && (
           <form
             action={createPage}
-            className="mt-3 flex flex-wrap items-end gap-2 rounded-brand border border-lightblue bg-white p-3"
+            className="mt-3 flex flex-wrap items-end gap-2 rounded-brand border border-line bg-surface p-3"
           >
             <input type="hidden" name="slug" value={slug} />
             <input name="url" required placeholder="/url-path/ *" className={inputCls + " w-56"} />
@@ -262,7 +262,7 @@ export default async function StrategyPage({
           <p className="text-sm text-ink/60">No link edges yet.</p>
         ) : (
           <>
-            <div className="mb-3 overflow-x-auto rounded-brand border border-lightblue bg-white p-3">
+            <div className="mb-3 overflow-x-auto rounded-brand border border-line bg-surface p-3">
               <LinkArcDiagram
                 pages={data.pages.map((p) => ({ id: p.id, url: p.url }))}
                 links={data.links.map((l) => ({ from: l.fromPageId, to: l.toPageId }))}
@@ -272,11 +272,11 @@ export default async function StrategyPage({
             {data.links.map((l) => (
               <li
                 key={l.id}
-                className="flex items-center justify-between rounded-lg border border-lightblue bg-white px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-lg border border-line bg-surface px-3 py-2 text-sm"
               >
                 <span className="text-ink">
                   {pageUrl.get(l.fromPageId) ?? "?"}{" "}
-                  <span className="text-blue">→</span>{" "}
+                  <span className="text-accent">→</span>{" "}
                   {pageUrl.get(l.toPageId) ?? "?"}
                   {l.anchorText && (
                     <span className="text-ink/50"> · &ldquo;{l.anchorText}&rdquo;</span>
@@ -286,7 +286,7 @@ export default async function StrategyPage({
                   <form action={deleteLink}>
                     <input type="hidden" name="slug" value={slug} />
                     <input type="hidden" name="id" value={l.id} />
-                    <button className="text-xs text-orange underline">delete</button>
+                    <button className="text-xs text-accent-warn underline">delete</button>
                   </form>
                 )}
               </li>
@@ -298,7 +298,7 @@ export default async function StrategyPage({
         {canManage && data.pages.length >= 2 && (
           <form
             action={createLink}
-            className="mt-3 flex flex-wrap items-end gap-2 rounded-brand border border-lightblue bg-white p-3"
+            className="mt-3 flex flex-wrap items-end gap-2 rounded-brand border border-line bg-surface p-3"
           >
             <input type="hidden" name="slug" value={slug} />
             <select name="fromPageId" className={inputCls + " w-48"} aria-label="From page">
@@ -306,7 +306,7 @@ export default async function StrategyPage({
                 <option key={p.id} value={p.id}>{p.url}</option>
               ))}
             </select>
-            <span className="text-blue">→</span>
+            <span className="text-accent">→</span>
             <select name="toPageId" className={inputCls + " w-48"} aria-label="To page">
               {data.pages.map((p) => (
                 <option key={p.id} value={p.id}>{p.url}</option>

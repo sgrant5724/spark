@@ -178,7 +178,7 @@ export default async function AnalyticsPage({
           <Link
             href={`/report/${slug}`}
             target="_blank"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-lightblue bg-white px-3 py-1.5 text-sm font-semibold text-blue transition-colors hover:bg-paper"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-accent transition-colors hover:bg-paper"
           >
             <FileText className="h-4 w-4" aria-hidden />
             Monthly report
@@ -338,7 +338,7 @@ export default async function AnalyticsPage({
                   <li key={x.article.id} className="flex items-center justify-between gap-2">
                     <Link
                       href={`/w/${slug}/content/${x.article.id}`}
-                      className="truncate text-blue underline"
+                      className="truncate text-accent underline"
                     >
                       {x.article.title}
                     </Link>
@@ -360,7 +360,7 @@ export default async function AnalyticsPage({
                   <li key={x.article.id} className="flex items-center justify-between gap-2">
                     <Link
                       href={`/w/${slug}/content/${x.article.id}`}
-                      className="truncate text-ink hover:text-blue"
+                      className="truncate text-ink hover:text-accent"
                     >
                       {x.article.title}
                       <span className="ml-1 font-mono text-ink/40">
@@ -381,7 +381,7 @@ export default async function AnalyticsPage({
                             "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[0.6rem] " +
                             (x.article.protectedFromRewrite
                               ? "border-yellow bg-yellow/20 text-ink"
-                              : "border-lightblue text-blue")
+                              : "border-line text-accent")
                           }
                         >
                           {x.article.protectedFromRewrite && <Lock className="h-3 w-3" aria-hidden />}
@@ -412,8 +412,8 @@ export default async function AnalyticsPage({
             No published articles yet. Performance appears after articles go live.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-brand border border-lightblue">
-            <table className="w-full min-w-[720px] bg-white text-sm">
+          <div className="overflow-x-auto rounded-brand border border-line">
+            <table className="w-full min-w-[720px] bg-surface text-sm">
               <thead className="bg-gradient-to-r from-nav to-blue text-left text-white">
                 <tr>
                   <th className="px-3 py-2 font-display text-xs font-semibold">Article</th>
@@ -440,7 +440,7 @@ export default async function AnalyticsPage({
                       <td className="px-3 py-2">
                         <Link
                           href={`/w/${slug}/content/${article.id}`}
-                          className="font-medium text-ink hover:text-blue"
+                          className="font-medium text-ink hover:text-accent"
                         >
                           {article.title}
                         </Link>
@@ -461,7 +461,7 @@ export default async function AnalyticsPage({
                                   name={f}
                                   placeholder={f.slice(0, 4)}
                                   inputMode="decimal"
-                                  className="w-14 rounded border border-lightblue px-1.5 py-0.5 font-mono text-[0.65rem] outline-none focus:border-blue"
+                                  className="w-14 rounded border border-line px-1.5 py-0.5 font-mono text-[0.65rem] outline-none focus:border-accent"
                                   aria-label={`${f} for ${article.title}`}
                                 />
                               ),
@@ -492,9 +492,9 @@ export default async function AnalyticsPage({
                           {latest?.position?.toFixed(1) ?? "—"}
                           {posTrend != null && posTrend !== 0 && (
                             posTrend < 0 ? (
-                              <TrendingUp className="h-3 w-3 text-blue" aria-label="improved" />
+                              <TrendingUp className="h-3 w-3 text-accent" aria-label="improved" />
                             ) : (
-                              <TrendingDown className="h-3 w-3 text-orange" aria-label="declined" />
+                              <TrendingDown className="h-3 w-3 text-accent-warn" aria-label="declined" />
                             )
                           )}
                         </span>

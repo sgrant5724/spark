@@ -102,12 +102,12 @@ export function BulkIdeaColumn({
           Select all
         </label>
         {selected.size > 0 && (
-          <span className="font-mono text-[0.6rem] tabular-nums text-blue">{selected.size} selected</span>
+          <span className="font-mono text-[0.6rem] tabular-nums text-accent">{selected.size} selected</span>
         )}
       </div>
 
       {selected.size > 0 && (
-        <div className="sticky top-2 z-10 flex flex-wrap gap-1.5 rounded-lg border border-blue/30 bg-white p-2 shadow-md">
+        <div className="sticky top-2 z-10 flex flex-wrap gap-1.5 rounded-lg border border-accent/30 bg-surface p-2 shadow-md">
           {bulk.map((kind) => {
             const def = BULK_DEFS[kind];
             return (
@@ -131,8 +131,8 @@ export function BulkIdeaColumn({
           <article
             key={idea.id}
             className={
-              "rounded-lg border bg-white p-3 transition-colors " +
-              (isSel ? "border-blue ring-1 ring-blue/30" : "border-lightblue")
+              "rounded-lg border bg-surface p-3 transition-colors " +
+              (isSel ? "border-accent ring-1 ring-blue/30" : "border-line")
             }
           >
             <div className="flex items-start gap-2">
@@ -153,7 +153,7 @@ export function BulkIdeaColumn({
                 {idea.suggestedMotifs && Object.keys(idea.suggestedMotifs).length > 0 && (
                   <div className="mt-1 flex flex-wrap gap-1">
                     {Object.keys(idea.suggestedMotifs).map((k) => (
-                      <span key={k} className="rounded-full border border-lightblue bg-paper px-2 py-0.5 text-[0.6rem] text-blue">
+                      <span key={k} className="rounded-full border border-line bg-paper px-2 py-0.5 text-[0.6rem] text-accent">
                         {k}
                       </span>
                     ))}
@@ -166,7 +166,7 @@ export function BulkIdeaColumn({
                         <input type="hidden" name="slug" value={slug} />
                         <input type="hidden" name="id" value={idea.id} />
                         <input type="hidden" name="status" value="approved" />
-                        <button className="text-xs font-semibold text-blue underline" title="Approve for the auto-draft queue">
+                        <button className="text-xs font-semibold text-accent underline" title="Approve for the auto-draft queue">
                           Approve
                         </button>
                       </form>
@@ -175,7 +175,7 @@ export function BulkIdeaColumn({
                       <form action={sendToDraft}>
                         <input type="hidden" name="slug" value={slug} />
                         <input type="hidden" name="id" value={idea.id} />
-                        <button className="text-xs font-semibold text-blue underline">Draft now</button>
+                        <button className="text-xs font-semibold text-accent underline">Draft now</button>
                       </form>
                     )}
                     {quick.includes("reject") && (
@@ -183,7 +183,7 @@ export function BulkIdeaColumn({
                         <input type="hidden" name="slug" value={slug} />
                         <input type="hidden" name="id" value={idea.id} />
                         <input type="hidden" name="status" value="rejected" />
-                        <button className="text-xs text-orange underline">Reject</button>
+                        <button className="text-xs text-accent-warn underline">Reject</button>
                       </form>
                     )}
                   </div>

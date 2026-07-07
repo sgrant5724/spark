@@ -34,12 +34,12 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-[340px] rounded-brand bg-white p-7 shadow-xl">
+    <div className="w-[340px] rounded-brand bg-surface p-7 shadow-xl">
       <div className="mb-5 flex items-center gap-3">
         <SparkLogo size={34} />
         <div>
           <div className="font-display text-lg font-bold text-ink">Spark</div>
-          <div className="text-[0.6rem] uppercase tracking-[0.18em] text-blue">
+          <div className="text-[0.6rem] uppercase tracking-[0.18em] text-accent">
             LSI Media
           </div>
         </div>
@@ -56,7 +56,7 @@ export function LoginForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-lightblue px-3 py-2 text-ink outline-none focus:border-blue"
+            className="w-full rounded-lg border border-line px-3 py-2 text-ink outline-none focus:border-accent"
           />
         </label>
 
@@ -70,7 +70,7 @@ export function LoginForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-lightblue px-3 py-2 text-ink outline-none focus:border-blue"
+            className="w-full rounded-lg border border-line px-3 py-2 text-ink outline-none focus:border-accent"
           />
         </label>
 
@@ -84,12 +84,12 @@ export function LoginForm() {
             autoComplete="one-time-code"
             value={totp}
             onChange={(e) => setTotp(e.target.value)}
-            className="w-full rounded-lg border border-lightblue px-3 py-2 text-ink outline-none focus:border-blue"
+            className="w-full rounded-lg border border-line px-3 py-2 text-ink outline-none focus:border-accent"
           />
         </label>
 
         {error && (
-          <p role="alert" className="text-sm text-orange">
+          <p role="alert" className="text-sm text-accent-warn">
             {error}
           </p>
         )}
@@ -108,13 +108,13 @@ export function LoginForm() {
       <div className="space-y-2">
         <button
           onClick={() => signIn("google", { callbackUrl })}
-          className="w-full rounded-lg border border-lightblue py-2 text-sm font-medium text-blue"
+          className="w-full rounded-lg border border-line py-2 text-sm font-medium text-accent"
         >
           Continue with Google
         </button>
         <button
           onClick={() => signIn("microsoft-entra-id", { callbackUrl })}
-          className="w-full rounded-lg border border-lightblue py-2 text-sm font-medium text-blue"
+          className="w-full rounded-lg border border-line py-2 text-sm font-medium text-accent"
         >
           Continue with Microsoft
         </button>

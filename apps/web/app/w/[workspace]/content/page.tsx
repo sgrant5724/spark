@@ -22,8 +22,8 @@ const stateColor = (s: string) =>
   s === "published" || s === "distributed" || s === "scheduled" || s === "analyzing"
     ? "bg-yellow/20 text-ink border-yellow"
     : s.includes("review") || s === "final_approval" || s === "assets_pending"
-      ? "bg-orange/10 text-orange border-orange/40"
-      : "bg-paper text-blue border-lightblue";
+      ? "bg-orange/10 text-accent-warn border-accent-warn/40"
+      : "bg-paper text-accent border-line";
 
 export default async function ContentPage({
   params,
@@ -52,7 +52,7 @@ export default async function ContentPage({
       {articles.length === 0 ? (
         <p className="text-ink/70">
           No articles yet — approve an idea on the{" "}
-          <Link href={`/w/${slug}/ideas`} className="text-blue underline">
+          <Link href={`/w/${slug}/ideas`} className="text-accent underline">
             Ideas board
           </Link>{" "}
           to start one.
@@ -63,12 +63,12 @@ export default async function ContentPage({
             <li key={a.id}>
               <Link
                 href={`/w/${slug}/content/${a.id}`}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-brand border border-lightblue bg-white px-4 py-3 hover:border-blue"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-brand border border-line bg-surface px-4 py-3 hover:border-accent"
               >
                 <span className="font-medium text-ink">{a.title}</span>
                 <span className="flex items-center gap-2">
                   {a.citations.length > 0 && (
-                    <span className="rounded-full border border-orange/40 bg-orange/5 px-2 py-0.5 text-[0.65rem] text-orange">
+                    <span className="rounded-full border border-accent-warn/40 bg-orange/5 px-2 py-0.5 text-[0.65rem] text-accent-warn">
                       {a.citations.length} needs source
                     </span>
                   )}

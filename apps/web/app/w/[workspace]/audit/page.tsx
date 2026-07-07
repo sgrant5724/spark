@@ -230,7 +230,7 @@ export default async function AuditPage({
       {/* Filter bar — plain GET form, no client JS. */}
       <form
         method="get"
-        className="mb-6 flex flex-wrap items-end gap-3 rounded-brand border border-lightblue bg-white p-4"
+        className="mb-6 flex flex-wrap items-end gap-3 rounded-brand border border-line bg-surface p-4"
       >
         <label className="text-sm">
           <span className="mb-1 block text-xs uppercase tracking-wide text-ink/60">
@@ -239,7 +239,7 @@ export default async function AuditPage({
           <select
             name="category"
             defaultValue={categoryFilter}
-            className="rounded-lg border border-lightblue bg-paper px-3 py-2 text-sm text-ink"
+            className="rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink"
           >
             <option value="">All categories</option>
             {categoryOptions.map((c) => (
@@ -257,7 +257,7 @@ export default async function AuditPage({
           <select
             name="entity"
             defaultValue={entityFilter}
-            className="rounded-lg border border-lightblue bg-paper px-3 py-2 text-sm text-ink"
+            className="rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink"
           >
             <option value="">All entities</option>
             {entityTypes.map((e) => (
@@ -275,7 +275,7 @@ export default async function AuditPage({
           <select
             name="actor"
             defaultValue={actorFilter}
-            className="rounded-lg border border-lightblue bg-paper px-3 py-2 text-sm text-ink"
+            className="rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink"
           >
             <option value="">All actors</option>
             {hasSystemActor ? <option value="system">System / AI</option> : null}
@@ -296,7 +296,7 @@ export default async function AuditPage({
         {anyFilter ? (
           <a
             href={`/w/${params.workspace}/audit`}
-            className="rounded-lg border border-lightblue px-4 py-2 text-sm text-ink/70 hover:bg-paper"
+            className="rounded-lg border border-line px-4 py-2 text-sm text-ink/70 hover:bg-paper"
           >
             Clear
           </a>
@@ -331,7 +331,7 @@ export default async function AuditPage({
                 <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/50">
                   {group.day}
                 </h2>
-                <ul className="overflow-hidden rounded-brand border border-lightblue bg-white">
+                <ul className="overflow-hidden rounded-brand border border-line bg-surface">
                   {group.rows.map((row) => {
                     const cat = categoryFor(row.action);
                     const tone = TONE_CLASSES[cat.tone];
@@ -385,7 +385,7 @@ export default async function AuditPage({
                           </div>
                           {hasMeta ? (
                             <details className="mt-1.5 text-xs">
-                              <summary className="cursor-pointer select-none text-blue hover:underline">
+                              <summary className="cursor-pointer select-none text-accent hover:underline">
                                 Details
                               </summary>
                               <pre className="mt-1 overflow-x-auto rounded-lg bg-paper p-2 font-mono text-[0.7rem] leading-relaxed text-ink/80">
@@ -460,7 +460,7 @@ function PageLink({
   return (
     <a
       href={href}
-      className="rounded-lg border border-lightblue px-4 py-2 text-sm text-ink/80 hover:bg-paper"
+      className="rounded-lg border border-line px-4 py-2 text-sm text-ink/80 hover:bg-paper"
     >
       {label}
     </a>

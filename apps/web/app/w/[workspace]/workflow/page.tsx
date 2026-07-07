@@ -6,13 +6,13 @@ import { requireMembership } from "@/lib/auth-helpers";
 // M5 — workflow & approvals board. Articles grouped by lifecycle stage;
 // each card links into the article workspace where transitions happen.
 const COLUMNS: Array<{ title: string; states: string[]; accent: string }> = [
-  { title: "Drafting", states: ["drafting"], accent: "border-lightblue" },
+  { title: "Drafting", states: ["drafting"], accent: "border-line" },
   {
     title: "In review",
     states: ["draft_review", "seo_a11y_review", "assets_pending"],
-    accent: "border-orange/50",
+    accent: "border-accent-warn/50",
   },
-  { title: "Final approval", states: ["final_approval", "scheduled"], accent: "border-orange" },
+  { title: "Final approval", states: ["final_approval", "scheduled"], accent: "border-accent-warn" },
   {
     title: "Live",
     states: ["published", "distributed", "analyzing"],
@@ -65,7 +65,7 @@ export default async function WorkflowPage({
           return (
             <section
               key={col.title}
-              className={`rounded-brand border-t-4 ${col.accent} border border-lightblue bg-paper p-3`}
+              className={`rounded-brand border-t-4 ${col.accent} border border-line bg-paper p-3`}
               aria-label={col.title}
             >
               <h2 className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink/60">
@@ -80,23 +80,23 @@ export default async function WorkflowPage({
                     <Link
                       key={a.id}
                       href={`/w/${slug}/content/${a.id}`}
-                      className="block rounded-lg border border-lightblue bg-white p-3 hover:border-blue"
+                      className="block rounded-lg border border-line bg-surface p-3 hover:border-accent"
                     >
                       <h3 className="text-sm font-semibold leading-snug text-ink">
                         {a.title}
                       </h3>
                       <div className="mt-1.5 flex flex-wrap gap-1 text-[0.6rem]">
-                        <span className="rounded bg-paper px-1.5 py-0.5 text-blue">
+                        <span className="rounded bg-paper px-1.5 py-0.5 text-accent">
                           {STATE_LABELS[a.state] ?? a.state}
                         </span>
                         {a.citations.length > 0 && (
-                          <span className="rounded border border-orange/40 bg-orange/5 px-1.5 py-0.5 text-orange">
+                          <span className="rounded border border-accent-warn/40 bg-orange/5 px-1.5 py-0.5 text-accent-warn">
                             {a.citations.length} needs source
                           </span>
                         )}
                         {missingAssets &&
                           !["drafting", "draft_review"].includes(a.state) && (
-                            <span className="rounded border border-orange/40 bg-orange/5 px-1.5 py-0.5 text-orange">
+                            <span className="rounded border border-accent-warn/40 bg-orange/5 px-1.5 py-0.5 text-accent-warn">
                               assets missing
                             </span>
                           )}

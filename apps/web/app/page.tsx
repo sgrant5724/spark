@@ -33,10 +33,10 @@ export default async function Home() {
             <li key={m.workspaceId}>
               <Link
                 href={`/w/${m.workspaceSlug}`}
-                className="flex items-center justify-between rounded-brand border border-lightblue bg-white px-4 py-3 hover:border-blue"
+                className="flex items-center justify-between rounded-brand border border-line bg-surface px-4 py-3 hover:border-accent"
               >
                 <span className="font-medium text-ink">{m.workspaceName}</span>
-                <span className="text-xs uppercase tracking-wide text-blue">
+                <span className="text-xs uppercase tracking-wide text-accent">
                   {m.role}
                 </span>
               </Link>

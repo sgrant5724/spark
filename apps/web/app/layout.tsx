@@ -20,8 +20,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Set the theme before first paint to avoid a flash. Reads the saved choice,
+  // else the OS preference. Tiny inline script; runs before React hydrates.
+  const noFlashTheme = `(function(){try{var t=localStorage.getItem('spark-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: noFlashTheme }} />
+      </head>
       <body>{children}</body>
     </html>
   );

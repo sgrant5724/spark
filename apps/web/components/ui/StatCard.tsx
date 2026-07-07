@@ -21,18 +21,18 @@ const TILE: Record<IconTone, string> = {
 
 /** Subtle per-tone wash so the cards aren't flat white. */
 const WASH: Record<IconTone, string> = {
-  blue: "bg-gradient-to-br from-white via-white to-blue/5",
-  orange: "bg-gradient-to-br from-white via-white to-orange/5",
-  yellow: "bg-gradient-to-br from-white via-white to-yellow/10",
-  nav: "bg-gradient-to-br from-white via-white to-nav/5",
-  cyan: "bg-gradient-to-br from-white via-white to-cyan/15",
+  blue: "bg-gradient-to-br from-surface via-surface to-blue/5",
+  orange: "bg-gradient-to-br from-surface via-surface to-orange/5",
+  yellow: "bg-gradient-to-br from-surface via-surface to-yellow/10",
+  nav: "bg-gradient-to-br from-surface via-surface to-nav/5",
+  cyan: "bg-gradient-to-br from-surface via-surface to-cyan/15",
 };
 
 type DeltaDir = "up" | "down" | "flat";
 
 const DELTA: Record<DeltaDir, { cls: string; Icon: typeof ArrowUpRight }> = {
-  up: { cls: "text-blue bg-blue/5", Icon: ArrowUpRight },
-  down: { cls: "text-orange bg-orange/5", Icon: ArrowDownRight },
+  up: { cls: "text-accent bg-blue/5", Icon: ArrowUpRight },
+  down: { cls: "text-accent-warn bg-orange/5", Icon: ArrowDownRight },
   flat: { cls: "text-ink/50 bg-paper2", Icon: Minus },
 };
 
@@ -90,9 +90,9 @@ export function StatCard({
     </>
   );
 
-  const base = cx("block rounded-brand border border-lightblue p-4 shadow-sm", WASH[iconTone]);
+  const base = cx("block rounded-brand border border-line p-4 shadow-sm", WASH[iconTone]);
   return href ? (
-    <Link href={href} className={cx(base, "transition-colors hover:border-blue", className)}>
+    <Link href={href} className={cx(base, "transition-colors hover:border-accent", className)}>
       {inner}
     </Link>
   ) : (

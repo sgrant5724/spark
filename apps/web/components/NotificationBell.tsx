@@ -83,7 +83,7 @@ export function NotificationBell({
           <div
             role="dialog"
             aria-label="Notifications"
-            className="absolute left-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-brand border border-lightblue bg-white shadow-lg"
+            className="absolute left-0 top-full z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-brand border border-line bg-surface shadow-lg"
           >
             <div className="border-b border-paper px-3 py-2">
               <p className="font-display text-xs font-semibold uppercase tracking-wide text-ink/60">

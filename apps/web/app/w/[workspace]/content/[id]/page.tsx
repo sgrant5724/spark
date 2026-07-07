@@ -33,7 +33,7 @@ import { mapToPlugin } from "@/lib/seo-plugins";
 import { QualityRadar, type RadarAxis } from "./quality";
 
 const inputCls =
-  "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue";
+  "w-full rounded-lg border border-line px-3 py-2 text-sm text-ink outline-none focus:border-accent";
 const labelCls = "mb-1 block text-[0.65rem] uppercase tracking-wide text-ink/60";
 
 // Reference word-count targets by content tier (1 = pillar … 4 = short). The
@@ -139,7 +139,7 @@ export default async function ArticlePage({
       {searchParams?.error && (
         <p
           role="alert"
-          className="mb-4 flex items-center gap-2 rounded-brand border border-orange/50 bg-orange/10 px-4 py-3 text-sm text-orange"
+          className="mb-4 flex items-center gap-2 rounded-brand border border-accent-warn/50 bg-orange/10 px-4 py-3 text-sm text-accent-warn"
         >
           <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden />
           {searchParams.error}
@@ -149,7 +149,7 @@ export default async function ArticlePage({
         <div>
           <h1 className="font-display text-2xl font-bold text-ink">{article.title}</h1>
           <p className="mt-1 text-sm text-ink/60">
-            State: <strong className="text-blue">{article.state}</strong>
+            State: <strong className="text-accent">{article.state}</strong>
             {article.tier ? ` · Tier ${article.tier}` : ""}
             {article.audience ? ` · ${article.audience}` : ""}
             {article.versions[0] ? ` · v${article.versions[0].version}` : ""}
@@ -221,7 +221,7 @@ export default async function ArticlePage({
 
         {/* Side panel */}
         <aside className="space-y-4">
-          <section className="rounded-brand border border-lightblue bg-white p-4">
+          <section className="rounded-brand border border-line bg-surface p-4">
             <div className="mb-1 flex items-center justify-between">
               <h2 className="font-display text-sm font-semibold text-ink">Quality snapshot</h2>
               <Badge tone={overallQuality >= 80 ? "blue" : overallQuality >= 50 ? "warn" : "critical"}>
@@ -258,12 +258,12 @@ export default async function ArticlePage({
             )}
           </section>
 
-          <section className="rounded-brand border border-lightblue bg-white p-4">
+          <section className="rounded-brand border border-line bg-surface p-4">
             <h2 className="mb-2 font-display text-sm font-semibold text-ink">Motif voice</h2>
             {Object.keys(motifMix).length ? (
               <div className="flex flex-wrap gap-1.5">
                 {Object.entries(motifMix).map(([k, w]) => (
-                  <span key={k} className="rounded-full border border-lightblue bg-paper px-2.5 py-1 text-xs text-blue">
+                  <span key={k} className="rounded-full border border-line bg-paper px-2.5 py-1 text-xs text-accent">
                     {k} {Math.round(Number(w) * 100)}%
                   </span>
                 ))}
@@ -273,13 +273,13 @@ export default async function ArticlePage({
             )}
           </section>
 
-          <section className="rounded-brand border border-lightblue bg-white p-4">
+          <section className="rounded-brand border border-line bg-surface p-4">
             <h2 className="mb-2 font-display text-sm font-semibold text-ink">
               Source dossier{" "}
               {unverified.length > 0 ? (
-                <span className="text-orange">· {unverified.length} unverified</span>
+                <span className="text-accent-warn">· {unverified.length} unverified</span>
               ) : (
-                <span className="text-blue">· all verified</span>
+                <span className="text-accent">· all verified</span>
               )}
             </h2>
             {article.citations.length === 0 ? (
@@ -293,7 +293,7 @@ export default async function ArticlePage({
                   <li key={c.id} className="border-t border-paper pt-2 first:border-t-0 first:pt-0">
                     <p className="text-xs text-ink">{c.claimText}</p>
                     {c.verified ? (
-                      <p className="mt-1 flex items-center gap-1 text-[0.65rem] text-blue">
+                      <p className="mt-1 flex items-center gap-1 text-[0.65rem] text-accent">
                         <Check className="h-3 w-3 shrink-0" aria-hidden />
                         <span className="break-all">{c.sourceUrl}</span>
                       </p>
@@ -306,14 +306,14 @@ export default async function ArticlePage({
                           name="sourceUrl"
                           required
                           placeholder="https://source…"
-                          className="w-full rounded border border-lightblue px-2 py-1 text-[0.65rem] outline-none focus:border-blue"
+                          className="w-full rounded border border-line px-2 py-1 text-[0.65rem] outline-none focus:border-accent"
                         />
                         <button className="rounded bg-blue px-2 py-1 text-[0.65rem] font-semibold text-white">
                           Verify
                         </button>
                       </form>
                     ) : (
-                      <p className="mt-1 text-[0.65rem] text-orange">Needs source</p>
+                      <p className="mt-1 text-[0.65rem] text-accent-warn">Needs source</p>
                     )}
                   </li>
                 ))}
@@ -321,17 +321,17 @@ export default async function ArticlePage({
             )}
           </section>
 
-          <section className="rounded-brand border border-lightblue bg-white p-4">
+          <section className="rounded-brand border border-line bg-surface p-4">
             <h2 className="mb-2 font-display text-sm font-semibold text-ink">Accessibility (WCAG 2.1 AA)</h2>
             <ul className="space-y-1.5">
               {a11y.map((c) => (
                 <li key={c.id} className="flex items-start gap-2 text-xs">
                   {c.pass ? (
-                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue" aria-hidden />
+                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
                   ) : (
-                    <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" aria-hidden />
+                    <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-warn" aria-hidden />
                   )}
-                  <span className={c.pass ? "text-ink/70" : "text-orange"}>
+                  <span className={c.pass ? "text-ink/70" : "text-accent-warn"}>
                     {c.label}
                     {!c.pass && c.detail ? ` — ${c.detail}` : ""}
                   </span>
@@ -340,7 +340,7 @@ export default async function ArticlePage({
             </ul>
           </section>
 
-          <section className="rounded-brand border border-lightblue bg-white p-4">
+          <section className="rounded-brand border border-line bg-surface p-4">
             <div className="mb-2 flex items-center justify-between">
               <h2 className="font-display text-sm font-semibold text-ink">SEO</h2>
               {canEdit && (
@@ -395,7 +395,7 @@ export default async function ArticlePage({
                   </div>
                 )}
                 <details className="pt-1">
-                  <summary className="cursor-pointer text-[0.65rem] font-semibold text-blue">
+                  <summary className="cursor-pointer text-[0.65rem] font-semibold text-accent">
                     Plugin fields ({data.seoSettings?.plugin ?? "squirrly"}) — set on publish
                   </summary>
                   <ul className="mt-1 space-y-0.5 text-[0.62rem] text-ink/60">
@@ -408,7 +408,7 @@ export default async function ArticlePage({
                       ogDesc: seo.ogDesc,
                     }).map((f) => (
                       <li key={f.key}>
-                        <code className="text-blue">{f.key}</code> = {f.value.slice(0, 60)}
+                        <code className="text-accent">{f.key}</code> = {f.value.slice(0, 60)}
                         {f.value.length > 60 ? "…" : ""}
                       </li>
                     ))}
@@ -418,7 +418,7 @@ export default async function ArticlePage({
             )}
           </section>
 
-          <section className="rounded-brand border border-lightblue bg-white p-4">
+          <section className="rounded-brand border border-line bg-surface p-4">
             <h2 className="mb-2 font-display text-sm font-semibold text-ink">
               Assets (required to publish)
             </h2>
@@ -432,9 +432,9 @@ export default async function ArticlePage({
                 <li key={kind} className="border-t border-paper pt-2 first:border-t-0 first:pt-0">
                   <p className="flex items-center gap-2">
                     {asset ? (
-                      <Check className="h-3.5 w-3.5 shrink-0 text-blue" aria-hidden />
+                      <Check className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
                     ) : (
-                      <Circle className="h-3.5 w-3.5 shrink-0 text-orange" aria-hidden />
+                      <Circle className="h-3.5 w-3.5 shrink-0 text-accent-warn" aria-hidden />
                     )}
                     <span className="font-semibold uppercase tracking-wide text-ink/70">
                       {kind === "og" ? "OG image" : "Featured image"}
@@ -454,14 +454,14 @@ export default async function ArticlePage({
                         name="url"
                         required
                         placeholder="Image URL…"
-                        className="w-full rounded border border-lightblue px-2 py-1 text-[0.65rem] outline-none focus:border-blue"
+                        className="w-full rounded border border-line px-2 py-1 text-[0.65rem] outline-none focus:border-accent"
                       />
                       <div className="flex gap-1">
                         <input
                           name="altText"
                           required
                           placeholder="Alt text (required)"
-                          className="w-full rounded border border-lightblue px-2 py-1 text-[0.65rem] outline-none focus:border-blue"
+                          className="w-full rounded border border-line px-2 py-1 text-[0.65rem] outline-none focus:border-accent"
                         />
                         <button className="rounded bg-blue px-2 py-1 text-[0.65rem] font-semibold text-white">
                           Add
@@ -469,14 +469,14 @@ export default async function ArticlePage({
                       </div>
                     </form>
                   ) : (
-                    <p className="mt-1 text-[0.65rem] text-orange">Missing</p>
+                    <p className="mt-1 text-[0.65rem] text-accent-warn">Missing</p>
                   )}
                 </li>
               ))}
               <li className="border-t border-paper pt-2">
                 <p className="flex items-center gap-2">
                   {infographic ? (
-                    <Check className="h-3.5 w-3.5 shrink-0 text-blue" aria-hidden />
+                    <Check className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden />
                   ) : (
                     <Circle className="h-3.5 w-3.5 shrink-0 text-ink/40" aria-hidden />
                   )}
@@ -491,7 +491,7 @@ export default async function ArticlePage({
                   <a
                     href={`/w/${slug}/content/${article.id}/infographic.svg`}
                     target="_blank"
-                    className="text-[0.65rem] text-blue underline"
+                    className="text-[0.65rem] text-accent underline"
                   >
                     Preview brand SVG
                   </a>
@@ -509,7 +509,7 @@ export default async function ArticlePage({
             </ul>
           </section>
 
-          <section className="rounded-brand border border-lightblue bg-white p-4">
+          <section className="rounded-brand border border-line bg-surface p-4">
             <h2 className="mb-2 font-display text-sm font-semibold text-ink">Workflow</h2>
             {targets.length === 0 ? (
               <p className="text-xs text-ink/50">No transitions from this state here yet.</p>
@@ -526,7 +526,7 @@ export default async function ArticlePage({
                         (t === "scheduled" || t === "published"
                           ? "bg-orange text-white"
                           : t === "drafting"
-                            ? "border border-lightblue bg-white text-ink/70"
+                            ? "border border-line bg-surface text-ink/70"
                             : "bg-blue text-white")
                       }
                     >
@@ -535,7 +535,7 @@ export default async function ArticlePage({
                   </form>
                 ))}
                 {unverified.length > 0 && (
-                  <p className="flex items-start gap-1 text-[0.65rem] text-orange">
+                  <p className="flex items-start gap-1 text-[0.65rem] text-accent-warn">
                     <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
                     <span>
                       Scheduling/publishing is blocked while {unverified.length} claim(s)
@@ -548,14 +548,14 @@ export default async function ArticlePage({
           </section>
 
           {article.state === "scheduled" && (
-            <section className="rounded-brand border-2 border-orange bg-white p-4">
+            <section className="rounded-brand border-2 border-accent-warn bg-surface p-4">
               <h2 className="mb-2 font-display text-sm font-semibold text-ink">
                 Publish to WordPress
               </h2>
               {data.wpConnection?.status === "connected" ? (
                 <>
-                  <details className="mb-2 rounded-lg border border-lightblue bg-paper p-2 text-xs">
-                    <summary className="cursor-pointer font-semibold text-blue">
+                  <details className="mb-2 rounded-lg border border-line bg-paper p-2 text-xs">
+                    <summary className="cursor-pointer font-semibold text-accent">
                       Dry run — exactly what will be sent
                     </summary>
                     <dl className="mt-2 space-y-1 text-[0.7rem] text-ink/80">
@@ -585,7 +585,7 @@ export default async function ArticlePage({
                   )}
                 </>
               ) : (
-                <p className="text-xs text-orange">
+                <p className="text-xs text-accent-warn">
                   No connected WordPress site — connect one in Settings → Integrations.
                 </p>
               )}
@@ -595,14 +595,14 @@ export default async function ArticlePage({
           {article.state === "published" && article.publishedUrl && (
             <section className="rounded-brand border border-yellow bg-yellow/10 p-4">
               <h2 className="mb-1 font-display text-sm font-semibold text-ink">Live</h2>
-              <a href={article.publishedUrl} target="_blank" className="break-all text-xs text-blue underline">
+              <a href={article.publishedUrl} target="_blank" className="break-all text-xs text-accent underline">
                 {article.publishedUrl}
               </a>
             </section>
           )}
 
           {article.versions.length > 0 && (
-            <section className="rounded-brand border border-lightblue bg-white p-4">
+            <section className="rounded-brand border border-line bg-surface p-4">
               <h2 className="mb-2 font-display text-sm font-semibold text-ink">Versions</h2>
               <ul className="space-y-1 text-xs text-ink/60">
                 {article.versions.map((v) => (

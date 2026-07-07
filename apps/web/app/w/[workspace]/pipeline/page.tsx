@@ -149,7 +149,7 @@ export default async function PipelinePage({
                 (active
                   ? "border-transparent bg-orange"
                   : bottleneck
-                    ? "border-orange/60 bg-white/5"
+                    ? "border-accent-warn/60 bg-white/5"
                     : "border-white/12 bg-white/5")
               }
             >
@@ -177,7 +177,7 @@ export default async function PipelinePage({
       {/* Three panes */}
       <div className="grid flex-1 grid-cols-1 md:grid-cols-[240px_1fr] xl:grid-cols-[240px_1fr_300px]">
         {/* Queue */}
-        <aside className="border-b border-lightblue bg-white p-3 md:border-b-0 md:border-r">
+        <aside className="border-b border-line bg-surface p-3 md:border-b-0 md:border-r">
           <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-wide text-ink/50">
             {stage.label} · {queue.length} · oldest first
           </p>
@@ -188,15 +188,15 @@ export default async function PipelinePage({
                   href={`/w/${slug}/pipeline?stage=${stage.key}&article=${a.id}`}
                   className={
                     "block rounded-lg border p-2.5 " +
-                    (a.id === selectedId ? "border-blue bg-paper shadow-[0_0_0_2px_rgba(13,90,132,.12)]" : "border-lightblue hover:border-blue")
+                    (a.id === selectedId ? "border-accent bg-paper shadow-[0_0_0_2px_rgba(13,90,132,.12)]" : "border-line hover:border-accent")
                   }
                 >
                   <span className="block text-[0.75rem] font-semibold leading-snug text-ink">{a.title}</span>
                   <span className="mt-1 flex flex-wrap gap-1">
                     {a.citations.length > 0 && (
-                      <span className="rounded border border-orange/40 bg-orange/5 px-1 py-0.5 text-[0.55rem] text-orange">{a.citations.length} needs source</span>
+                      <span className="rounded border border-accent-warn/40 bg-orange/5 px-1 py-0.5 text-[0.55rem] text-accent-warn">{a.citations.length} needs source</span>
                     )}
-                    <span className="rounded border border-lightblue px-1 py-0.5 text-[0.55rem] text-blue">{a.state.replace(/_/g, " ")}</span>
+                    <span className="rounded border border-line px-1 py-0.5 text-[0.55rem] text-accent">{a.state.replace(/_/g, " ")}</span>
                   </span>
                 </Link>
               </li>
@@ -213,20 +213,20 @@ export default async function PipelinePage({
             <>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h1 className="font-display text-xl font-bold text-ink">{selected.title}</h1>
-                <Link href={`/w/${slug}/content/${selected.id}`} className="rounded-lg border border-lightblue bg-white px-3 py-1.5 text-xs font-semibold text-blue hover:border-blue">
+                <Link href={`/w/${slug}/content/${selected.id}`} className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-accent hover:border-accent">
                   Open full editor →
                 </Link>
               </div>
               <p className="mb-3 text-xs text-ink/50">
-                State: <strong className="text-blue">{selected.state}</strong>
+                State: <strong className="text-accent">{selected.state}</strong>
                 {selected.tier ? ` · Tier ${selected.tier}` : ""}{selected.audience ? ` · ${selected.audience}` : ""}
               </p>
               <div className="mb-4 flex flex-wrap gap-2 text-[0.65rem]">
-                <span className="inline-flex items-center gap-1 rounded-full border border-lightblue bg-white px-2 py-0.5 text-ink/60">
+                <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2 py-0.5 text-ink/60">
                   <FileText className="h-3 w-3" aria-hidden />
                   <span className="font-mono tabular-nums">{wordCount}</span> words
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full border border-lightblue bg-white px-2 py-0.5 text-ink/60">
+                <span className="inline-flex items-center gap-1 rounded-full border border-line bg-surface px-2 py-0.5 text-ink/60">
                   <BookOpen className="h-3 w-3" aria-hidden />
                   <span className="font-mono tabular-nums">{readMins}</span> min read
                 </span>
@@ -234,15 +234,15 @@ export default async function PipelinePage({
                   className={
                     "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 " +
                     (timeInStage >= BOTTLENECK_DAYS
-                      ? "border-orange/40 bg-orange/5 text-orange"
-                      : "border-lightblue bg-white text-ink/60")
+                      ? "border-accent-warn/40 bg-orange/5 text-accent-warn"
+                      : "border-line bg-surface text-ink/60")
                   }
                 >
                   <Clock className="h-3 w-3" aria-hidden />
                   <span className="font-mono tabular-nums">{timeInStage}</span>d in stage
                 </span>
               </div>
-              <article className="rounded-brand border border-lightblue bg-white p-5 text-sm leading-relaxed text-ink/80">
+              <article className="rounded-brand border border-line bg-surface p-5 text-sm leading-relaxed text-ink/80">
                 {bodyPreview ? `${bodyPreview}${bodyText.length > 600 ? "…" : ""}` : "No draft body yet — generate one in the editor."}
               </article>
             </>
@@ -251,8 +251,8 @@ export default async function PipelinePage({
 
         {/* Gate inspector */}
         {selected && (
-          <aside className="border-t border-lightblue bg-white p-4 xl:border-l xl:border-t-0">
-            <div className="mb-3 flex items-center gap-3 rounded-brand border border-lightblue bg-paper/50 p-2.5">
+          <aside className="border-t border-line bg-surface p-4 xl:border-l xl:border-t-0">
+            <div className="mb-3 flex items-center gap-3 rounded-brand border border-line bg-paper/50 p-2.5">
               <Gauge
                 value={gatesPassed}
                 max={gates.length}
@@ -283,7 +283,7 @@ export default async function PipelinePage({
               <form action={generateSeo} className="mb-2">
                 <input type="hidden" name="slug" value={slug} />
                 <input type="hidden" name="id" value={selected.id} />
-                <button className="w-full rounded-lg border border-lightblue px-3 py-1.5 text-xs font-semibold text-blue hover:border-blue">
+                <button className="w-full rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-accent hover:border-accent">
                   Generate SEO fields
                 </button>
               </form>
@@ -303,7 +303,7 @@ export default async function PipelinePage({
                       (t === "scheduled" || t === "published"
                         ? "bg-orange text-white"
                         : t === "drafting"
-                          ? "border border-lightblue bg-white text-ink/70"
+                          ? "border border-line bg-surface text-ink/70"
                           : "bg-blue text-white")
                     }
                   >
@@ -324,18 +324,18 @@ function GateRow({ label, ok, detail }: { label: string; ok: boolean; detail: st
     <div
       className={
         "flex items-center justify-between rounded-lg border border-l-4 px-2.5 py-1.5 text-xs " +
-        (ok ? "border-lightblue border-l-blue" : "border-orange/30 border-l-orange bg-orange/5")
+        (ok ? "border-line border-l-blue" : "border-accent-warn/30 border-l-orange bg-orange/5")
       }
     >
       <span className="flex items-center gap-2">
         {ok ? (
-          <CircleCheck className="h-4 w-4 shrink-0 text-blue" aria-hidden />
+          <CircleCheck className="h-4 w-4 shrink-0 text-accent" aria-hidden />
         ) : (
-          <CircleDashed className="h-4 w-4 shrink-0 text-orange" aria-hidden />
+          <CircleDashed className="h-4 w-4 shrink-0 text-accent-warn" aria-hidden />
         )}
         <span className="font-semibold uppercase tracking-wide text-ink/60">{label}</span>
       </span>
-      <span className={ok ? "text-ink/50" : "text-orange"}>{detail}</span>
+      <span className={ok ? "text-ink/50" : "text-accent-warn"}>{detail}</span>
     </div>
   );
 }

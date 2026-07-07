@@ -28,9 +28,9 @@ interface Toast {
 }
 
 const TONES: Record<Tone, { cls: string; Icon: typeof Info }> = {
-  success: { cls: "border-blue/30 text-blue", Icon: CheckCircle2 },
-  error: { cls: "border-status-critical/40 text-status-critical", Icon: TriangleAlert },
-  info: { cls: "border-lightblue text-ink", Icon: Info },
+  success: { cls: "border-accent/30 text-accent", Icon: CheckCircle2 },
+  error: { cls: "border-accent-danger/40 text-accent-danger", Icon: TriangleAlert },
+  info: { cls: "border-line text-ink", Icon: Info },
 };
 
 const ToastContext = createContext<
@@ -77,7 +77,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               key={t.id}
               role="status"
               className={cx(
-                "pointer-events-auto flex items-start gap-2.5 rounded-lg border border-l-4 bg-white p-3 shadow-lg animate-toast-in",
+                "pointer-events-auto flex items-start gap-2.5 rounded-lg border border-l-4 bg-surface p-3 shadow-lg animate-toast-in",
                 cls,
               )}
             >
