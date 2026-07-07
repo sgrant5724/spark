@@ -58,7 +58,7 @@ export default async function WorkspaceLayout({
         Skip to main content
       </a>
 
-      <aside className="flex flex-col bg-nav md:min-h-screen">
+      <aside className="flex flex-col bg-gradient-to-b from-nav via-nav to-nav2 md:min-h-screen">
         <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-4 md:pt-5">
           <div className="flex items-center gap-2">
             <SparkLogo size={28} />

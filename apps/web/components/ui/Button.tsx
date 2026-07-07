@@ -27,13 +27,13 @@ export interface ButtonProps
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-orange text-white hover:bg-orange/90 active:bg-orange/95 shadow-sm",
+    "bg-gradient-to-br from-yellow to-orange text-white hover:brightness-105 active:brightness-95 shadow-sm",
   secondary:
-    "bg-blue text-white hover:bg-blue-bright active:bg-blue shadow-sm",
+    "bg-gradient-to-br from-blue-bright to-nav text-white hover:brightness-110 active:brightness-95 shadow-sm",
   ghost:
     "bg-transparent text-ink hover:bg-paper2 border border-lightblue",
   danger:
-    "bg-status-critical text-white hover:bg-status-critical/90 shadow-sm",
+    "bg-gradient-to-br from-status-critical to-orange text-white hover:brightness-105 shadow-sm",
   icon: "bg-transparent text-ink/70 hover:bg-paper2 hover:text-ink",
 };
 

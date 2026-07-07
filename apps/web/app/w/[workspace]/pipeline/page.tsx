@@ -128,7 +128,7 @@ export default async function PipelinePage({
   return (
     <div className="flex min-h-[calc(100vh)] flex-col">
       {/* Stage rail */}
-      <div className="flex items-stretch gap-1.5 overflow-x-auto bg-nav px-4 py-3" role="tablist" aria-label="Pipeline stages">
+      <div className="flex items-stretch gap-1.5 overflow-x-auto bg-gradient-to-r from-nav2 via-nav to-blue px-4 py-3" role="tablist" aria-label="Pipeline stages">
         <Link href={`/w/${slug}/ideas`} className="flex min-w-[92px] flex-col rounded-lg border border-white/12 bg-white/5 px-2.5 py-1.5">
           <span className="truncate text-[0.56rem] uppercase tracking-wide text-cyan/80">Ideate</span>
           <span className="text-lg font-bold tabular-nums text-white">{data.ideas}</span>
