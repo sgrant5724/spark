@@ -3,25 +3,20 @@ import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { decryptJson, type Encrypted } from "@/lib/crypto";
 import { getLlm, type LlmClient } from "@/lib/llm";
+import { PROVIDERS, isProvider, type LlmProvider } from "@/lib/llm-catalog";
 
 /**
  * Per-workspace AI provider settings (llm_settings table). Up to four API-key
- * slots, stored AES-GCM-encrypted; `activeSlot` 0 means "use the deployment env
- * key" (ANTHROPIC_API_KEY), 1-4 selects a stored slot. `model` picks the
- * Claude model used for all generation in the workspace.
+ * slots, each tagged with a provider and stored AES-GCM-encrypted; `activeSlot`
+ * 0 = the deployment env key (Anthropic), 1-4 select a stored slot. `model` is
+ * the model used for generation; the settings UI keeps it in sync with the
+ * active slot's provider.
  */
 
 export const KEY_SLOTS = 4;
 
-/** Curated model choices (Claude API catalog, no date suffixes). */
-export const MODEL_OPTIONS: Array<{ id: string; label: string; hint: string }> = [
-  { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6", hint: "balanced default" },
-  { id: "claude-sonnet-5", label: "Claude Sonnet 5", hint: "newest Sonnet — near-Opus quality" },
-  { id: "claude-opus-4-8", label: "Claude Opus 4.8", hint: "most capable" },
-  { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", hint: "fastest / lowest cost" },
-];
-
 export type KeySlot = {
+  provider: LlmProvider;
   label: string;
   last4: string;
   enc: Encrypted;
@@ -30,13 +25,26 @@ export type KeySlot = {
 export type LlmSettingsView = {
   model: string;
   activeSlot: number; // 0 = env key
-  slots: Array<{ label: string; last4: string } | null>; // never exposes ciphertext
+  activeProvider: LlmProvider;
+  // never exposes ciphertext
+  slots: Array<{ provider: LlmProvider; label: string; last4: string } | null>;
   envKeyPresent: boolean;
 };
 
 function parseSlots(keys: unknown): KeySlot[] {
   const arr = Array.isArray(keys) ? keys : [];
-  return Array.from({ length: KEY_SLOTS }, (_, i) => (arr[i] as KeySlot) ?? null);
+  return Array.from({ length: KEY_SLOTS }, (_, i) => {
+    const s = arr[i] as KeySlot;
+    return s && isProvider(s.provider) ? s : null;
+  });
+}
+
+/** Provider implied by the active slot (0 = env = anthropic). */
+function providerForSlot(slots: KeySlot[], activeSlot: number): LlmProvider {
+  if (activeSlot >= 1 && activeSlot <= KEY_SLOTS) {
+    return slots[activeSlot - 1]?.provider ?? "anthropic";
+  }
+  return "anthropic";
 }
 
 /** Read settings for display — ciphertext stays server-side, never in props. */
@@ -45,10 +53,18 @@ export async function getLlmSettingsView(workspaceId: string): Promise<LlmSettin
     tx.llmSettings.findUnique({ where: { workspaceId } }),
   );
   const slots = parseSlots(row?.keys);
+  const activeSlot = row?.activeSlot ?? 0;
+  const activeProvider = providerForSlot(slots, activeSlot);
   return {
-    model: row?.model ?? process.env.LLM_DEFAULT_MODEL ?? "claude-sonnet-4-6",
-    activeSlot: row?.activeSlot ?? 0,
-    slots: slots.map((s) => (s ? { label: s.label, last4: s.last4 } : null)),
+    model:
+      row?.model ??
+      process.env.LLM_DEFAULT_MODEL ??
+      PROVIDERS[activeProvider].defaultModel,
+    activeSlot,
+    activeProvider,
+    slots: slots.map((s) =>
+      s ? { provider: s.provider, label: s.label, last4: s.last4 } : null,
+    ),
     envKeyPresent: !!(process.env.ANTHROPIC_API_KEY ?? process.env.LLM_API_KEY),
   };
 }
@@ -65,6 +81,7 @@ export async function resolveLlm(workspaceId: string): Promise<LlmClient> {
   if (!row) return getLlm();
 
   let apiKey: string | null = null;
+  let provider: LlmProvider = "anthropic";
   if (row.activeSlot >= 1 && row.activeSlot <= KEY_SLOTS) {
     const slot = parseSlots(row.keys)[row.activeSlot - 1];
     if (!slot) {
@@ -72,6 +89,7 @@ export async function resolveLlm(workspaceId: string): Promise<LlmClient> {
         `AI key slot ${row.activeSlot} is active but empty — pick another key in Settings → AI Provider.`,
       );
     }
+    provider = slot.provider;
     try {
       apiKey = decryptJson<{ key: string }>(slot.enc).key;
     } catch {
@@ -80,5 +98,5 @@ export async function resolveLlm(workspaceId: string): Promise<LlmClient> {
       );
     }
   }
-  return getLlm({ apiKey, model: row.model });
+  return getLlm({ provider, apiKey, model: row.model });
 }

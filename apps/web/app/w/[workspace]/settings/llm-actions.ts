@@ -8,7 +8,8 @@ import { requireMembership } from "@/lib/auth-helpers";
 import { writeAudit } from "@/lib/audit";
 import { can } from "@spark/shared";
 import { encryptJson } from "@/lib/crypto";
-import { KEY_SLOTS, MODEL_OPTIONS, type KeySlot } from "@/lib/llm-settings";
+import { KEY_SLOTS, type KeySlot } from "@/lib/llm-settings";
+import { isProvider, type LlmProvider } from "@/lib/llm-catalog";
 
 /**
  * AI Provider settings actions. workspace.manage gated (owner/admin). Keys are
@@ -36,10 +37,13 @@ function readSlots(keys: unknown): KeySlot[] {
 export async function saveLlmProvider(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug"));
   const { userId, workspaceId } = await requireManager(slug);
-  const model = String(formData.get("model") ?? "");
+  // Model is free-text (a catalog suggestion or a custom ID for the active
+  // provider) — trust it, since provider catalogs drift faster than we ship.
+  const model = String(formData.get("model") ?? "").trim();
   const activeSlot = parseInt(String(formData.get("activeSlot") ?? "0"), 10);
 
-  if (!MODEL_OPTIONS.some((m) => m.id === model)) fail(slug, "Pick a model from the list.");
+  if (!model) fail(slug, "Enter a model ID.");
+  if (model.length > 80) fail(slug, "That model ID looks too long.");
   if (!Number.isInteger(activeSlot) || activeSlot < 0 || activeSlot > KEY_SLOTS) {
     fail(slug, "Invalid key selection.");
   }
@@ -75,14 +79,17 @@ export async function saveLlmKey(formData: FormData): Promise<void> {
   const slug = String(formData.get("slug"));
   const { userId, workspaceId } = await requireManager(slug);
   const slot = parseInt(String(formData.get("slot") ?? ""), 10);
+  const provider = String(formData.get("provider") ?? "");
   const label = String(formData.get("label") ?? "").trim() || `Key ${slot}`;
   const key = String(formData.get("key") ?? "").trim();
 
   if (!Number.isInteger(slot) || slot < 1 || slot > KEY_SLOTS) fail(slug, "Invalid key slot.");
+  if (!isProvider(provider)) fail(slug, "Pick a provider for this key.");
   if (!key) fail(slug, "Paste an API key before saving.");
   if (key.length < 20) fail(slug, "That doesn't look like an API key (too short).");
 
-  const entry: KeySlot = {
+  const entry: NonNullable<KeySlot> = {
+    provider: provider as LlmProvider, // validated by the isProvider guard above
     label: label.slice(0, 40),
     last4: key.slice(-4),
     enc: encryptJson({ key }),

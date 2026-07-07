@@ -13,10 +13,12 @@ import "server-only";
  *   too — placeholders are structural, not factual).
  */
 
+import type { LlmProvider } from "@/lib/llm-catalog";
+
 export type LlmMessage = { role: "user" | "assistant"; content: string };
 
 export interface LlmClient {
-  readonly provider: "anthropic" | "stub";
+  readonly provider: string;
   /** Single-turn completion. Returns the text of the model's reply. */
   complete(opts: {
     system: string;
@@ -67,6 +69,92 @@ class AnthropicClient implements LlmClient {
   }
 }
 
+/**
+ * OpenAI-compatible chat client — serves OpenAI and xAI (Grok), which share the
+ * `/v1/chat/completions` schema and Bearer auth. The only divergence is the
+ * output-token field name, so it's parameterized.
+ */
+class OpenAiCompatClient implements LlmClient {
+  constructor(
+    readonly provider: string,
+    private readonly apiKey: string,
+    private readonly model: string,
+    private readonly baseUrl: string,
+    private readonly tokenParam: "max_tokens" | "max_completion_tokens",
+  ) {}
+
+  async complete(opts: {
+    system: string;
+    messages: LlmMessage[];
+    maxTokens?: number;
+  }): Promise<string> {
+    const res = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: this.model,
+        messages: [
+          { role: "system", content: opts.system },
+          ...opts.messages.map((m) => ({ role: m.role, content: m.content })),
+        ],
+        [this.tokenParam]: opts.maxTokens ?? 4096,
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`${this.provider} API error ${res.status}: ${body.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    return data.choices?.[0]?.message?.content ?? "";
+  }
+}
+
+/** Google Gemini (generateContent). Its own request/response shape + key-in-query auth. */
+class GeminiClient implements LlmClient {
+  readonly provider = "google" as const;
+  constructor(
+    private readonly apiKey: string,
+    private readonly model: string,
+  ) {}
+
+  async complete(opts: {
+    system: string;
+    messages: LlmMessage[];
+    maxTokens?: number;
+  }): Promise<string> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+      this.model,
+    )}:generateContent`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": this.apiKey },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: opts.system }] },
+        contents: opts.messages.map((m) => ({
+          role: m.role === "assistant" ? "model" : "user",
+          parts: [{ text: m.content }],
+        })),
+        generationConfig: { maxOutputTokens: opts.maxTokens ?? 4096 },
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Gemini API error ${res.status}: ${body.slice(0, 300)}`);
+    }
+    const data = (await res.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    return (data.candidates?.[0]?.content?.parts ?? [])
+      .map((p) => p.text ?? "")
+      .join("");
+  }
+}
+
 class StubClient implements LlmClient {
   readonly provider = "stub" as const;
 
@@ -103,16 +191,34 @@ class StubClient implements LlmClient {
  * an override apiKey/model wins over env; with no key anywhere, the stub runs.
  */
 export function getLlm(overrides?: {
+  provider?: LlmProvider | null;
   apiKey?: string | null;
   model?: string | null;
 }): LlmClient {
+  // The env key is Anthropic's (ANTHROPIC_API_KEY); it only applies when no
+  // per-workspace override provider is given.
+  const provider: LlmProvider = overrides?.provider ?? "anthropic";
   const apiKey =
     overrides?.apiKey ?? process.env.ANTHROPIC_API_KEY ?? process.env.LLM_API_KEY;
-  const provider = (process.env.LLM_PROVIDER ?? "").toLowerCase();
   const model =
     overrides?.model ?? process.env.LLM_DEFAULT_MODEL ?? "claude-sonnet-4-6";
-  if (apiKey && provider !== "stub") {
-    return new AnthropicClient(apiKey, model);
+  const forceStub = (process.env.LLM_PROVIDER ?? "").toLowerCase() === "stub";
+  if (!apiKey || forceStub) return new StubClient();
+
+  switch (provider) {
+    case "openai":
+      return new OpenAiCompatClient(
+        "openai",
+        apiKey,
+        model,
+        "https://api.openai.com/v1",
+        "max_completion_tokens",
+      );
+    case "xai":
+      return new OpenAiCompatClient("xai", apiKey, model, "https://api.x.ai/v1", "max_tokens");
+    case "google":
+      return new GeminiClient(apiKey, model);
+    default:
+      return new AnthropicClient(apiKey, model);
   }
-  return new StubClient();
 }

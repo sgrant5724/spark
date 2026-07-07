@@ -17,8 +17,10 @@ import {
   saveMotifs,
 } from "./actions";
 import { connectWordPress, disconnectWordPress } from "./integrations-actions";
-import { saveLlmProvider, saveLlmKey, clearLlmKey } from "./llm-actions";
-import { getLlmSettingsView, KEY_SLOTS, MODEL_OPTIONS } from "@/lib/llm-settings";
+import { saveLlmKey, clearLlmKey } from "./llm-actions";
+import { getLlmSettingsView, KEY_SLOTS } from "@/lib/llm-settings";
+import { PROVIDERS, PROVIDER_ORDER, PROVIDER_TINT } from "@/lib/llm-catalog";
+import { AiProviderForm } from "@/components/AiProviderForm";
 
 const inputCls =
   "w-full rounded-lg border border-lightblue px-3 py-2 text-sm text-ink outline-none focus:border-blue disabled:bg-paper disabled:text-ink/60";
@@ -420,15 +422,29 @@ export default async function SettingsPage({
         {/* AI Provider */}
         <Section
           title="AI Provider"
-          desc="Which Claude model powers generation, and which API key it bills to. Keys are encrypted at rest and never shown again after saving."
+          desc="Which provider + model powers generation, and which API key it bills to. Anthropic (Claude), OpenAI (GPT), xAI (Grok), and Google (Gemini) are supported. Keys are encrypted at rest and never shown again after saving."
           className="lg:col-span-2"
         >
           <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-semibold"
+              style={{
+                color: PROVIDER_TINT[llm.activeProvider],
+                borderColor: PROVIDER_TINT[llm.activeProvider] + "66",
+                background: PROVIDER_TINT[llm.activeProvider] + "0f",
+              }}
+            >
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ background: PROVIDER_TINT[llm.activeProvider] }}
+              />
+              {PROVIDERS[llm.activeProvider].label}
+            </span>
             <span className="rounded-full border border-lightblue bg-blue/5 px-2.5 py-1 font-mono text-blue">
               {llm.model}
             </span>
             <span className="rounded-full border border-lightblue bg-paper px-2.5 py-1 text-ink/70">
-              active key:{" "}
+              key:{" "}
               {llm.activeSlot === 0
                 ? llm.envKeyPresent
                   ? "deployment key (env)"
@@ -437,82 +453,27 @@ export default async function SettingsPage({
             </span>
           </div>
 
-          <form action={saveLlmProvider} className="mb-5 rounded-lg border border-paper bg-paper/40 p-3">
-            <input type="hidden" name="slug" value={slug} />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className={labelCls}>Model</span>
-                <select name="model" defaultValue={llm.model} disabled={disabled} className={inputCls}>
-                  {!MODEL_OPTIONS.some((m) => m.id === llm.model) && (
-                    <option value={llm.model}>{llm.model} (from env)</option>
-                  )}
-                  {MODEL_OPTIONS.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label} — {m.hint}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <fieldset>
-                <legend className={labelCls}>Active API key</legend>
-                <div className="space-y-1 text-sm">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="activeSlot"
-                      value="0"
-                      defaultChecked={llm.activeSlot === 0}
-                      disabled={disabled}
-                      className="accent-blue"
-                    />
-                    <span className="text-ink/80">
-                      Deployment key (env){" "}
-                      {llm.envKeyPresent ? (
-                        <span className="text-blue">· set</span>
-                      ) : (
-                        <span className="text-orange">· not set</span>
-                      )}
-                    </span>
-                  </label>
-                  {llm.slots.map((s, i) => (
-                    <label key={i} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="activeSlot"
-                        value={String(i + 1)}
-                        defaultChecked={llm.activeSlot === i + 1}
-                        disabled={disabled || !s}
-                        className="accent-blue"
-                      />
-                      <span className={s ? "text-ink/80" : "text-ink/40"}>
-                        Slot {i + 1}
-                        {s ? (
-                          <span>
-                            {" "}
-                            · {s.label} · <span className="font-mono">…{s.last4}</span>
-                          </span>
-                        ) : (
-                          " · empty"
-                        )}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            </div>
-            <SaveBar canManage={canManage} />
-          </form>
+          <AiProviderForm
+            slug={slug}
+            slots={llm.slots}
+            activeSlot={llm.activeSlot}
+            activeProvider={llm.activeProvider}
+            model={llm.model}
+            envKeyPresent={llm.envKeyPresent}
+            canManage={canManage}
+          />
 
-          <p className={labelCls}>API key slots (Anthropic keys — write-only)</p>
+          <p className={labelCls}>API key slots (write-only — pick a provider per key)</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {Array.from({ length: KEY_SLOTS }, (_, i) => {
               const s = llm.slots[i];
+              const tint = s ? PROVIDER_TINT[s.provider] : null;
               return (
                 <form
                   key={i}
                   action={saveLlmKey}
                   className={
-                    "rounded-lg border p-3 " +
+                    "relative overflow-hidden rounded-lg border p-3 " +
                     (llm.activeSlot === i + 1
                       ? "border-blue bg-blue/5"
                       : s
@@ -520,6 +481,13 @@ export default async function SettingsPage({
                         : "border-dashed border-lightblue bg-paper/30")
                   }
                 >
+                  {tint && (
+                    <span
+                      className="absolute inset-y-0 left-0 w-1"
+                      style={{ background: tint }}
+                      aria-hidden
+                    />
+                  )}
                   <input type="hidden" name="slug" value={slug} />
                   <input type="hidden" name="slot" value={String(i + 1)} />
                   <div className="mb-2 flex items-center justify-between">
@@ -528,23 +496,40 @@ export default async function SettingsPage({
                       {llm.activeSlot === i + 1 && <span className="ml-1 text-blue">· active</span>}
                     </span>
                     {s ? (
-                      <span className="font-mono text-[0.65rem] text-blue">…{s.last4}</span>
+                      <span className="font-mono text-[0.65rem]" style={{ color: tint ?? undefined }}>
+                        …{s.last4}
+                      </span>
                     ) : (
                       <span className="text-[0.65rem] text-ink/40">empty</span>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <input
-                      name="label"
-                      defaultValue={s?.label ?? ""}
-                      placeholder={`Label (e.g. "Client billing")`}
-                      disabled={disabled}
-                      className={inputCls}
-                    />
+                    <div className="flex gap-2">
+                      <select
+                        name="provider"
+                        defaultValue={s?.provider ?? "anthropic"}
+                        disabled={disabled}
+                        aria-label="Provider"
+                        className={inputCls + " w-40"}
+                      >
+                        {PROVIDER_ORDER.map((p) => (
+                          <option key={p} value={p}>
+                            {PROVIDERS[p].label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        name="label"
+                        defaultValue={s?.label ?? ""}
+                        placeholder={`Label (e.g. "Client billing")`}
+                        disabled={disabled}
+                        className={inputCls}
+                      />
+                    </div>
                     <input
                       name="key"
                       type="password"
-                      placeholder={s ? "Paste a new key to replace…" : "sk-ant-…"}
+                      placeholder={s ? "Paste a new key to replace…" : "API key…"}
                       autoComplete="off"
                       disabled={disabled}
                       className={inputCls + " font-mono"}
@@ -554,7 +539,7 @@ export default async function SettingsPage({
                     <div className="mt-2 flex gap-2">
                       <button
                         type="submit"
-                        className="rounded-lg bg-blue px-3 py-1.5 font-display text-xs font-semibold text-white"
+                        className="rounded-lg bg-gradient-to-br from-blue-bright to-nav px-3 py-1.5 font-display text-xs font-semibold text-white shadow-sm"
                       >
                         {s ? "Replace key" : "Save key"}
                       </button>
