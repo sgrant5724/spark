@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   type LucideIcon,
+  ScrollText,
   Settings,
   Share2,
   Target,
@@ -42,17 +43,26 @@ const NAV: Array<{
   { label: "Settings", href: (s) => `/w/${s}/settings`, Icon: Settings },
 ];
 
-export function Sidebar({ slug }: { slug: string }) {
+// Oversight-only nav, appended when the viewer holds workspace.manage.
+const AUDIT_ITEM = {
+  label: "Audit log",
+  href: (s: string) => `/w/${s}/audit`,
+  Icon: ScrollText,
+} as const;
+
+export function Sidebar({ slug, canAudit }: { slug: string; canAudit?: boolean }) {
   const pathname = usePathname();
+  const items = canAudit ? [...NAV, AUDIT_ITEM] : NAV;
 
   return (
     <nav
       className="flex gap-1 overflow-x-auto px-3 py-2 md:flex-col md:overflow-x-visible md:py-4"
       aria-label="Primary"
     >
-      {NAV.map((item) => {
+      {items.map((item) => {
         const href = item.href(slug);
-        const active = item.exact ? pathname === href : pathname.startsWith(href);
+        const exact = "exact" in item ? item.exact : undefined;
+        const active = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link
             key={item.label}

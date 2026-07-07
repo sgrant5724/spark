@@ -10,6 +10,7 @@ import { ToastProvider } from "@/components/ui";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
 import { getUserMemberships, requireMembership } from "@/lib/auth-helpers";
+import { can } from "@spark/shared";
 import { signOut } from "@/auth";
 
 export default async function WorkspaceLayout({
@@ -94,7 +95,10 @@ export default async function WorkspaceLayout({
           />
           <SearchTrigger />
         </div>
-        <Sidebar slug={params.workspace} />
+        <Sidebar
+          slug={params.workspace}
+          canAudit={can(membership.role, "workspace.manage")}
+        />
         <form action={handleSignOut} className="mt-auto hidden px-3 pb-4 pt-2 md:block">
           <button className="w-full rounded-lg border border-white/20 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10">
             Sign out
