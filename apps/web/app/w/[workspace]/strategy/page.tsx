@@ -109,7 +109,7 @@ export default async function StrategyPage({
         </h2>
         <div className="overflow-hidden rounded-brand border border-lightblue">
           <table className="w-full bg-white text-sm">
-            <thead className="bg-ink">
+            <thead className="bg-gradient-to-r from-nav to-blue">
               <tr>
                 <th className={thCls}>Tier</th>
                 <th className={thCls}>Phrase</th>
@@ -197,7 +197,7 @@ export default async function StrategyPage({
         </h2>
         <div className="overflow-hidden rounded-brand border border-lightblue">
           <table className="w-full bg-white text-sm">
-            <thead className="bg-ink">
+            <thead className="bg-gradient-to-r from-nav to-blue">
               <tr>
                 <th className={thCls}>URL</th>
                 <th className={thCls}>Type</th>

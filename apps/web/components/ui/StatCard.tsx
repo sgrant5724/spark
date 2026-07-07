@@ -12,11 +12,20 @@ import { cx } from "@/lib/cx";
 type IconTone = "blue" | "orange" | "yellow" | "nav" | "cyan";
 
 const TILE: Record<IconTone, string> = {
-  blue: "bg-blue text-white",
-  orange: "bg-orange text-white",
-  yellow: "bg-yellow text-ink",
-  nav: "bg-nav text-white",
-  cyan: "bg-cyan text-nav",
+  blue: "bg-gradient-to-br from-blue-bright to-nav text-white shadow-sm",
+  orange: "bg-gradient-to-br from-yellow to-orange text-white shadow-sm",
+  yellow: "bg-gradient-to-br from-yellow to-orange/80 text-ink shadow-sm",
+  nav: "bg-gradient-to-br from-blue to-nav2 text-white shadow-sm",
+  cyan: "bg-gradient-to-br from-cyan to-blue-bright text-nav shadow-sm",
+};
+
+/** Subtle per-tone wash so the cards aren't flat white. */
+const WASH: Record<IconTone, string> = {
+  blue: "bg-gradient-to-br from-white via-white to-blue/5",
+  orange: "bg-gradient-to-br from-white via-white to-orange/5",
+  yellow: "bg-gradient-to-br from-white via-white to-yellow/10",
+  nav: "bg-gradient-to-br from-white via-white to-nav/5",
+  cyan: "bg-gradient-to-br from-white via-white to-cyan/15",
 };
 
 type DeltaDir = "up" | "down" | "flat";
@@ -81,7 +90,7 @@ export function StatCard({
     </>
   );
 
-  const base = "block rounded-brand border border-lightblue bg-white p-4 shadow-sm";
+  const base = cx("block rounded-brand border border-lightblue p-4 shadow-sm", WASH[iconTone]);
   return href ? (
     <Link href={href} className={cx(base, "transition-colors hover:border-blue", className)}>
       {inner}

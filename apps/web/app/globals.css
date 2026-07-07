@@ -25,6 +25,23 @@ body {
   font-family: "Quicksand", system-ui, sans-serif;
 }
 
+/* Brand text selection — a small vibrancy cue everywhere. */
+::selection {
+  background: var(--yellow);
+  color: var(--nav);
+}
+
+/* Page titles get a deep-nav → bright-blue gradient. Large bold text, darkest
+   stop #0A3A56 / lightest #1A7AAB on paper — comfortably over WCAG large-text
+   contrast. Forced-colors mode overrides this back to solid automatically. */
+main h1 {
+  background-image: linear-gradient(100deg, var(--nav) 20%, #1a7aab 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  width: fit-content;
+}
+
 /* WCAG 2.1 AA: clearly visible keyboard focus, app-wide. */
 :focus-visible {
   outline: 3px solid var(--orange);

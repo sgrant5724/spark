@@ -115,6 +115,7 @@ export default async function AgencyConsole({
 
   return (
     <div className="min-h-screen bg-paper">
+      <div className="h-1 bg-gradient-to-r from-orange via-yellow to-blue-bright" aria-hidden />
       <header className="flex items-center gap-3 bg-nav px-6 py-3 text-white">
         <SparkLogo size={26} />
         <span className="font-display text-base font-bold">Spark · Agency Console</span>

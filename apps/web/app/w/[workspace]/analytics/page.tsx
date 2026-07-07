@@ -405,7 +405,7 @@ export default async function AnalyticsPage({
         ) : (
           <div className="overflow-x-auto rounded-brand border border-lightblue">
             <table className="w-full min-w-[720px] bg-white text-sm">
-              <thead className="bg-ink text-left text-white">
+              <thead className="bg-gradient-to-r from-nav to-blue text-left text-white">
                 <tr>
                   <th className="px-3 py-2 font-display text-xs font-semibold">Article</th>
                   <th className="px-3 py-2 font-display text-xs font-semibold">Trend</th>

@@ -18,7 +18,14 @@ export function Widget({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`min-w-0 rounded-brand border border-lightblue bg-white p-4 ${className}`}>
+    <section
+      className={`relative min-w-0 overflow-hidden rounded-brand border border-lightblue bg-white p-4 ${className}`}
+    >
+      {/* brand ribbon — the Spark gradient from the logo mark */}
+      <span
+        className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-orange via-yellow to-blue-bright"
+        aria-hidden
+      />
       {(title || action) && (
         <div className="mb-2.5 flex items-center justify-between gap-2">
           {title && (

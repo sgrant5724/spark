@@ -23,7 +23,7 @@ export default async function MembersPage({
 
       <table className="w-full overflow-hidden rounded-brand border border-lightblue bg-white text-sm">
         <thead>
-          <tr className="bg-ink text-left text-white">
+          <tr className="bg-gradient-to-r from-nav to-blue text-left text-white">
             <th className="px-4 py-2.5 font-display font-semibold">Email</th>
             <th className="px-4 py-2.5 font-display font-semibold">Name</th>
             <th className="px-4 py-2.5 font-display font-semibold">Role</th>

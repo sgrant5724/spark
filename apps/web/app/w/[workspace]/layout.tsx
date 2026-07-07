@@ -48,7 +48,9 @@ export default async function WorkspaceLayout({
 
   return (
     <ToastProvider>
-    <div className="grid min-h-screen grid-rows-[auto_1fr] md:grid-cols-[240px_1fr] md:grid-rows-1">
+    {/* brand ribbon across the whole shell */}
+    <div className="h-1 bg-gradient-to-r from-orange via-yellow to-blue-bright" aria-hidden />
+    <div className="grid min-h-[calc(100vh-4px)] grid-rows-[auto_1fr] md:grid-cols-[240px_1fr] md:grid-rows-1">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:text-blue"

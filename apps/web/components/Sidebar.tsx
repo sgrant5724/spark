@@ -61,12 +61,12 @@ export function Sidebar({ slug }: { slug: string }) {
             className={
               "flex items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm transition-colors " +
               (active
-                ? "border border-lightblue/50 bg-lightblue/20 font-semibold text-white"
+                ? "bg-gradient-to-r from-orange to-orange/75 font-semibold text-white shadow-sm"
                 : "text-white/80 hover:bg-white/10")
             }
           >
             <item.Icon
-              className={"h-[1.05rem] w-[1.05rem] shrink-0 " + (active ? "text-yellow" : "text-cyan")}
+              className={"h-[1.05rem] w-[1.05rem] shrink-0 " + (active ? "text-white" : "text-cyan")}
               strokeWidth={active ? 2.25 : 1.75}
               aria-hidden
             />
