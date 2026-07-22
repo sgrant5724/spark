@@ -20,9 +20,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Set the theme before first paint to avoid a flash. Reads the saved choice,
-  // else the OS preference. Tiny inline script; runs before React hydrates.
-  const noFlashTheme = `(function(){try{var t=localStorage.getItem('spark-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+  // Apply the saved theme + font size before first paint to avoid a flash.
+  // Falls back to the OS colour preference and the default font. Tiny inline
+  // script; runs before React hydrates. Keep the theme/font id lists in sync
+  // with globals.css and AppearancePicker.
+  const noFlashTheme = `(function(){try{var d=document.documentElement;var themes=['light','dark','midnight','slate','sepia','contrast'];var t=localStorage.getItem('spark-theme');if(themes.indexOf(t)<0){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.setAttribute('data-theme',t);var fonts=['sm','base','lg','xl'];var f=localStorage.getItem('spark-font');if(fonts.indexOf(f)<0){f='base';}d.setAttribute('data-font',f);}catch(e){}})();`;
 
   return (
     <html lang="en" suppressHydrationWarning>

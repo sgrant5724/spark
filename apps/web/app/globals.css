@@ -19,32 +19,120 @@
 /* Themeable surface/text/line tokens, stored as space-separated RGB channels so
    Tailwind's `/opacity` modifiers keep working (rgb(var(--c-x) / <alpha-value>)).
    The token *values* flip by theme; class names never carry `dark:` variants. */
+/* --- Themes ------------------------------------------------------------------
+   Each theme is a full token set. Light values (default/root) match the brand
+   hexes exactly. Accents used as text/border on surfaces are tuned per theme to
+   hold WCAG AA contrast. --h1-from/--h1-to drive the gradient page title so no
+   per-theme h1 override is needed. No green in any palette. */
+
+/* Light — the brand default. */
 :root,
 [data-theme="light"] {
-  --c-ink: 52 52 51; /* #343433 primary text */
-  --c-paper: 239 243 250; /* #EFF3FA page canvas */
-  --c-paper2: 226 234 244; /* #E2EAF4 deeper surface tint */
-  --c-surface: 255 255 255; /* #FFFFFF card surface */
-  --c-line: 177 212 224; /* #B1D4E0 hairline/border */
-  /* Interactive accents used as text/border ON surfaces. Light values match the
-     constant brand hexes exactly (no light-mode change); they lift in dark so
-     accent text keeps WCAG AA contrast on the dark surface. */
-  --c-accent: 13 90 132; /* #0D5A84 primary blue */
-  --c-accent-warn: 196 87 28; /* #C4571C orange */
-  --c-accent-danger: 192 57 43; /* #C0392B red */
+  --c-ink: 52 52 51; /* #343433 */
+  --c-paper: 239 243 250; /* #EFF3FA */
+  --c-paper2: 226 234 244; /* #E2EAF4 */
+  --c-surface: 255 255 255;
+  --c-line: 177 212 224; /* #B1D4E0 */
+  --c-accent: 13 90 132; /* #0D5A84 */
+  --c-accent-warn: 180 78 22; /* darkened orange for AA text on white (~5.2:1) */
+  --c-accent-danger: 192 57 43; /* #C0392B */
+  --h1-from: #0a3a56;
+  --h1-to: #1a7aab;
   color-scheme: light;
 }
 
+/* Dark — deep instrument. */
 [data-theme="dark"] {
-  --c-ink: 224 234 243; /* soft near-white text */
-  --c-paper: 6 20 30; /* deep instrument canvas */
-  --c-paper2: 13 32 47; /* raised tint */
-  --c-surface: 15 39 57; /* card surface */
-  --c-line: 32 64 88; /* hairline on dark */
-  --c-accent: 123 184 222; /* lifted blue — ~7:1 on dark surface */
-  --c-accent-warn: 232 147 90; /* lifted orange — ~5:1 */
-  --c-accent-danger: 241 137 126; /* lifted red — ~5.5:1 */
+  --c-ink: 224 234 243;
+  --c-paper: 6 20 30;
+  --c-paper2: 13 32 47;
+  --c-surface: 15 39 57;
+  --c-line: 32 64 88;
+  --c-accent: 123 184 222; /* ~7:1 on surface */
+  --c-accent-warn: 232 147 90;
+  --c-accent-danger: 241 137 126;
+  --h1-from: #4fa3ce;
+  --h1-to: #b1d4e0;
   color-scheme: dark;
+}
+
+/* Midnight — near-black indigo, cooler accent. */
+[data-theme="midnight"] {
+  --c-ink: 226 230 242;
+  --c-paper: 8 11 22;
+  --c-paper2: 18 22 38;
+  --c-surface: 20 25 44;
+  --c-line: 44 50 78;
+  --c-accent: 138 170 255; /* indigo-blue */
+  --c-accent-warn: 240 165 105;
+  --c-accent-danger: 246 142 142;
+  --h1-from: #8aaaff;
+  --h1-to: #c7d2fe;
+  color-scheme: dark;
+}
+
+/* Slate — calm neutral-gray light. */
+[data-theme="slate"] {
+  --c-ink: 35 39 47;
+  --c-paper: 233 235 239;
+  --c-paper2: 222 225 231;
+  --c-surface: 255 255 255;
+  --c-line: 200 205 214;
+  --c-accent: 13 90 132;
+  --c-accent-warn: 180 78 22;
+  --c-accent-danger: 178 48 40;
+  --h1-from: #334155;
+  --h1-to: #0d5a84;
+  color-scheme: light;
+}
+
+/* Sepia — warm paper, easy on the eyes. */
+[data-theme="sepia"] {
+  --c-ink: 60 50 38;
+  --c-paper: 244 236 224;
+  --c-paper2: 236 226 210;
+  --c-surface: 253 248 240;
+  --c-line: 214 200 178;
+  --c-accent: 17 82 112;
+  --c-accent-warn: 166 74 22;
+  --c-accent-danger: 166 44 38;
+  --h1-from: #6b4e2e;
+  --h1-to: #b4531b;
+  color-scheme: light;
+}
+
+/* High contrast — near-AAA dark for accessibility. */
+[data-theme="contrast"] {
+  --c-ink: 255 255 255;
+  --c-paper: 0 0 0;
+  --c-paper2: 24 24 28;
+  --c-surface: 15 15 18;
+  --c-line: 96 102 116;
+  --c-accent: 125 200 255;
+  --c-accent-warn: 255 176 96;
+  --c-accent-danger: 255 138 128;
+  --h1-from: #7dc8ff;
+  --h1-to: #ffffff;
+  color-scheme: dark;
+}
+
+/* --- Font size --------------------------------------------------------------
+   Scales the root rem so text (and rem-based spacing) grows/shrinks together,
+   the same way browser zoom does. Default = 16px. */
+:root {
+  font-size: 16px;
+}
+:root[data-font="sm"] {
+  font-size: 14px;
+}
+:root[data-font="base"] {
+  font-size: 16px;
+}
+:root[data-font="lg"] {
+  font-size: 18px;
+}
+:root[data-font="xl"] {
+  font-size: 20px;
 }
 
 html,
@@ -64,17 +152,11 @@ body {
    stop #0A3A56 / lightest #1A7AAB on paper — comfortably over WCAG large-text
    contrast. Forced-colors mode overrides this back to solid automatically. */
 main h1 {
-  background-image: linear-gradient(100deg, var(--nav) 20%, #1a7aab 80%);
+  background-image: linear-gradient(100deg, var(--h1-from) 18%, var(--h1-to) 82%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   width: fit-content;
-}
-
-/* On dark, the deep-nav stop is nearly invisible — lift both stops to bright
-   cyan/light-blue so the gradient title still reads with strong contrast. */
-[data-theme="dark"] main h1 {
-  background-image: linear-gradient(100deg, #4fa3ce 15%, #b1d4e0 85%);
 }
 
 /* WCAG 2.1 AA: clearly visible keyboard focus, app-wide. */

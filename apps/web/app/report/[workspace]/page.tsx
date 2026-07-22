@@ -130,7 +130,7 @@ export default async function ReportPage({
   return (
     <div data-theme="light" className="min-h-screen bg-paper2 print:bg-surface">
       {/* Print page setup + hide app-less chrome when printing */}
-      <style>{`@page { margin: 14mm; } @media print { .report-toolbar { display: none !important; } body { background: #fff; } }`}</style>
+      <style>{`@page { margin: 14mm; } @media print { .report-toolbar { display: none !important; } html { font-size: 16px; } body { background: #fff; } }`}</style>
 
       {/* Toolbar (screen only) */}
       <div className="report-toolbar mx-auto flex max-w-3xl items-center justify-between px-6 py-4 print:hidden">

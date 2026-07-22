@@ -7,7 +7,7 @@ import { getSessionUserId, getUserMemberships } from "@/lib/auth-helpers";
 import { signOut } from "@/auth";
 import { SparkLogo } from "@/components/SparkLogo";
 import { AddClientForm } from "@/components/AddClientForm";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AppearancePicker } from "@/components/AppearancePicker";
 import { Badge, Gauge, StatCard } from "@/components/ui";
 
 const LIVE: ArticleState[] = ["published", "distributed", "analyzing"];
@@ -124,7 +124,7 @@ export default async function AgencyConsole({
           {clients.length} workspace{clients.length === 1 ? "" : "s"}
         </span>
         <div className="ml-auto flex items-center gap-2">
-          <ThemeToggle />
+          <AppearancePicker />
           <form action={handleSignOut}>
             <button className="rounded-lg border border-white/20 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10">Sign out</button>
           </form>

@@ -6,7 +6,7 @@ import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { CommandPalette } from "@/components/CommandPalette";
 import { SearchTrigger } from "@/components/SearchTrigger";
 import { NotificationBell, type Note } from "@/components/NotificationBell";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AppearancePicker } from "@/components/AppearancePicker";
 import { ToastProvider } from "@/components/ui";
 import { withWorkspace } from "@spark/db";
 import { db } from "@/lib/db";
@@ -69,7 +69,7 @@ export default async function WorkspaceLayout({
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <ThemeToggle />
+            <AppearancePicker />
             <NotificationBell
               slug={params.workspace}
               items={noteItems}
