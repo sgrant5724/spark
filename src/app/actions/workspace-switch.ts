@@ -21,7 +21,7 @@ export async function setActiveWorkspaceAction(formData: FormData) {
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
   });
-  redirect("/dashboard");
+  redirect("/inbox");
 }
 
 /** Set the active-workspace cookie without the membership re-check — only for
@@ -80,5 +80,5 @@ export async function createWorkspaceAction(formData: FormData) {
   const workspace = await db.workspace.create({ data: { name } });
   await db.membership.create({ data: { userId: user.id, workspaceId: workspace.id, role: "ADMIN" } });
   await setActive(workspace.id);
-  redirect("/dashboard");
+  redirect("/inbox");
 }

@@ -48,7 +48,7 @@ export default async function NewWorkspacePage({
               : "Only the platform administrator can create new workspaces on this install. Ask them to set one up and invite you."}
           </p>
           <div className="flex gap-2">
-            {!first && <Link href="/dashboard" className="btn sm">Back to the app</Link>}
+            {!first && <Link href="/inbox" className="btn sm">Back to the app</Link>}
             <Link href="/settings" className="btn sm">Your settings</Link>
           </div>
         </div>

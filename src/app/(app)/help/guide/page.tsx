@@ -46,7 +46,7 @@ export default function GuidePage() {
           results back in. <b>Your job is decisions, not production</b> — approving, adjusting, and occasionally
           steering. The whole interface is arranged around that: the left rail reads as the pipeline
           (<b>Research → Create → Distribute → Measure</b>, plus Setup), and{" "}
-          <Link href="/dashboard" className="underline">Home</Link> is a queue of exactly what&apos;s waiting on you.
+          <Link href="/inbox" className="underline">Inbox</Link> is a queue of exactly what&apos;s waiting on you.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[12.5px]">
           <div className="border rounded-lg px-3 py-2" style={{ borderColor: "var(--line)" }}>
@@ -63,7 +63,7 @@ export default function GuidePage() {
             <div className="text-[var(--mute)] leading-snug">
               If something urgent is waiting, the workspace&apos;s admins get one <b>morning digest email</b> listing
               it. A quiet morning sends nothing — on purpose, so the emails that do arrive mean something. No
-              email and a green <Link href="/dashboard" className="underline">Home</Link> = genuinely nothing to do.
+              email and a green <Link href="/inbox" className="underline">Inbox</Link> = genuinely nothing to do.
             </div>
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function GuidePage() {
             that&apos;s the system working, not you missing something.
           </Step>
           <Step icon={Check} title="Work the Needs-you queue, top to bottom.">
-            <Link href="/dashboard" className="underline">Home</Link> puts the urgent items first: posts held for
+            <Link href="/inbox" className="underline">Inbox</Link> puts the urgent items first: posts held for
             approval, failed sends to retry, accounts that stopped publishing. Each card has its own button;
             when the list is empty you&apos;re caught up everywhere.
           </Step>
@@ -290,7 +290,7 @@ export default function GuidePage() {
           </li>
         </ul>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/dashboard" className="btn sm primary">Open Home <ArrowRight className="w-3.5 h-3.5" /></Link>
+          <Link href="/inbox" className="btn sm primary">Open Inbox <ArrowRight className="w-3.5 h-3.5" /></Link>
           <Link href="/help" className="btn sm">Back to Help</Link>
         </div>
       </section>

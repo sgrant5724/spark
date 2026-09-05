@@ -104,7 +104,7 @@ async function signupAction(formData: FormData) {
   // send verification email on signup
   await requestVerificationForUser(user.id, user.email);
 
-  await signIn("credentials", { email: parsed.data.email, password: parsed.data.password, redirectTo: "/dashboard" });
+  await signIn("credentials", { email: parsed.data.email, password: parsed.data.password, redirectTo: "/inbox" });
 }
 
 export default async function SignUpPage({ searchParams }: { searchParams: Promise<{ error?: string; invite?: string }> }) {

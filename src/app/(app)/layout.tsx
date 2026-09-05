@@ -35,7 +35,7 @@ import { relevantSteps, outstandingSetup, availableTracks, type SetupState } fro
 //    Scripts entries (isNavActive's special case), so the day-to-day work
 //    reached through a channel still lands in Research/Create.
 const NAV: (LeftRailItem & { adminOnly?: boolean })[] = [
-  { href: "/dashboard",   label: "Home",        icon: "Home",          color: "#E5482F", soft: "#FDE7E1" },
+  { href: "/inbox",       label: "Inbox",       icon: "Inbox",         color: "#E5482F", soft: "#FDE7E1" },
   // Ungrouped, directly under Home: it reaches across every group, so filing it
   // inside one of them would understate it.
   { href: "/assistant",   label: "Assistant",   icon: "Bot",           color: "#6D28D9", soft: "#EDE7FB" },
@@ -51,8 +51,8 @@ const NAV: (LeftRailItem & { adminOnly?: boolean })[] = [
   { href: "/website",     label: "Website",     icon: "Globe",         color: "#21759B", soft: "#E0EDF3", group: "Distribute" },
   { href: "/reports",     label: "Reports",     icon: "FileBarChart",  color: "#4F46E5", soft: "#E7E6FB", group: "Measure" },
   { href: "/insights",    label: "Insights",    icon: "LineChart",     color: "#15924B", soft: "#E0F2E8", group: "Measure" },
-  { href: "/channels",    label: "Channels",    icon: "Layers",        color: "#7C3AED", soft: "#EEE7FC", group: "Setup" },
-  { href: "/brand",       label: "Brand",       icon: "Palette",       color: "#DB2777", soft: "#FBE2EF", group: "Setup" },
+  { href: "/channels",    label: "Channels",    icon: "Layers",        color: "#7C3AED", soft: "#EEE7FC", group: "Setup", adminOnly: true },
+  { href: "/brand",       label: "Brand",       icon: "Palette",       color: "#DB2777", soft: "#FBE2EF", group: "Setup", adminOnly: true },
   { href: "/admin",       label: "Admin",       icon: "Settings",      color: "#4F46E5", soft: "#E7E6FB", group: "Setup", adminOnly: true },
   { href: "/help",        label: "Help",        icon: "HelpCircle",    color: "#0891B2", soft: "#D8EFF5" },
 ];
@@ -181,9 +181,9 @@ html[data-theme="dark"] .ws-brand {
           --ui-zoom for the same reason .min-h-screen is (see globals.css). */}
       <aside className="w-[68px] @6xl:w-64 left-rail border-r border-[var(--line)] hidden md:flex flex-col gap-1 py-4 px-2 @6xl:px-3 flex-shrink-0 sticky top-0 max-h-[calc(100vh/var(--ui-zoom))] overflow-y-auto overscroll-contain z-40 transition-[width] duration-200 motion-reduce:transition-none">
         <Link
-          href="/dashboard"
+          href="/inbox"
           className="flex items-center justify-center @6xl:justify-start gap-2.5 px-0 @6xl:px-2 py-1.5 mb-2 rounded-xl"
-          title={isBranded ? `${workspace.name} on MeYouSocial · Home` : "MeYouSocial · Home"}
+          title={isBranded ? `${workspace.name} on MeYouSocial · Inbox` : "MeYouSocial · Inbox"}
         >
           <span className="flex-shrink-0 shadow-lg shadow-[#15181D]/25 rounded-xl">
             {logoUrl ? (

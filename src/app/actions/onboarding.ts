@@ -172,7 +172,7 @@ export async function differentiationAction(formData: FormData) {
 export async function finishOnboardingAction(formData: FormData) {
   const channelId = String(formData.get("channelId"));
   const { channel } = await requireOwn(channelId);
-  revalidatePath("/dashboard");
+  revalidatePath("/inbox");
   redirect(`/channels/${channel.id}`);
 }
 

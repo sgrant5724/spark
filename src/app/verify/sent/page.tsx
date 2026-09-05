@@ -5,7 +5,7 @@ export default function VerifySentPage() {
       <div className="card w-full max-w-md text-center">
         <h1 className="font-mono font-bold text-xl mb-2">Verification email sent</h1>
         <p className="text-sm text-[var(--mute)] mb-4">Check your inbox. The link is valid for 24 hours.</p>
-        <Link href="/dashboard" className="btn">Back to dashboard</Link>
+        <Link href="/inbox" className="btn">Back to Inbox</Link>
       </div>
     </div>
   );

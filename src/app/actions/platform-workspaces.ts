@@ -115,7 +115,7 @@ export async function platformEnterWorkspaceAction(formData: FormData) {
   (await cookies()).set(ACTIVE_WS_COOKIE, workspaceId, {
     httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365,
   });
-  redirect("/dashboard");
+  redirect("/inbox");
 }
 
 // ── Members ──────────────────────────────────────────────────────────────────

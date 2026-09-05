@@ -117,7 +117,7 @@ export async function verifyEmailAction(formData: FormData) {
     db.user.update({ where: { id: userId }, data: { emailVerified: new Date() } }),
     db.verificationToken.delete({ where: { token } }),
   ]);
-  redirect("/dashboard");
+  redirect("/inbox");
 }
 
 /** Re-send the verification mail. Called from a signed-in /verify page. */
@@ -126,7 +126,7 @@ export async function resendVerificationAction() {
   const session = await auth();
   if (!session?.user?.id) redirect("/signin");
   const user = await db.user.findUnique({ where: { id: session!.user!.id } });
-  if (!user || user.emailVerified) redirect("/dashboard");
+  if (!user || user.emailVerified) redirect("/inbox");
   await db.verificationToken.deleteMany({ where: { identifier: PURPOSE_VERIFY + user.id } });
   await requestVerificationForUser(user.id, user.email);
   redirect("/verify/sent");

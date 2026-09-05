@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Home, Layers, Telescope, Sparkles, PenLine, MessageCircle, Image as ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe, ChevronRight } from "lucide-react";
+import { Bot, Home, Inbox, Layers, Telescope, Sparkles, PenLine, MessageCircle, Image as ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe, ChevronRight } from "lucide-react";
 import { WithTip } from "@/components/HelpTip";
 import { NAV_TIPS } from "@/lib/help-tips";
 
@@ -28,7 +28,7 @@ import { NAV_TIPS } from "@/lib/help-tips";
 // (60ms after step entry) then sees the expanded layout.
 
 const ICONS = {
-  Bot, Home, Layers, Telescope, Sparkles, PenLine, MessageCircle, ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe,
+  Bot, Home, Inbox, Layers, Telescope, Sparkles, PenLine, MessageCircle, ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe,
 } as const;
 type IconKey = keyof typeof ICONS;
 
@@ -51,7 +51,8 @@ export type LeftRailItem = {
 export function isNavActive(href: string, pathname: string): boolean {
   const channelSub = pathname.match(/^\/channels\/[^/]+\/(ideas|scripts)(?:\/|$)/);
   if (channelSub) return href === `/${channelSub[1]}`;
-  if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/";
+  // The Inbox is the landing page; the old Home URL redirects to it.
+  if (href === "/inbox") return pathname === "/inbox" || pathname === "/dashboard" || pathname === "/";
   return pathname === href || pathname.startsWith(href + "/");
 }
 

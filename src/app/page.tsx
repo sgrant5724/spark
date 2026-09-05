@@ -5,7 +5,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 
 export default async function Home() {
   const session = await auth();
-  if (session?.user) redirect("/dashboard");
+  if (session?.user) redirect("/inbox");
 
   return (
     <div className="flex-1 grid place-items-center p-6">

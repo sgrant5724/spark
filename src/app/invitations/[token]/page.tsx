@@ -39,7 +39,7 @@ async function acceptAction(token: string) {
   ]);
   // Land them in the workspace they just joined, not their first membership.
   (await cookies()).set(ACTIVE_WS_COOKIE, invite.workspaceId, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365 });
-  redirect("/dashboard");
+  redirect("/inbox");
 }
 
 function Notice({
@@ -101,7 +101,7 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
     return (
       <Notice
         title="Already accepted"
-        actions={<Link className="btn primary" href="/dashboard">Go to dashboard</Link>}
+        actions={<Link className="btn primary" href="/inbox">Go to Inbox</Link>}
       >
         <p>
           You&apos;ve already joined <b>{invite.workspace.name}</b>. Invitations only work once — sign in

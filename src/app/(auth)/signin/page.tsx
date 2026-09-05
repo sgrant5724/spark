@@ -23,19 +23,19 @@ async function signinAction(formData: FormData) {
   // detour: accepting while signed out sends people here with
   // ?next=/invitations/<token>, and dropping it stranded invitees on the
   // dashboard with the invite still pending (field case 2026-08-07).
-  const next = safeNext(String(formData.get("next") ?? "")) ?? "/dashboard";
+  const next = safeNext(String(formData.get("next") ?? "")) ?? "/inbox";
   try {
     await signIn("credentials", { email, password, redirectTo: next });
   } catch (e) {
     // NEXT_REDIRECT is thrown on success; rethrow so the redirect happens.
     if (e instanceof Error && e.message === "NEXT_REDIRECT") throw e;
-    redirect(`/signin?error=1${next !== "/dashboard" ? `&next=${encodeURIComponent(next)}` : ""}`);
+    redirect(`/signin?error=1${next !== "/inbox" ? `&next=${encodeURIComponent(next)}` : ""}`);
   }
 }
 
 async function googleAction(formData: FormData) {
   "use server";
-  const next = safeNext(String(formData.get("next") ?? "")) ?? "/dashboard";
+  const next = safeNext(String(formData.get("next") ?? "")) ?? "/inbox";
   await signIn("google", { redirectTo: next });
 }
 

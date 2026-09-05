@@ -12,7 +12,7 @@
 
 /** What each left-rail module is for, keyed by href. */
 export const NAV_TIPS: Record<string, string> = {
-  "/dashboard": "Your starting point: what's in flight, what needs attention, and the numbers behind it.",
+  "/inbox": "Everything waiting on a person — approvals, questions, claims, images, invitations — with the action on the card, and how the pipeline is doing beneath.",
   "/channels": "One YouTube channel per entry. Each carries its own voice, audience, ideas and scripts — switch channels and the whole app follows.",
   "/intel": "Research: pull in other people's videos and find the outliers — the ones that beat their own channel's average.",
   "/ideas": "Video ideas for the active channel, each traceable back to the competitor video that inspired it.",
