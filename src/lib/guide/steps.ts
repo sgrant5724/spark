@@ -271,7 +271,7 @@ export const STEPS: GuideStep[] = [
     body:
       "The blog module takes an idea to a finished post — outline, draft, SEO and accessibility checks, then publish. Its " +
       "Distribute tab spins the finished piece into social variants.",
-    anchor: "nav/blog",
+    anchor: "nav/drafts",
     cta: { label: "Open Blog", href: "/blog" },
   },
   {
@@ -282,7 +282,7 @@ export const STEPS: GuideStep[] = [
     body:
       "Social is composer, calendar and queue in one place: write once, choose the accounts, and either schedule it or drop " +
       "it into the next free slot.",
-    anchor: "nav/social",
+    anchor: "nav/distribute",
     cta: { label: "Open Social", href: "/social" },
   },
   {
@@ -293,7 +293,7 @@ export const STEPS: GuideStep[] = [
     body:
       "Insights measures the pipeline and pulls engagement back from the networks. Every figure says where it came from, " +
       "and a blank means we genuinely don't know — never a zero standing in for missing data.",
-    anchor: "nav/insights",
+    anchor: "nav/measure",
     cta: { label: "Open Insights", href: "/insights" },
   },
   {
@@ -338,7 +338,7 @@ export const STEPS: GuideStep[] = [
     body:
       "Intel tracks the channels you compete with and scores their uploads against their own average — that ratio is what " +
       "an outlier score means. It's also where idea discovery gets its seeds.",
-    anchor: "nav/intel",
+    anchor: "nav/research",
     cta: { label: "Open Intel", href: "/intel" },
   },
   {
@@ -349,7 +349,7 @@ export const STEPS: GuideStep[] = [
     body:
       "Scripts is the long-form writing surface: templates for recurring formats, a canvas for drafting, and the agent for " +
       "the first pass. The channel's voice profile and your motifs are injected into every generation.",
-    anchor: "nav/scripts",
+    anchor: "nav/drafts",
     cta: { label: "Open Scripts", href: "/scripts" },
   },
   {
@@ -360,7 +360,7 @@ export const STEPS: GuideStep[] = [
     body:
       "Videos turns a post or script into a scene board, renders it, and stitches the scenes into one file. Branded shorts " +
       "are the quicker path — a title card themed from your BrandKit, no storyboard needed.",
-    anchor: "nav/videos",
+    anchor: "nav/drafts",
     cta: { label: "Open Videos", href: "/videos" },
   },
   {
@@ -417,7 +417,7 @@ export const STEPS: GuideStep[] = [
     body:
       "History shows the per-network result of every send, with retry on the ones that failed. Links are tagged per network " +
       "at send time, not when you write, so the same post can be told apart by source in your analytics.",
-    anchor: "nav/social",
+    anchor: "nav/distribute",
     cta: { label: "Open Social", href: "/social" },
   },
 
@@ -430,7 +430,7 @@ export const STEPS: GuideStep[] = [
     body:
       "Two halves: your own pipeline, which the app knows exactly, and performance pulled back from the networks, which it " +
       "knows only as well as the connections allow. Each figure carries its sample size and where it came from.",
-    anchor: "nav/insights",
+    anchor: "nav/measure",
     cta: { label: "Open Insights", href: "/insights" },
   },
   {
@@ -441,7 +441,7 @@ export const STEPS: GuideStep[] = [
     body:
       "Where there's no data you'll see a dash and a reason, never a 0 — a fabricated zero looks like a measurement and " +
       "isn't. Recommendations follow the same rule: they stay silent below a usable sample rather than guessing.",
-    anchor: "nav/insights",
+    anchor: "nav/measure",
     cta: { label: "Open Insights", href: "/insights" },
   },
   {

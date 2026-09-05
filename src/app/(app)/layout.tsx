@@ -34,23 +34,20 @@ import { relevantSteps, outstandingSetup, availableTracks, type SetupState } fro
 //  - Channels sits in Setup: /channels/[id]/ideas|scripts light up the Ideas/
 //    Scripts entries (isNavActive's special case), so the day-to-day work
 //    reached through a channel still lands in Research/Create.
+// THE RAIL IS THE LOOP (One-Loop redesign, step 3, 2026-09-05): Inbox, then
+// the seven stages in the order work moves, then Setup. The sixteen module
+// pages did not go anywhere — each is a tab inside the stage that owns it
+// (see StageHeader), at its unchanged URL. Setup is Admin-only (decision 4).
 const NAV: (LeftRailItem & { adminOnly?: boolean })[] = [
   { href: "/inbox",       label: "Inbox",       icon: "Inbox",         color: "#E5482F", soft: "#FDE7E1" },
-  // Ungrouped, directly under Home: it reaches across every group, so filing it
-  // inside one of them would understate it.
   { href: "/assistant",   label: "Assistant",   icon: "Bot",           color: "#6D28D9", soft: "#EDE7FB" },
-  { href: "/intel",       label: "Intel",       icon: "Telescope",     color: "#2563EB", soft: "#E5EDFD", group: "Research" },
-  { href: "/ideas",       label: "Ideas",       icon: "Sparkles",      color: "#D97706", soft: "#FBEED5", group: "Research" },
-  { href: "/chat",        label: "Chat",        icon: "MessageCircle", color: "#6D28D9", soft: "#EDE7FB", group: "Research" },
-  { href: "/scripts",     label: "Scripts",     icon: "PenLine",       color: "#15924B", soft: "#E0F2E8", group: "Create" },
-  { href: "/blog",        label: "Blog",        icon: "FileText",      color: "#E11D48", soft: "#FBDFE6", group: "Create" },
-  { href: "/videos",      label: "Videos",      icon: "Clapperboard",  color: "#7C3AED", soft: "#EEE7FC", group: "Create" },
-  { href: "/thumbnails",  label: "Thumbnails",  icon: "ImageIcon",     color: "#DB2777", soft: "#FBE2EF", group: "Create" },
-  { href: "/production",  label: "Production",  icon: "KanbanSquare",  color: "#0D9488", soft: "#D7F1ED", group: "Create" },
-  { href: "/social",      label: "Social",      icon: "Share2",        color: "#0A66C2", soft: "#E5EDFD", group: "Distribute" },
-  { href: "/website",     label: "Website",     icon: "Globe",         color: "#21759B", soft: "#E0EDF3", group: "Distribute" },
-  { href: "/reports",     label: "Reports",     icon: "FileBarChart",  color: "#4F46E5", soft: "#E7E6FB", group: "Measure" },
-  { href: "/insights",    label: "Insights",    icon: "LineChart",     color: "#15924B", soft: "#E0F2E8", group: "Measure" },
+  { href: "/research",    label: "Research",    icon: "Telescope",     color: "#2563EB", soft: "#E5EDFD" },
+  { href: "/ideas",       label: "Ideas",       icon: "Sparkles",      color: "#D97706", soft: "#FBEED5" },
+  { href: "/drafts",      label: "Drafts",      icon: "PenLine",       color: "#15924B", soft: "#E0F2E8" },
+  { href: "/review",      label: "Review",      icon: "ShieldCheck",   color: "#E11D48", soft: "#FBDFE6" },
+  { href: "/publish",     label: "Publish",     icon: "Globe",         color: "#21759B", soft: "#E0EDF3" },
+  { href: "/distribute",  label: "Distribute",  icon: "Share2",        color: "#0A66C2", soft: "#E5EDFD" },
+  { href: "/measure",     label: "Measure",     icon: "LineChart",     color: "#4F46E5", soft: "#E7E6FB" },
   { href: "/channels",    label: "Channels",    icon: "Layers",        color: "#7C3AED", soft: "#EEE7FC", group: "Setup", adminOnly: true },
   { href: "/brand",       label: "Brand",       icon: "Palette",       color: "#DB2777", soft: "#FBE2EF", group: "Setup", adminOnly: true },
   { href: "/admin",       label: "Admin",       icon: "Settings",      color: "#4F46E5", soft: "#E7E6FB", group: "Setup", adminOnly: true },
