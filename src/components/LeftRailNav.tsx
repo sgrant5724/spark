@@ -71,6 +71,9 @@ export function isNavActive(href: string, pathname: string): boolean {
   // The Inbox is the landing page; the old Home URL redirects to it.
   if (href === "/inbox") return pathname === "/inbox" || pathname === "/dashboard" || pathname === "/";
   if (STAGES.has(href)) return pathname === href || pathname.startsWith(href + "/") || stageFor(pathname) === href;
+  // A page that belongs to a stage lights only the stage — otherwise a channel's
+  // scripts page would light Drafts AND Channels, and pop the Setup group open.
+  if (stageFor(pathname)) return false;
   return pathname === href || pathname.startsWith(href + "/");
 }
 
