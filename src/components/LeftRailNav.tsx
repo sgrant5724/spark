@@ -48,11 +48,29 @@ export type LeftRailItem = {
 //  - The "Ideas"/"Scripts" entries point at /ideas|/scripts, but those redirect into
 //    /channels/[id]/ideas|scripts. Without this, the /channels prefix would light up
 //    "Channels" on those pages. So channel-scoped ideas/scripts win over Channels.
+/**
+ * Which stage a module page belongs to. The rail lights the STAGE while you
+ * work inside one of its tabs — the module pages kept their URLs (One-Loop
+ * step 3), so this is the only place that knows /social/calendar is Distribute.
+ */
+export function stageFor(pathname: string): string | null {
+  const p = pathname;
+  if (/^\/(intel|chat)(\/|$)/.test(p) || /^\/channels\/[^/]+\/(competitors|research)(\/|$)/.test(p)) return "/research";
+  if (/^\/blog\/(ideas|keywords|experts)(\/|$)/.test(p) || /^\/channels\/[^/]+\/ideas(\/|$)/.test(p)) return "/ideas";
+  if (/^\/social\/approvals(\/|$)/.test(p) || /^\/blog\/audit(\/|$)/.test(p)) return "/review";
+  if (/^\/website(\/|$)/.test(p) || /^\/blog\/(calendar|automation)(\/|$)/.test(p)) return "/publish";
+  if (/^\/(reports|insights)(\/|$)/.test(p) || /^\/blog\/(analytics|report)(\/|$)/.test(p) || /^\/social\/performance(\/|$)/.test(p)) return "/measure";
+  if (/^\/social(\/|$)/.test(p)) return "/distribute";
+  if (/^\/(scripts|thumbnails|videos|production)(\/|$)/.test(p) || /^\/channels\/[^/]+\/scripts(\/|$)/.test(p) || /^\/blog(\/|$)/.test(p)) return "/drafts";
+  return null;
+}
+
+const STAGES = new Set(["/research", "/ideas", "/drafts", "/review", "/publish", "/distribute", "/measure"]);
+
 export function isNavActive(href: string, pathname: string): boolean {
-  const channelSub = pathname.match(/^\/channels\/[^/]+\/(ideas|scripts)(?:\/|$)/);
-  if (channelSub) return href === `/${channelSub[1]}`;
   // The Inbox is the landing page; the old Home URL redirects to it.
   if (href === "/inbox") return pathname === "/inbox" || pathname === "/dashboard" || pathname === "/";
+  if (STAGES.has(href)) return pathname === href || pathname.startsWith(href + "/") || stageFor(pathname) === href;
   return pathname === href || pathname.startsWith(href + "/");
 }
 
