@@ -98,6 +98,21 @@ async function autoReviewImages(workspaceId: string, postId: string, postTitle: 
     // followed a brief fix from ever being seen (CF, 2026-08-25: v3 sat
     // pending forever while the brake counted v1/v2's rejections against it).
     // A pending render is always reviewed; only regeneration is rationed.
+    //
+    // …but the SAME render is judged once. Once the brake has tripped, the
+    // rejected image sits pending and unchanged until a person acts, and this
+    // loop was re-inspecting it every half-hour sweep: 72 vision calls per
+    // tenant in two days (LSI + CF, 2026-09-05→06) for a verdict that could
+    // not change. A rejection audit newer than the image's own updatedAt
+    // means this exact render already failed — skip the look. A regeneration
+    // writes a new URL into the row, which advances updatedAt past the last
+    // rejection, so a fresh render is still always seen.
+    const judged = await db.auditLog.findFirst({
+      where: { workspaceId, action: "blog.image_auto_rejected", entityId: img.id, createdAt: { gte: img.updatedAt } },
+      select: { id: true },
+    });
+    if (judged) continue;
+
     const key = img.url.match(/\/(?:uploads|api\/files)\/([^"'\s)]+)/)?.[1];
     const bytes = key ? await storage.get(decodeURIComponent(key)).catch(() => null) : null;
     if (!bytes) {
