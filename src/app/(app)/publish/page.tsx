@@ -5,6 +5,8 @@ import { getSetting } from "@/lib/settings";
 import { getModes } from "@/lib/governance";
 import { SubmitButton } from "@/components/SubmitButton";
 import { advanceBlogStatusAction } from "@/app/actions/blog";
+import { markPublishedManuallyAction } from "@/app/actions/blog-export";
+import { Banner } from "@/components/SocialPostCard";
 import { AskDrawer, StageHeader, StageList, StageRow, StateChip } from "@/components/StageShell";
 
 // Publish stage: what's at final approval, when it goes (the publish-day
@@ -13,8 +15,9 @@ import { AskDrawer, StageHeader, StageList, StageRow, StateChip } from "@/compon
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-export default async function PublishStage() {
+export default async function PublishStage({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { workspace, membership } = await requireMembership();
+  const { ok, err } = await searchParams;
   const admin = canAdmin(membership.role);
   const [ready, published, wp, publishDayRaw, modes] = await Promise.all([
     db.blogPost.findMany({ where: { workspaceId: workspace.id, status: "final_approval" }, orderBy: { updatedAt: "asc" }, take: 10, select: { id: true, title: true, scheduledAt: true, wpPostId: true } }),
@@ -33,7 +36,7 @@ export default async function PublishStage() {
         title="Publish"
         sentence={
           !wp
-            ? "No website connected — articles reaching final approval park here until WordPress is connected under Website."
+            ? "No website connected — articles reaching final approval park here. Download each as HTML, add it to your site by hand and mark it published, or connect WordPress under Website."
             : auto
               ? publishDay ? `Publishing is automatic: gate-passing articles go to ${wp.baseUrl} on ${publishDay}s.` : `Publishing is automatic: gate-passing articles go to ${wp.baseUrl} on the next cycle.`
               : `Publishing is ${modes.publishing}: a person sets the date or presses Publish.`
@@ -44,6 +47,9 @@ export default async function PublishStage() {
           { label: publishDay ? `publish day · ${publishDay}` : "publish day · any", n: null, href: "/setup/automation" },
         ]}
       />
+
+      {ok && <Banner kind="ok" text={ok} />}
+      {err && <Banner kind="err" text={err} />}
 
       <StageList title="Waiting to go out" empty="Nothing at final approval. Articles arrive here once every required check passes.">
         {ready.length > 0 ? ready.map((p) => (
@@ -67,10 +73,28 @@ export default async function PublishStage() {
                 <SubmitButton className="btn primary sm" pendingText="Publishing…" title="Publish to WordPress now, ahead of the gate">Publish now</SubmitButton>
               </form>
             )}
+            {/* The no-WordPress fallback: a self-contained HTML file (images
+                embedded — the app's image URLs need a session and would break
+                on a public site), and a way to record where it went live so
+                the loop moves on. */}
+            <a href={`/blog/${p.id}/export`} className="btn sm" title="A self-contained HTML file of this article — add it to any site by hand">Download HTML</a>
             <Link href={`/blog/${p.id}`} className="btn sm">Open</Link>
+            {admin && !wp && (
+              <form action={markPublishedManuallyAction} className="basis-full flex items-center gap-1.5 flex-wrap pt-1">
+                <input type="hidden" name="id" value={p.id} />
+                <input name="url" type="url" placeholder="https://… where it went live (optional)" className="text-xs min-w-64 flex-1" aria-label="Live URL" />
+                <SubmitButton className="btn sm primary" pendingText="Recording…" title="Record this article as published by hand — social variants and analytics key off it">Mark as published</SubmitButton>
+              </form>
+            )}
           </StageRow>
         )) : undefined}
       </StageList>
+      {!wp && ready.length > 0 && (
+        <p className="text-[11px] text-[var(--mute)] -mt-2 mb-4">
+          Download HTML gives a file that stands on its own: the article, its meta title and description, and its images embedded. Add it to your site, then Mark as published with the live link.
+          {" "}Add <code>?fragment=1</code> to the download link for just the article body, for pasting into a CMS block.
+        </p>
+      )}
 
       {published.length > 0 && (
         <StageList title="Recently published">
