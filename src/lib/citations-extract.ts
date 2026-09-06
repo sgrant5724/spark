@@ -19,7 +19,10 @@ export function claimsFromMarkers(plainText: string, max = 3): string[] {
   const re = /\[NEEDS SOURCE\]/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(plainText))) {
-    const before = plainText.slice(Math.max(0, m.index - 600), m.index).replace(/\s+/g, " ").trimEnd();
+    // Earlier markers are not part of any claim — strip them before looking
+    // for the sentence boundary, or the second of two markers would carry the
+    // first one's text.
+    const before = plainText.slice(Math.max(0, m.index - 600), m.index).replace(/\[NEEDS SOURCE\]/g, " ").replace(/\s+/g, " ").trimEnd();
     const boundaries = [...before.matchAll(/[.!?]["'”’)\]]*\s+/g)];
     const last = boundaries.length ? boundaries[boundaries.length - 1] : null;
     let claim = before;
