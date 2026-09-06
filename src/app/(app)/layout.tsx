@@ -11,6 +11,7 @@ import { isPlatformOperator } from "@/lib/acl";
 import { LeftRailNav, type LeftRailItem } from "@/components/LeftRailNav";
 import { MobileNav } from "@/components/MobileNav";
 import { studioState } from "@/lib/studio";
+import { stripCounts } from "@/lib/stage-counts";
 import { StageStrip } from "@/components/StageStrip";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { setActiveWorkspaceAction } from "@/app/actions/workspace-switch";
@@ -110,12 +111,14 @@ html[data-theme="dark"] .ws-brand {
     --accent-on: color-mix(in srgb, ${accent} 62%, white);
   }
 }` : null;
-  const [unread, ticker, studio] = await Promise.all([
+  const [unread, ticker, studio, counts] = await Promise.all([
     unreadCount(workspace.id, user.id),
     tickerEvents(workspace.id, 12),
-    // Whether the video studio's tabs show (lib/studio.ts) — read once here
-    // because the strip is in the shell.
+    // Whether the video studio's tabs show (lib/studio.ts) and the strip's
+    // count badges (lib/stage-counts.ts) — read once here because the strip
+    // is in the shell.
     studioState(workspace.id),
+    stripCounts(workspace.id),
   ]);
 
   // Elsie, the guide. Her setup steps are filtered against what this workspace
@@ -307,7 +310,7 @@ html[data-theme="dark"] .ws-brand {
         <main className="flex-1 overflow-auto bg-[var(--panel)] p-6 @container">
           {/* The persistent stage strip: Overview + the stage's tabs on every
               page a stage owns, so entering a tab never loses the tabs. */}
-          <StageStrip activeChannelId={active?.id ?? null} studio={studio.show} />
+          <StageStrip activeChannelId={active?.id ?? null} studio={studio.show} counts={counts} />
           <Suspense fallback={null}><FlashBanner /></Suspense>
           {children}
         </main>
