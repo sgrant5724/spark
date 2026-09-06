@@ -625,7 +625,7 @@ export async function unscheduleSocialPostAction(formData: FormData) {
 
 /** Save UTM link-tagging settings for this workspace. */
 export async function saveUtmSettingsAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/schedule");
   const { workspace } = await requireRole("ADMIN");
   const { setWorkspaceSetting } = await import("@/lib/settings");
   const enabled = String(formData.get("enabled") ?? "") === "on";

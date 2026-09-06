@@ -49,6 +49,7 @@ const NAV: (LeftRailItem & { adminOnly?: boolean })[] = [
   { href: "/publish",     label: "Publish",     icon: "Globe",         color: "#21759B", soft: "#E0EDF3" },
   { href: "/distribute",  label: "Distribute",  icon: "Share2",        color: "#0A66C2", soft: "#E5EDFD" },
   { href: "/measure",     label: "Measure",     icon: "LineChart",     color: "#4F46E5", soft: "#E7E6FB" },
+  { href: "/setup",       label: "Settings",    icon: "SlidersHorizontal", color: "#6D28D9", soft: "#EDE7FB", group: "Setup", adminOnly: true },
   { href: "/channels",    label: "Channels",    icon: "Layers",        color: "#7C3AED", soft: "#EEE7FC", group: "Setup", adminOnly: true },
   { href: "/brand",       label: "Brand",       icon: "Palette",       color: "#DB2777", soft: "#FBE2EF", group: "Setup", adminOnly: true },
   { href: "/admin",       label: "Admin",       icon: "Settings",      color: "#4F46E5", soft: "#E7E6FB", group: "Setup", adminOnly: true },

@@ -77,7 +77,7 @@ export default async function SocialCalendarPage({ searchParams }: { searchParam
       {!hasSlots && (
         <div className="card mb-4 text-xs" style={{ borderColor: "var(--amber)" }}>
           No posting slots set, so nothing can be queued automatically — every post needs a hand-picked time.{" "}
-          <Link href="/social/settings" className="underline">Set your posting schedule</Link>.
+          <Link href="/setup/schedule" className="underline">Set your posting schedule</Link>.
         </div>
       )}
 

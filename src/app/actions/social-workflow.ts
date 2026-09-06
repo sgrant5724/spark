@@ -49,7 +49,7 @@ function backTo(msg: string, kind: "err" | "ok" = "err"): never {
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 export async function createCampaignAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/schedule");
   const { workspace } = await requireRole("ADMIN");
   const name = String(formData.get("name") ?? "").trim().slice(0, 60);
   if (!name) backTo("Give the campaign a name.");
@@ -77,7 +77,7 @@ export async function createCampaignAction(formData: FormData) {
 }
 
 export async function toggleCampaignAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/schedule");
   const { workspace } = await requireRole("ADMIN");
   const id = String(formData.get("id") ?? "");
   const c = await db.campaign.findFirst({ where: { id, workspaceId: workspace.id } });
@@ -250,9 +250,8 @@ export async function submitForApprovalAction(formData: FormData) {
 // ---- Workflow settings ---------------------------------------------------------
 
 export async function saveSocialWorkflowSettingsAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/automation");
   const { workspace } = await requireRole("ADMIN");
-  const approval = String(formData.get("requireApproval") ?? "") === "on";
   const evergreen = String(formData.get("evergreenFill") ?? "") === "on";
   const autoqueue = String(formData.get("autoQueue") ?? "") === "on";
   const autoImage = String(formData.get("autoImage") ?? "") === "on";
@@ -262,7 +261,6 @@ export async function saveSocialWorkflowSettingsAction(formData: FormData) {
   const autogenCampaign = autogenCampaignRaw
     ? (await db.campaign.findFirst({ where: { id: autogenCampaignRaw, workspaceId: workspace.id, status: "active" }, select: { id: true } }))?.id ?? ""
     : "";
-  await setWorkspaceSetting(workspace.id, "social:require_approval", approval ? "true" : "false");
   await setWorkspaceSetting(workspace.id, "social:evergreen_fill", evergreen ? "true" : "false");
   await setWorkspaceSetting(workspace.id, "social:autoqueue", autoqueue ? "true" : "false");
   // ⚠ Default-ON semantics: absent means on, so the OFF state must be written
@@ -273,7 +271,7 @@ export async function saveSocialWorkflowSettingsAction(formData: FormData) {
   await setWorkspaceSetting(workspace.id, "social:autogen_campaign", autogenCampaign);
   revalidatePath("/social", "layout");
   backTo(
-    `Approval ${approval ? "on" : "off"} · auto-queue on approval ${autoqueue ? "on" : "off"} · evergreen fill ${evergreen ? "on" : "off"} · auto-image ${autoImage ? "on" : "off"} · auto-generate ${autogen ? `${autogenWeekly}/week` : "off"}.`,
+    `Auto-queue on approval ${autoqueue ? "on" : "off"} · evergreen fill ${evergreen ? "on" : "off"} · auto-image ${autoImage ? "on" : "off"} · auto-generate ${autogen ? `${autogenWeekly}/week` : "off"}.`,
     "ok",
   );
 }
@@ -466,4 +464,20 @@ export async function importSocialCsvAction(formData: FormData) {
   if (notes.length) msg += ` ${notes.slice(0, 3).join("; ")}${notes.length > 3 ? "…" : ""}.`;
   if (errors.length) msg += ` ${errors.length} row${errors.length === 1 ? "" : "s"} skipped: ${errors.slice(0, 5).join("; ")}${errors.length > 5 ? "…" : ""}`;
   backTo(msg, created > 0 ? "ok" : "err");
+}
+
+/**
+ * Require approval for social posts — its own dial under Settings → People
+ * (One-Loop step 5: "who can do what"), so the auto-dials form under
+ * Automation can be saved without touching it.
+ */
+export async function setRequireApprovalAction(formData: FormData) {
+  const backTo: Flash = tabFlash("/setup/people");
+  const { workspace } = await requireRole("ADMIN");
+  const on = String(formData.get("enabled") ?? "") === "true";
+  await setWorkspaceSetting(workspace.id, "social:require_approval", on ? "true" : "false");
+  revalidatePath("/social", "layout");
+  revalidatePath("/setup", "layout");
+  revalidatePath("/inbox");
+  backTo(on ? "Social posts now need an admin's approval before they go out." : "Social posts no longer need approval — approved and auto-generated posts take the next free slot.", "ok");
 }

@@ -19,7 +19,7 @@ export async function runAutopilotNowAction() {
     entityType: "workspace",
     meta: report as unknown as Record<string, unknown>,
   });
-  revalidatePath("/blog/automation");
+  revalidatePath("/setup/automation");
 }
 
 export async function setFunctionModeAction(formData: FormData) {
@@ -40,7 +40,7 @@ export async function setFunctionModeAction(formData: FormData) {
     entityType: "function_mode",
     meta: { function: fn, mode },
   });
-  revalidatePath("/blog/automation");
+  revalidatePath("/setup/automation");
 }
 
 /** Admin: cap how many articles the autopilot drafts per rolling 7 days
@@ -62,7 +62,7 @@ export async function saveWeeklyArticleTargetAction(formData: FormData) {
     entityType: "workspace",
     meta: { weeklyArticles: value || "unlimited", publishDay: publishDay || "any day" },
   });
-  revalidatePath("/blog/automation");
+  revalidatePath("/setup/automation");
 }
 
 /**
@@ -84,7 +84,7 @@ export async function toggleAutoSeoAction(formData: FormData) {
     entityType: "workspace",
     meta: { enabled: enable },
   });
-  revalidatePath("/blog/automation");
+  revalidatePath("/setup/automation");
 }
 
 /**
@@ -106,16 +106,16 @@ export async function toggleFullAutonomyAction(formData: FormData) {
     // switching it off is always safe and must never be obstructed.
     const typed = String(formData.get("confirm") ?? "").trim().toUpperCase();
     if (typed !== "AUTONOMOUS") {
-      redirect(`/blog/automation?err=${encodeURIComponent('Type AUTONOMOUS to confirm — with this on, posts and articles go out with nobody reviewing them.')}`);
+      redirect(`/setup/automation?err=${encodeURIComponent('Type AUTONOMOUS to confirm — with this on, posts and articles go out with nobody reviewing them.')}`);
     }
     await enableFullAutonomy(workspace.id, user.id);
   } else {
     await disableFullAutonomy(workspace.id, user.id);
   }
 
-  revalidatePath("/blog/automation");
+  revalidatePath("/setup/automation");
   revalidatePath("/social", "layout");
-  redirect(`/blog/automation?ok=${encodeURIComponent(on
+  redirect(`/setup/automation?ok=${encodeURIComponent(on
     ? "Full autonomy is OFF. Your previous automation settings are back."
     : "Full autonomy is ON. Ideas, drafts, images, SEO, queueing and publishing now run unattended — the truthfulness gates still hold.")}`);
 }
@@ -135,6 +135,6 @@ export async function toggleGlobalPauseAction() {
     action: next ? "governance.global_pause_on" : "governance.global_pause_off",
     entityType: "workspace",
   });
-  revalidatePath("/blog/automation");
+  revalidatePath("/setup/automation");
   revalidatePath("/blog");
 }

@@ -327,7 +327,7 @@ export default async function SocialOverviewPage({ searchParams }: { searchParam
         <Sparkles className="w-4 h-4" style={{ color: "var(--violet-on)" }} />
         <h2 className="font-mono font-bold text-sm">Running unattended</h2>
         <span className="flex-1" />
-        {isAdmin && <Link href="/social/settings" className="btn sm">Change</Link>}
+        {isAdmin && <Link href="/setup/schedule" className="btn sm">Change</Link>}
       </div>
       <div className="card flex flex-wrap gap-1.5">
         <Dial on={autogenOn} label={autogenOn ? `auto-generate ${autogenWeekly}/wk` : "auto-generate off"} />

@@ -101,7 +101,7 @@ export default async function VideosPage() {
         </div>
         <p className="text-[11px] text-[var(--mute)] mt-1.5">
           The cap counts every scene render. Package videos from a published post&apos;s Distribute tab, or let
-          autopilot do it — <Link href="/blog/automation" className="underline">Automation</Link>.
+          autopilot do it — <Link href="/setup/automation" className="underline">Automation</Link>.
         </p>
       </div>
 

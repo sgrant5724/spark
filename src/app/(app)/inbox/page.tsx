@@ -141,8 +141,8 @@ export default async function InboxPage() {
           </h2>
           {feed.length === 0 ? (
             <p className="text-xs text-[var(--mute)] m-0">
-              Idle — turn on autonomy under <Link href="/blog/automation" className="underline">Blog → Automation</Link>{" "}
-              and <Link href="/social/settings" className="underline">Social → Settings</Link>.
+              Idle — turn on autonomy under <Link href="/setup/automation" className="underline">Blog → Automation</Link>{" "}
+              and <Link href="/setup/schedule" className="underline">Social → Settings</Link>.
             </p>
           ) : (
             <ul className="m-0 p-0 text-xs">

@@ -51,7 +51,7 @@ export default async function SocialApprovalsPage({ searchParams }: { searchPara
         <div className="card mb-4 text-xs text-[var(--mute)]">
           The approval workflow is <b>off</b>, so new posts go straight to the queue. Anything listed below was held
           while it was on.{" "}
-          {isAdmin && <Link href="/social/settings" className="underline">Turn it on in Settings</Link>}
+          {isAdmin && <Link href="/setup/people" className="underline">Turn it on under Settings → People</Link>}
         </div>
       )}
 

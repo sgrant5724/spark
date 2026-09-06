@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Home, Inbox, Layers, ShieldCheck, Telescope, Sparkles, PenLine, MessageCircle, Image as ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe, ChevronRight } from "lucide-react";
+import { Bot, Home, Inbox, Layers, ShieldCheck, SlidersHorizontal, Telescope, Sparkles, PenLine, MessageCircle, Image as ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe, ChevronRight } from "lucide-react";
 import { WithTip } from "@/components/HelpTip";
 import { NAV_TIPS } from "@/lib/help-tips";
 import { STAGE_HREFS, stageFor } from "@/lib/stages";
@@ -29,7 +29,7 @@ import { STAGE_HREFS, stageFor } from "@/lib/stages";
 // (60ms after step entry) then sees the expanded layout.
 
 const ICONS = {
-  Bot, Home, Inbox, Layers, ShieldCheck, Telescope, Sparkles, PenLine, MessageCircle, ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe,
+  Bot, Home, Inbox, Layers, ShieldCheck, SlidersHorizontal, Telescope, Sparkles, PenLine, MessageCircle, ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe,
 } as const;
 type IconKey = keyof typeof ICONS;
 

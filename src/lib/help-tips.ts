@@ -133,7 +133,8 @@ export const BLOG_TAB_TIPS: Record<string, string> = {
   "/blog/audit": "Existing content flagged for refresh or repair.",
   "/blog/analytics": "Search and traffic for published articles. Needs Search Console and GA4 connected.",
   "/blog/report": "A client-ready summary you can export.",
-  "/blog/automation": "How much the app may do unattended, per function — and the global pause that stops all of it.",
+  "/setup": "Every dial, under the question it answers: who can do what, what runs by itself, when things go out, keys and connections, brand and voice.",
+  "/blog/automation": "Moved to Settings → Automation.",
   "/blog/brand": "Tone of voice (the 7 Motifs) and the image policy that gates publishing.",
   "/blog/organization": "Company details that ground drafts in who you actually are.",
   "/website": "WordPress connection, theme template, and HTML export for any other site.",
@@ -152,7 +153,7 @@ export const SOCIAL_TAB_TIPS: Record<string, string> = {
   "/social/approvals": "Posts held for review. Nothing here can be sent until an admin approves it.",
   "/social/engage": "Direct messages and comments Zernio can read. Facebook and Instagram have both; LinkedIn has comments only; X exposes no inbox at all.",
   "/social/performance": "What went out, per network, and the engagement pulled back from each.",
-  "/social/settings": "Posting schedule, link tagging, campaigns and how much the app may do unattended.",
+  "/social/settings": "Moved to Settings → Schedule.",
 };
 
 /**

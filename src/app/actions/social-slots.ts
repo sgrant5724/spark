@@ -61,7 +61,7 @@ function backTo(msg: string, kind: "err" | "ok" = "err"): never {
  * submit, which is how people actually think about a posting schedule.
  */
 export async function addPostingSlotsAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/schedule");
   const { workspace } = await requireRole("ADMIN");
   const minute = parseMinute(String(formData.get("time") ?? ""));
   if (minute === null) backTo("Enter a time as HH:MM.");
@@ -84,7 +84,7 @@ export async function addPostingSlotsAction(formData: FormData) {
 }
 
 export async function deletePostingSlotAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/schedule");
   const { workspace, user } = await requireRole("ADMIN");
   const id = String(formData.get("id") ?? "");
   // Read it before deleting: releasing its posts needs the weekday and minute.
@@ -120,7 +120,7 @@ export async function deletePostingSlotAction(formData: FormData) {
  * silently unscheduling someone's post would be a lie about what's going out.
  */
 export async function togglePostingSlotAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/schedule");
   const { workspace } = await requireRole("ADMIN");
   const id = String(formData.get("id") ?? "");
   const slot = await db.postingSlot.findFirst({ where: { id, workspaceId: workspace.id } });
@@ -132,7 +132,7 @@ export async function togglePostingSlotAction(formData: FormData) {
 
 /** Remove every slot on one weekday — the column header's clear button. */
 export async function clearWeekdaySlotsAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/schedule");
   const { workspace, user } = await requireRole("ADMIN");
   const weekday = Number(formData.get("weekday"));
   if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) backTo("Unknown day.");
@@ -165,7 +165,7 @@ export async function clearWeekdaySlotsAction(formData: FormData) {
  * it: the server runs in UTC, so "09:00" has to be anchored somewhere.
  */
 export async function savePostingTimeZoneAction(formData: FormData) {
-  const backTo: Flash = tabFlash("/social/settings");
+  const backTo: Flash = tabFlash("/setup/schedule");
   const { workspace } = await requireRole("ADMIN");
   const tz = String(formData.get("timezone") ?? "").trim();
   if (!isValidTimeZone(tz)) backTo("That isn't a recognised timezone.");

@@ -241,7 +241,7 @@ export async function ReportBlock({ block, workspaceId, weeks }: { block: BlockK
       return (
         <Card title="Autopilot activity">
           {feed.length === 0 ? (
-            <Empty>Idle — set modes under <Link href="/blog/automation" className="underline">Blog → Automation</Link>.</Empty>
+            <Empty>Idle — set modes under <Link href="/setup/automation" className="underline">Blog → Automation</Link>.</Empty>
           ) : (
             <ul className="m-0 p-0 text-xs">
               {feed.map((e, i) => (

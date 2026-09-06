@@ -343,7 +343,7 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       {
         q: "Can the app generate posts and articles on a schedule, by itself?",
         a: "Yes — two dials, one autopilot.\n\n**Articles**: the autopilot (sweeps every 30 min) discovers ideas, drafts approved ones, and can publish gated posts, governed by the per-function mode dials under **Blog → Automation**. Set **Weekly article target** there to cap how many it drafts per rolling 7 days.\n\n**Social posts**: turn on **Auto-generate posts** under Social → Workflow and set a number per week. The autopilot writes fresh posts from your active **Topics** (rotating through them), in your motif tone, one at a time spread across the day — each gets an auto-image and is queued into a free posting slot, or **held for approval** when the approval workflow is on.\n\nSafety rails: everything respects the global pause, counts against the daily AI budget (20 generations/workspace/day), and **placeholder output is never stored** — if no real AI key resolves, nothing is generated rather than something fake. The Social mode dial (Blog → Automation) must be assisted or auto for post generation to run.",
-        links: [{ label: "Blog → Automation →", href: "/blog/automation" }, { label: "Social → Settings →", href: "/social/settings" }],
+        links: [{ label: "Blog → Automation →", href: "/setup/automation" }, { label: "Social → Settings →", href: "/setup/schedule" }],
         tags: ["autopilot", "autonomous", "generate", "schedule", "articles", "posts", "weekly"],
       },
       {
@@ -391,7 +391,7 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       {
         q: "Can the system make changes on its own?",
         a: "Only one, and only if you opt in. Applying is gated **twice**: the change must be on an explicit allow-list, **and** the governing function's mode dial must be set to **auto**. Today exactly one change qualifies — raising a Topic's discovery priority — because it's the only genuinely safe lever: it reorders which topics idea-generation is prompted with, deletes nothing, and is undone by resetting the priority in Brand. **Publishing and brand identity can't be touched by the engine at all.** Everything else waits in the review queue for you to apply, accept or dismiss. Dismissing silences that finding for two weeks.",
-        links: [{ label: "Automation →", href: "/blog/automation" }],
+        links: [{ label: "Automation →", href: "/setup/automation" }],
         tags: ["auto", "autonomy", "apply", "mode dial", "safety", "allow-list"],
       },
       {

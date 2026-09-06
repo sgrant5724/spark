@@ -135,7 +135,7 @@ export default function GuidePage() {
             model invented would be repeated as fact everywhere afterwards.
           </li>
           <li>
-            <b>Set the clock.</b> <Link href="/social/settings" className="underline">Social → Settings</Link>:
+            <b>Set the clock.</b> <Link href="/setup/schedule" className="underline">Social → Settings</Link>:
             your timezone and posting slots — the recurring times the queue sends at. Slots are wall-clock, so
             09:00 stays 09:00 through daylight-saving changes.
           </li>
@@ -147,8 +147,8 @@ export default function GuidePage() {
             leaves it a draft that still needs queueing.
           </li>
           <li>
-            <b>Set the autonomy dials.</b> <Link href="/blog/automation" className="underline">Blog → Automation</Link>{" "}
-            and <Link href="/social/settings" className="underline">Social → Settings</Link>: how many articles a
+            <b>Set the autonomy dials.</b> <Link href="/setup/automation" className="underline">Blog → Automation</Link>{" "}
+            and <Link href="/setup/schedule" className="underline">Social → Settings</Link>: how many articles a
             week, how many social posts, whether evergreen posts recycle. Start low; raise them once you trust
             what arrives at review.
           </li>
@@ -216,7 +216,7 @@ export default function GuidePage() {
             <i>pending</i>) and its SEO metadata — meta title, description and URL slug — already filled in.
             Approve, replace or edit any of it in the post&apos;s editor; an article can&apos;t publish until its
             images and SEO checks pass. Both automations have switches on{" "}
-            <Link href="/blog/automation" className="underline">Blog → Automation</Link> and{" "}
+            <Link href="/setup/automation" className="underline">Blog → Automation</Link> and{" "}
             <Link href="/blog/brand" className="underline">Brand</Link>.
           </Step>
           <Step icon={Check} title="Approve and queue the social week.">
@@ -224,12 +224,12 @@ export default function GuidePage() {
             <Link href="/social/calendar" className="underline">Calendar</Link> to queue approved drafts into free
             slots. <b>An approved draft that was never queued will never send</b> — approval and scheduling are
             separate decisions by default, and Home warns when drafts sit idle. Turn on <i>queue on approval</i>
-            in <Link href="/social/settings" className="underline">Settings</Link> to collapse the two into one.
+            in <Link href="/setup/schedule" className="underline">Settings</Link> to collapse the two into one.
           </Step>
           <Step icon={Check} title="Glance at what the numbers are saying.">
             <Link href="/social/performance" className="underline">Social → Performance</Link> for per-network
             engagement, and the best-time-to-post section on{" "}
-            <Link href="/social/settings" className="underline">Settings</Link> once enough posts have been
+            <Link href="/setup/schedule" className="underline">Settings</Link> once enough posts have been
             measured — it stays silent below its sample size rather than guessing.
           </Step>
         </ul>

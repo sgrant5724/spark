@@ -367,7 +367,7 @@ export async function getSocialOverview(workspaceId: string): Promise<SocialOver
       severity: "info",
       title: "No posting slots set",
       detail: "Slots are the recurring times the queue sends at. Without them, every post needs a hand-picked date.",
-      href: "/social/settings",
+      href: "/setup/schedule",
       cta: "Set slots",
     });
   } else if (!queue.timeZoneConfigured) {
@@ -376,7 +376,7 @@ export async function getSocialOverview(workspaceId: string): Promise<SocialOver
       severity: "info",
       title: "Posting timezone not set",
       detail: "Slots are running on UTC because no timezone was chosen — 09:00 may not mean 09:00 to your audience.",
-      href: "/social/settings",
+      href: "/setup/schedule",
       cta: "Set timezone",
     });
   }

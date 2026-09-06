@@ -4,9 +4,10 @@
  * show and which is current) and the stage pages themselves. Plain data and
  * regexes — safe to import from client components.
  *
- * `/brand` is not a loop stage but gets a strip the same way, because the
- * tone-and-motifs and organisation pages under /blog/ are Brand setup and
- * used to strand people on a Blog tab bar that belonged to no stage.
+ * `/brand` and `/setup` are not loop stages but get a strip the same way:
+ * Brand because the tone-and-motifs and organisation pages under /blog/ used
+ * to strand people on a Blog tab bar, Settings because its four questions
+ * (One-Loop step 5) are tabs of one page.
  */
 
 export type StageTab = {
@@ -23,7 +24,7 @@ export type StageDef = {
   tabs: (ctx: { channelId: string | null }) => StageTab[];
 };
 
-export const STAGE_HREFS = ["/research", "/ideas", "/drafts", "/review", "/publish", "/distribute", "/measure", "/brand"] as const;
+export const STAGE_HREFS = ["/research", "/ideas", "/drafts", "/review", "/publish", "/distribute", "/measure", "/brand", "/setup"] as const;
 
 export const STAGES: Record<(typeof STAGE_HREFS)[number], StageDef> = {
   "/research": {
@@ -70,7 +71,6 @@ export const STAGES: Record<(typeof STAGE_HREFS)[number], StageDef> = {
     tabs: () => [
       { href: "/website", label: "Website" },
       { href: "/blog/calendar", label: "Blog calendar" },
-      { href: "/blog/automation", label: "Automation" },
     ],
   },
   "/distribute": {
@@ -80,7 +80,6 @@ export const STAGES: Record<(typeof STAGE_HREFS)[number], StageDef> = {
       { href: "/social/compose", label: "Compose" },
       { href: "/social/calendar", label: "Calendar" },
       { href: "/social/engage", label: "Engage" },
-      { href: "/social/settings", label: "Slots & settings" },
     ],
   },
   "/measure": {
@@ -100,6 +99,16 @@ export const STAGES: Record<(typeof STAGE_HREFS)[number], StageDef> = {
     tabs: () => [
       { href: "/blog/brand", label: "Tone & motifs" },
       { href: "/blog/organization", label: "Organization" },
+    ],
+  },
+  "/setup": {
+    href: "/setup",
+    label: "Settings",
+    tabs: () => [
+      { href: "/setup/people", label: "People" },
+      { href: "/setup/automation", label: "Automation" },
+      { href: "/setup/schedule", label: "Schedule" },
+      { href: "/setup/connections", label: "Connections" },
     ],
   },
 };

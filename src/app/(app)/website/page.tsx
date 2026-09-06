@@ -68,7 +68,7 @@ export default async function WebsitePage() {
           <p className="text-xs text-[var(--mute)]">
             Your site as a publishing destination — WordPress connected directly, or any other site via HTML export.
             How much publishes unattended is the publishing dial on{" "}
-            <Link href="/blog/automation" className="underline">Blog → Automation</Link>.
+            <Link href="/setup/automation" className="underline">Blog → Automation</Link>.
           </p>
         </div>
       </div>

@@ -41,7 +41,7 @@ export default async function PublishStage() {
         counts={[
           { label: "at final approval", n: ready.length, hue: "blue" },
           { label: "published", n: published.length, href: "/blog", hue: "green" },
-          { label: publishDay ? `publish day · ${publishDay}` : "publish day · any", n: null, href: "/blog/automation" },
+          { label: publishDay ? `publish day · ${publishDay}` : "publish day · any", n: null, href: "/setup/automation" },
         ]}
       />
 
