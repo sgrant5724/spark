@@ -156,7 +156,7 @@ export function NeedsYouGroups({
                 </div>
                 <div className="text-xs mt-0.5">
                   {img.rejections >= 2
-                    ? `Auto-review rejected ${img.rejections} renders in a row and stopped spending — this is the latest.`
+                    ? "Auto-review rejected this render and the ones before it, and stopped spending on new ones — it waits for you."
                     : "Waiting for a person to approve it."}
                 </div>
                 {editor && (
