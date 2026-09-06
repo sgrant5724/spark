@@ -24,7 +24,7 @@ export default async function IdeaDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="w-full">
-      <Link href={`/channels/${id}/ideas`} className="text-xs font-mono text-[var(--mute)] hover:text-[var(--accent)] flex items-center gap-1 mb-3"><ArrowLeft className="w-3 h-3" /> Back to Ideas</Link>
+      <Link href={`/ideas?channel=${id}`} className="text-xs font-mono text-[var(--mute)] hover:text-[var(--accent)] flex items-center gap-1 mb-3"><ArrowLeft className="w-3 h-3" /> Back to Ideas</Link>
 
       <div className="card mb-4">
         <div className="flex items-center gap-2 mb-3">

@@ -212,7 +212,7 @@ export default async function BlogPage() {
               <SubmitButton className="btn sm" pendingText="Discovering…">Discover more</SubmitButton>
             </form>
           )}
-          <Link href="/blog/ideas" className="text-xs font-mono text-[var(--accent)] font-semibold hover:underline">idea board →</Link>
+          <Link href="/ideas?format=article" className="text-xs font-mono text-[var(--accent)] font-semibold hover:underline">idea board →</Link>
         </div>
         {topIdeas.length === 0 ? (
           <p className="text-xs text-[var(--mute)]">No open ideas — run discovery or add one on the idea board.</p>

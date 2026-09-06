@@ -208,4 +208,5 @@ export async function promoteSubmissionAction(formData: FormData) {
   await db.audienceSubmission.update({ where: { id: sub.id }, data: { status: "promoted" } });
   revalidatePath(`/channels/${sub.channelId}/submissions`);
   revalidatePath(`/channels/${sub.channelId}/ideas`);
+  revalidatePath("/ideas");
 }

@@ -226,7 +226,7 @@ export default async function InboxPage() {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <QuickTile href="/social/compose" label="Write a social post" icon={PenLine} color="var(--green-on)" soft="var(--green-soft)" />
-        <QuickTile href="/blog/ideas" label="Add a blog idea" icon={Sparkles} color="var(--amber-on)" soft="var(--amber-soft)" />
+        <QuickTile href="/ideas?format=article" label="Add a blog idea" icon={Sparkles} color="var(--amber-on)" soft="var(--amber-soft)" />
         <QuickTile href="/intel" label="Explore Intel" icon={Telescope} color="var(--blue-on)" soft="var(--blue-soft)" />
         <QuickTile href="/assistant" label="Ask the assistant" icon={MessageCircle} color="var(--violet-on)" soft="var(--violet-soft)" />
       </div>

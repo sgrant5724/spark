@@ -17,7 +17,7 @@ export default async function BlogLayout({ children }: { children: React.ReactNo
 
   const items: BlogNavItem[] = [
     { href: "/blog", label: "Posts", count: needsYou, urgent: needsYou > 0 },
-    { href: "/blog/ideas", label: "Ideas", count: ideasOpen },
+    { href: "/ideas?format=article", label: "Ideas", count: ideasOpen },
     { href: "/blog/keywords", label: "Keywords" },
     { href: "/blog/experts", label: "Experts" },
     { href: "/blog/audit", label: "Audit", count: auditOpen },

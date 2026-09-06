@@ -120,7 +120,7 @@ export async function getHomeData(workspaceId: string): Promise<HomeData> {
         ideasApproved > 0
           ? `Approved ideas are drafted by autopilot on its weekly budget — ${ideasApproved} already waiting in that line.`
           : "Approved ideas are drafted by autopilot on its weekly budget; dismissed ones stop coming back.",
-      href: "/blog/ideas",
+      href: "/ideas?format=article",
       cta: "Triage",
     });
   }
@@ -188,8 +188,8 @@ export async function getHomeData(workspaceId: string): Promise<HomeData> {
       key: "ideas",
       label: "Ideas",
       total: ideasDiscovered + ideasApproved,
-      parts: [{ label: "blog", n: ideasDiscovered + ideasApproved, href: "/blog/ideas" }],
-      href: "/blog/ideas",
+      parts: [{ label: "blog", n: ideasDiscovered + ideasApproved, href: "/ideas?format=article" }],
+      href: "/ideas?format=article",
     },
     {
       key: "drafting",

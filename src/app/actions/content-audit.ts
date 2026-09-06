@@ -50,7 +50,7 @@ export async function auditItemToIdeaAction(formData: FormData) {
   }
   await db.contentAuditItem.update({ where: { id }, data: { status: "actioned" } });
   revalidatePath("/blog/audit");
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
 }
 
 export async function clearContentAuditAction() {

@@ -5,8 +5,40 @@ import { jobs } from "@/lib/jobs";
 import { requireRole } from "@/lib/acl";
 import { db } from "@/lib/db";
 import { registerOnboardingJobs } from "@/lib/jobs/onboarding";
+import { addBlogIdeaAction } from "@/app/actions/blog-ideas";
 
 registerOnboardingJobs();
+
+// Video-idea actions. Since One-Loop step 4 the board is ONE page (/ideas) for
+// article and video ideas alike, so every write revalidates it as well as the
+// channel page that still lists a channel's own ideas.
+
+function revalidateBoards(channelId?: string) {
+  revalidatePath("/ideas");
+  if (channelId) revalidatePath(`/channels/${channelId}`);
+}
+
+/**
+ * One add form for both formats. `format` is "article" or "video:<channelId>";
+ * an article idea goes through the existing blog-idea path (keyword, topic,
+ * scoring), a video idea lands on its channel as `new`.
+ */
+export async function addIdeaAction(formData: FormData) {
+  const raw = String(formData.get("format") ?? "article");
+  if (!raw.startsWith("video:")) return addBlogIdeaAction(formData);
+  const channelId = raw.slice("video:".length);
+  const title = String(formData.get("title") ?? "").trim().slice(0, 200);
+  if (!title) return;
+  const { workspace } = await requireRole("EDITOR");
+  const channel = await db.channel.findFirst({ where: { id: channelId, workspaceId: workspace.id }, select: { id: true } });
+  if (!channel) return;
+  const rawTopic = String(formData.get("topicId") ?? "").trim();
+  const topicId = rawTopic
+    ? (await db.topic.findFirst({ where: { id: rawTopic, workspaceId: workspace.id }, select: { id: true } }))?.id ?? null
+    : null;
+  await db.idea.create({ data: { channelId: channel.id, title, topicId, status: "new" } });
+  revalidateBoards(channel.id);
+}
 
 /** On-demand regeneration of the idea pipeline. */
 export async function regenerateIdeasAction(formData: FormData) {
@@ -15,7 +47,7 @@ export async function regenerateIdeasAction(formData: FormData) {
   const channel = await db.channel.findFirst({ where: { id: channelId, workspaceId: workspace.id } });
   if (!channel) return;
   await jobs.enqueue("onboarding.ideas", { channelId: channel.id }, { refId: channel.id, workspaceId: workspace.id });
-  revalidatePath(`/channels/${channelId}/ideas`);
+  revalidateBoards(channelId);
 }
 
 /**
@@ -36,7 +68,7 @@ export async function setIdeaTopicAction(formData: FormData) {
     ? (await db.topic.findFirst({ where: { id: raw, workspaceId: workspace.id }, select: { id: true } }))?.id ?? null
     : null;
   await db.idea.update({ where: { id: idea.id }, data: { topicId } });
-  revalidatePath(`/channels/${idea.channelId}/ideas`);
+  revalidateBoards(idea.channelId);
 }
 
 /** Write action: create a Script with the idea's context pre-loaded; open Canvas. */
@@ -77,18 +109,23 @@ export async function writeIdeaToCanvasAction(formData: FormData) {
     },
   });
   await db.idea.update({ where: { id: idea.id }, data: { status: "in_progress" } });
+  revalidateBoards(idea.channelId);
   const { redirect } = await import("next/navigation");
   redirect(`/scripts/${script.id}`);
 }
 
+/**
+ * The board's own vocabulary on a video idea: new (discovered) · approved
+ * (chosen, next to write — added in step 4) · in_progress / scripted (drafted)
+ * · archived (rejected).
+ */
 export async function updateIdeaStatusAction(formData: FormData) {
   const ideaId = String(formData.get("ideaId"));
   const status = String(formData.get("status"));
-  if (!["new", "in_progress", "scripted", "archived"].includes(status)) return;
+  if (!["new", "approved", "in_progress", "scripted", "archived"].includes(status)) return;
   const { workspace } = await requireRole("EDITOR");
-  await db.idea.updateMany({
-    where: { id: ideaId, channel: { workspaceId: workspace.id } },
-    data: { status },
-  });
-  revalidatePath("/ideas");
+  const idea = await db.idea.findFirst({ where: { id: ideaId, channel: { workspaceId: workspace.id } }, select: { id: true, channelId: true } });
+  if (!idea) return;
+  await db.idea.update({ where: { id: idea.id }, data: { status } });
+  revalidateBoards(idea.channelId);
 }

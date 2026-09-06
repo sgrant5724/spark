@@ -30,7 +30,7 @@ export default async function ChannelHomePage({ params }: { params: Promise<{ id
           </>
         )}
         <div className="flex gap-2 mt-4">
-          <Link href={`/channels/${id}/ideas`} className="btn sm">{ideaCount} ideas</Link>
+          <Link href={`/ideas?channel=${id}`} className="btn sm">{ideaCount} ideas</Link>
           <Link href={`/channels/${id}/scripts`} className="btn sm">{scriptCount} scripts</Link>
           <Link href={`/channels/${id}/competitors`} className="btn sm">{competitorCount} competitors</Link>
         </div>
@@ -47,7 +47,7 @@ export default async function ChannelHomePage({ params }: { params: Promise<{ id
 
       <section className="card lg:col-span-3">
         <h2 className="font-mono text-[15px] mb-3">Recent ideas</h2>
-        {recentIdeas.length === 0 && <p className="text-sm text-[var(--mute)]">No ideas yet. <Link href={`/channels/${id}/ideas`} className="text-[var(--accent)] font-semibold">Generate some →</Link></p>}
+        {recentIdeas.length === 0 && <p className="text-sm text-[var(--mute)]">No ideas yet. <Link href={`/ideas?channel=${id}`} className="text-[var(--accent)] font-semibold">Generate some →</Link></p>}
         <ul className="m-0 p-0 grid grid-cols-1 md:grid-cols-2 gap-x-6">
           {recentIdeas.map((i) => (
             <li key={i.id} className="border-t border-[var(--line)] py-2 flex items-center gap-3 text-sm">

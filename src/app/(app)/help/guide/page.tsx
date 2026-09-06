@@ -206,7 +206,7 @@ export default function GuidePage() {
         </p>
         <ul className="m-0 p-0 text-sm space-y-2.5">
           <Step icon={Check} title="Triage the discovered ideas.">
-            <Link href="/blog/ideas" className="underline">Blog → Ideas</Link>: approve the ones worth writing,
+            <Link href="/ideas?format=article" className="underline">Blog → Ideas</Link>: approve the ones worth writing,
             dismiss the rest. Approved ideas are what autopilot drafts from, on your weekly budget — an empty
             approved pool means no new articles, however high the dial.
           </Step>

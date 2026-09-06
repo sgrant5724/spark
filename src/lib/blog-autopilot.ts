@@ -306,7 +306,7 @@ export async function revertRefusedDraft(
       kind: "generation_failed",
       title: `Couldn't draft "${idea.title.slice(0, 80)}"`,
       body: "The AI provider didn't answer (timeout or error) and the mock stand-in was refused, so nothing was stored. The idea is back on the board; drafting will be retried.",
-      path: "/blog/ideas",
+      path: "/ideas?format=article",
       entityType: "blog_idea",
       entityId: idea.id,
     });

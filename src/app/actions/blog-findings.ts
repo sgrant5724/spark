@@ -72,5 +72,5 @@ export async function addFindingToIdeasAction(formData: FormData) {
   if (!postId) return;
   await addFindingToIdeasCore(workspace.id, id, user.id);
   revalidatePath(`/blog/${postId}`);
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
 }

@@ -73,7 +73,7 @@ export default async function ChannelsManagerPage() {
 
               {/* Sub-page shortcuts */}
               <div className="flex flex-wrap gap-1">
-                <ChannelChip href={`/channels/${c.id}/ideas`}     icon={<Sparkles className="w-3 h-3" />}     color="var(--amber-on)">Ideas</ChannelChip>
+                <ChannelChip href={`/ideas?channel=${c.id}`}     icon={<Sparkles className="w-3 h-3" />}     color="var(--amber-on)">Ideas</ChannelChip>
                 <ChannelChip href={`/channels/${c.id}/scripts`}   icon={<FileText className="w-3 h-3" />}     color="var(--green-on)">Scripts</ChannelChip>
                 <ChannelChip href={`/channels/${c.id}/voice`}     icon={<Mic2 className="w-3 h-3" />}         color="var(--brand-on)">Voice</ChannelChip>
                 <ChannelChip href={`/channels/${c.id}/audience`}  icon={<ImageIcon className="w-3 h-3" />}    color="var(--blue-on)">Audience</ChannelChip>

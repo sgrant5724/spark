@@ -35,7 +35,7 @@ export async function addBlogIdeaAction(formData: FormData) {
     },
   });
   revalidatePath("/blog");
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
 }
 
 export async function discoverBlogIdeasAction(formData?: FormData) {
@@ -48,7 +48,7 @@ export async function discoverBlogIdeasAction(formData?: FormData) {
   // Grounding, dedupe, parsing, pause guard, audit — all in the shared core.
   await discoverIdeasCore(workspace.id, topicId);
   revalidatePath("/blog");
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
 }
 
 export async function setBlogIdeaStatusAction(formData: FormData) {
@@ -58,7 +58,7 @@ export async function setBlogIdeaStatusAction(formData: FormData) {
   const { workspace } = await requireRole("EDITOR");
   await db.blogIdea.updateMany({ where: { id, workspaceId: workspace.id }, data: { status } });
   revalidatePath("/blog");
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
 }
 
 /** FR-5: edit an idea's tags in place from the board. */
@@ -86,7 +86,7 @@ export async function updateBlogIdeaAction(formData: FormData) {
     },
   });
   await rescoreIdeas(workspace.id);
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
 }
 
 /** Recompute every open idea's priority and dedupe note from workspace facts. */
@@ -99,7 +99,7 @@ export async function rescoreBlogIdeasAction() {
     entityType: "blog_idea",
     meta: { changed },
   });
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
   revalidatePath("/blog");
 }
 
@@ -145,14 +145,14 @@ export async function mergeBlogIdeasAction(formData: FormData) {
     entityId: target.id,
     meta: { mergedFrom: source.id },
   });
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
 }
 
 export async function deleteBlogIdeaAction(formData: FormData) {
   const id = String(formData.get("id"));
   const { workspace } = await requireRole("EDITOR");
   await db.blogIdea.deleteMany({ where: { id, workspaceId: workspace.id } });
-  revalidatePath("/blog/ideas");
+  revalidatePath("/ideas");
   revalidatePath("/blog");
 }
 
@@ -187,7 +187,7 @@ export async function draftFromIdeaAction(formData: FormData) {
     const { revertRefusedDraft } = await import("@/lib/blog-autopilot");
     await revertRefusedDraft(workspace.id, post.id, idea, previousStatus);
     revalidatePath("/blog");
-    redirect("/blog/ideas");
+    redirect("/ideas");
   }
   revalidatePath("/blog");
   redirect(`/blog/${post.id}`);
