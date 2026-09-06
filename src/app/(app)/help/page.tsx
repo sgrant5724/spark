@@ -14,7 +14,7 @@ const QUICK_START = [
   { role: "Setting the app up",       steps: ["Admin → API keys: paste a provider key", "Set the model to match that key", "Admin → Connections: social + a mailbox", "Admin → Storage: switch off local disk"] },
   { role: "New creator (solo)",       steps: ["Link your YouTube channel", "Add two or three Topics in Brand", "Browse the generated ideas", "Click Write, then run the agent"] },
   { role: "Publishing regularly",     steps: ["Set your posting slots + timezone", "Compose once, pick the accounts", "Queue drafts into the next free slot", "Check History for per-network results"] },
-  { role: "Agency / team lead",       steps: ["Invite the team in Admin → Users", "One workspace per client — keys stay separate", "Per-channel default models & templates", "Track work on the Production board"] },
+  { role: "Agency / team lead",       steps: ["Invite the team under Settings → People", "One workspace per client — keys stay separate", "Per-channel default models & templates", "Track work on the Production board"] },
 ];
 
 const SHORTCUTS = [

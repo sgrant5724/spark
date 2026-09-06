@@ -122,7 +122,7 @@ export default function GuidePage() {
             theme&apos;s own post template), or any other site via per-article HTML export.
           </li>
           <li>
-            <b>Teach it your voice.</b> <Link href="/blog/brand" className="underline">Blog → Brand</Link>: the
+            <b>Teach it your voice.</b> <Link href="/blog/brand" className="underline">Brand → Tone &amp; motifs</Link>: the
             seven Motifs (your tone, editable and versioned), topics, guardrails, and the brand kit — colours,
             image dimensions, and whether AI may generate imagery (it lands as <i>pending</i> for your approval
             either way).
@@ -135,7 +135,7 @@ export default function GuidePage() {
             model invented would be repeated as fact everywhere afterwards.
           </li>
           <li>
-            <b>Set the clock.</b> <Link href="/setup/schedule" className="underline">Social → Settings</Link>:
+            <b>Set the clock.</b> <Link href="/setup/schedule" className="underline">Settings → Schedule</Link>:
             your timezone and posting slots — the recurring times the queue sends at. Slots are wall-clock, so
             09:00 stays 09:00 through daylight-saving changes.
           </li>
@@ -147,8 +147,8 @@ export default function GuidePage() {
             leaves it a draft that still needs queueing.
           </li>
           <li>
-            <b>Set the autonomy dials.</b> <Link href="/setup/automation" className="underline">Blog → Automation</Link>{" "}
-            and <Link href="/setup/schedule" className="underline">Social → Settings</Link>: how many articles a
+            <b>Set the autonomy dials.</b> <Link href="/setup/automation" className="underline">Settings → Automation</Link>{" "}
+            and <Link href="/setup/schedule" className="underline">Settings → Schedule</Link>: how many articles a
             week, how many social posts, whether evergreen posts recycle. Start low; raise them once you trust
             what arrives at review.
           </li>
@@ -158,7 +158,7 @@ export default function GuidePage() {
             pipeline shows dashes — a dash means &ldquo;not measured&rdquo;, never zero.
           </li>
           <li>
-            <b>Invite the team.</b> <Link href="/admin" className="underline">Admin → Users</Link>. Editors can
+            <b>Invite the team.</b> <Link href="/setup/people" className="underline">Settings → People</Link>. Editors can
             write, draft and propose; admins approve, send and configure. Everyone can turn the digest email
             off for themselves under <Link href="/notifications" className="underline">Notifications</Link>.
           </li>
@@ -189,7 +189,7 @@ export default function GuidePage() {
             fill in the missing SEO — while leaving every result at the gate you review it from.
           </Step>
           <Step icon={AlertTriangle} title="Answer people the day they write.">
-            <Link href="/social/engage" className="underline">Social → Engage</Link> — comments, DMs and reviews.
+            <Link href="/social/engage" className="underline">Distribute → Engage</Link> — comments, DMs and reviews.
             The one hard deadline in the whole app lives here: Facebook and Instagram only accept a DM reply
             within <b>24 hours</b> of the person&apos;s message. The composer warns you when a window has closed.
           </Step>
@@ -206,28 +206,28 @@ export default function GuidePage() {
         </p>
         <ul className="m-0 p-0 text-sm space-y-2.5">
           <Step icon={Check} title="Triage the discovered ideas.">
-            <Link href="/ideas?format=article" className="underline">Blog → Ideas</Link>: approve the ones worth writing,
+            <Link href="/ideas?format=article" className="underline">Ideas</Link>: approve the ones worth writing,
             dismiss the rest. Approved ideas are what autopilot drafts from, on your weekly budget — an empty
             approved pool means no new articles, however high the dial.
           </Step>
           <Step icon={Check} title="Review what was drafted — words, pictures and SEO together.">
-            <Link href="/blog/board" className="underline">Blog → Board</Link>: each drafted article arrives with
+            <Link href="/blog/board" className="underline">Drafts → Board</Link>: each drafted article arrives with
             its featured and social-preview images (generated from an art-direction brief, waiting as{" "}
             <i>pending</i>) and its SEO metadata — meta title, description and URL slug — already filled in.
             Approve, replace or edit any of it in the post&apos;s editor; an article can&apos;t publish until its
             images and SEO checks pass. Both automations have switches on{" "}
-            <Link href="/setup/automation" className="underline">Blog → Automation</Link> and{" "}
+            <Link href="/setup/automation" className="underline">Settings → Automation</Link> and{" "}
             <Link href="/blog/brand" className="underline">Brand</Link>.
           </Step>
           <Step icon={Check} title="Approve and queue the social week.">
-            <Link href="/social/approvals" className="underline">Social → Approvals</Link> for anything held, then{" "}
+            <Link href="/social/approvals" className="underline">Review → Approvals</Link> for anything held, then{" "}
             <Link href="/social/calendar" className="underline">Calendar</Link> to queue approved drafts into free
             slots. <b>An approved draft that was never queued will never send</b> — approval and scheduling are
             separate decisions by default, and Home warns when drafts sit idle. Turn on <i>queue on approval</i>
             in <Link href="/setup/schedule" className="underline">Settings</Link> to collapse the two into one.
           </Step>
           <Step icon={Check} title="Glance at what the numbers are saying.">
-            <Link href="/social/performance" className="underline">Social → Performance</Link> for per-network
+            <Link href="/social/performance" className="underline">Measure → Social performance</Link> for per-network
             engagement, and the best-time-to-post section on{" "}
             <Link href="/setup/schedule" className="underline">Settings</Link> once enough posts have been
             measured — it stays silent below its sample size rather than guessing.
@@ -250,7 +250,7 @@ export default function GuidePage() {
             networks earned their place. Decide what to do <i>more</i> of — that decision feeds the next step.
           </Step>
           <Step icon={Check} title="Tune the voice and the topics.">
-            <Link href="/blog/brand" className="underline">Blog → Brand</Link>: adjust Motif weights, retire
+            <Link href="/blog/brand" className="underline">Brand → Tone &amp; motifs</Link>: adjust Motif weights, retire
             topics that ran dry, add what the numbers say is working. The engine only sounds like this month&apos;s
             you if you tell it what changed.
           </Step>

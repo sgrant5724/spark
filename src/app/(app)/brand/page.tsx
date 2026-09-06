@@ -86,7 +86,7 @@ export default async function BrandPage({ searchParams }: { searchParams: Promis
           <div className="flex items-center gap-3">
             <SubmitButton className="btn primary self-start">Save brand identity</SubmitButton>
             <span className="text-[11px] text-[var(--mute)]">
-              Image sizes, tone guardrails and asset policy live in <Link href="/blog/brand" className="underline">Blog → Brand</Link>.
+              Image sizes, tone guardrails and asset policy live in <Link href="/blog/brand" className="underline">Tone &amp; motifs</Link>.
             </span>
           </div>
         ) : (
@@ -296,7 +296,7 @@ export default async function BrandPage({ searchParams }: { searchParams: Promis
       </div>
 
       <p className="text-[11px] text-[var(--mute)]">
-        Tone of voice (the 7 Motifs) and asset policy live in <Link href="/blog/brand" className="underline">Blog → Brand</Link>.
+        Tone of voice (the 7 Motifs) and asset policy live in <Link href="/blog/brand" className="underline">Tone &amp; motifs</Link>.
       </p>
     </div>
   );

@@ -141,8 +141,7 @@ export default async function InboxPage() {
           </h2>
           {feed.length === 0 ? (
             <p className="text-xs text-[var(--mute)] m-0">
-              Idle — turn on autonomy under <Link href="/setup/automation" className="underline">Blog → Automation</Link>{" "}
-              and <Link href="/setup/schedule" className="underline">Social → Settings</Link>.
+              Idle — turn on autonomy under <Link href="/setup/automation" className="underline">Settings → Automation</Link>.
             </p>
           ) : (
             <ul className="m-0 p-0 text-xs">
@@ -180,7 +179,7 @@ export default async function InboxPage() {
         ) : (
           <p className="text-sm text-[var(--mute)] py-6 text-center m-0">
             No search analytics yet — numbers appear once snapshots exist under{" "}
-            <Link href="/blog/analytics" className="underline">Blog → Analytics</Link>. Charts light up from real data, never invented curves.
+            <Link href="/blog/analytics" className="underline">Measure → Blog analytics</Link>. Charts light up from real data, never invented curves.
           </p>
         )}
         {perf.length > 0 && (

@@ -27,7 +27,7 @@ export function StageStrip({ activeChannelId, studio }: { activeChannelId: strin
   return (
     <nav
       aria-label={`${stage.label} pages`}
-      className="sticky top-0 z-30 -mx-6 -mt-6 mb-5 px-6 flex items-center gap-1 flex-wrap border-b border-[var(--line)] bg-[var(--panel)]"
+      className="sticky top-0 z-30 -mx-6 -mt-6 mb-5 px-6 flex items-center gap-1 flex-wrap max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:whitespace-nowrap border-b border-[var(--line)] bg-[var(--panel)]"
     >
       <span className="font-mono text-[10.5px] font-bold uppercase tracking-wider text-[var(--mute)] pr-2 py-2">{stage.label}</span>
       <Link

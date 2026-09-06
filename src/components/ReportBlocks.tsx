@@ -56,7 +56,7 @@ export async function ReportBlock({ block, workspaceId, weeks }: { block: BlockK
           {hasSeriesData(series) ? (
             <AreaChart points={series.map((p) => ({ label: p.label, value: p.impressions }))} color="var(--blue)" title="Impressions" />
           ) : (
-            <Empty>No snapshots yet — add weekly numbers under <Link href="/blog/analytics" className="underline">Blog → Analytics</Link>.</Empty>
+            <Empty>No snapshots yet — add weekly numbers under <Link href="/blog/analytics" className="underline">Measure → Blog analytics</Link>.</Empty>
           )}
         </Card>
       );
@@ -241,7 +241,7 @@ export async function ReportBlock({ block, workspaceId, weeks }: { block: BlockK
       return (
         <Card title="Autopilot activity">
           {feed.length === 0 ? (
-            <Empty>Idle — set modes under <Link href="/setup/automation" className="underline">Blog → Automation</Link>.</Empty>
+            <Empty>Idle — set modes under <Link href="/setup/automation" className="underline">Settings → Automation</Link>.</Empty>
           ) : (
             <ul className="m-0 p-0 text-xs">
               {feed.map((e, i) => (
@@ -395,7 +395,7 @@ export async function ReportBlock({ block, workspaceId, weeks }: { block: BlockK
       return (
         <Card title="Content-audit summary">
           {items.length === 0 ? (
-            <Empty>No audit yet — run one under <Link href="/blog/audit" className="underline">Blog → Audit</Link>.</Empty>
+            <Empty>No audit yet — run one under <Link href="/blog/audit" className="underline">Review → Audit</Link>.</Empty>
           ) : (
             <>
               <HBars rows={[

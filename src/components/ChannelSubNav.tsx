@@ -12,7 +12,9 @@ import { stageFor } from "@/lib/stages";
  * mirror how the Blog strip marks its current tab.
  *
  * flex-wrap, not overflow-x-auto — which is why <WithTip> bubbles are safe
- * here while the Blog/Production strips must use native titles.
+ * here while the Production strip must use native titles. Below the `sm`
+ * breakpoint it IS a single scrolling row (eleven wrapped tabs cost 149px of
+ * a phone screen); there is no hover on a phone, so nothing is lost.
  */
 
 export type ChannelSubNavItem = { href: string; label: string; tip?: string };
@@ -36,7 +38,7 @@ export function ChannelSubNav({
     href === "" ? pathname === base : pathname === base + href || pathname.startsWith(base + href + "/");
 
   return (
-    <nav className="flex flex-wrap gap-1 mb-5 border-b border-[var(--line)]">
+    <nav className="flex flex-wrap max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:whitespace-nowrap gap-1 mb-5 border-b border-[var(--line)]">
       {items.map((s) => {
         const on = isActive(s.href);
         return (

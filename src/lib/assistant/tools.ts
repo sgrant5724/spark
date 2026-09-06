@@ -47,7 +47,7 @@ const num = (v: unknown, dflt: number, max: number): number => {
 /** Things people will ask for that this assistant deliberately cannot do. */
 export const REFUSED_INTENTS = [
   "publishing an article to WordPress (Blog → the article → Publish, once its gates pass)",
-  "sending, scheduling or queueing a social post (Social → Calendar, or approve it if auto-queue is on)",
+  "sending, scheduling or queueing a social post (Distribute → Calendar, or approve it if auto-queue is on)",
   "approving anything — posts, images or ideas that are already drafted are a person's call",
   "deleting anything at all",
   "changing settings, API keys, connections, slots or roles",

@@ -203,7 +203,7 @@ export function FindingCards({
                       <input type="hidden" name="id" value={f.id} />
                       <SubmitButton className="btn primary sm" pendingText="Adding…">Add to ideas</SubmitButton>
                     </form>
-                    <span className="text-[10px] text-[var(--mute)]">Lands on Blog → Ideas as discovered.</span>
+                    <span className="text-[10px] text-[var(--mute)]">Lands on the Ideas board as discovered.</span>
                     <span className="flex-1" />
                     <DismissForm id={f.id} />
                   </div>

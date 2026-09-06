@@ -178,8 +178,8 @@ export async function approveSocialPostAction(formData: FormData) {
     const slots = await db.postingSlot.count({ where: { workspaceId: workspace.id, enabled: true } });
     backTo(
       slots === 0
-        ? "Approved — but this workspace has no posting slots, so there was nowhere to queue it. Add slots on Social → Settings."
-        : "Approved — but every upcoming slot is taken, so it's still a draft. Add slots on Social → Settings.",
+        ? "Approved — but this workspace has no posting slots, so there was nowhere to queue it. Add slots under Settings → Schedule."
+        : "Approved — but every upcoming slot is taken, so it's still a draft. Add slots under Settings → Schedule.",
       "ok",
     );
   }

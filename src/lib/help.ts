@@ -167,7 +167,7 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Where do I change the tone of what gets written?",
-        a: "Tone of voice lives in **Blog → Brand** as the 7 Motifs, alongside the asset policy. They're editable rows rather than fixed prompt text, and each piece resolves a weighted blend of them — so changing a Motif changes every future generation that uses it, without you touching any prompt.",
+        a: "Tone of voice lives in **Brand → Tone & motifs** as the 7 Motifs, alongside the asset policy. They're editable rows rather than fixed prompt text, and each piece resolves a weighted blend of them — so changing a Motif changes every future generation that uses it, without you touching any prompt.",
         links: [{ label: "Tone & motifs →", href: "/blog/brand" }],
         tags: ["tone", "motifs", "voice", "style"],
       },
@@ -343,11 +343,11 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       {
         q: "Can the app generate posts and articles on a schedule, by itself?",
         a: "Yes — two dials, one autopilot.\n\n**Articles**: the autopilot (sweeps every 30 min) discovers ideas, drafts approved ones, and can publish gated posts, governed by the per-function mode dials under **Blog → Automation**. Set **Weekly article target** there to cap how many it drafts per rolling 7 days.\n\n**Social posts**: turn on **Auto-generate posts** under Social → Workflow and set a number per week. The autopilot writes fresh posts from your active **Topics** (rotating through them), in your motif tone, one at a time spread across the day — each gets an auto-image and is queued into a free posting slot, or **held for approval** when the approval workflow is on.\n\nSafety rails: everything respects the global pause, counts against the daily AI budget (20 generations/workspace/day), and **placeholder output is never stored** — if no real AI key resolves, nothing is generated rather than something fake. The Social mode dial (Blog → Automation) must be assisted or auto for post generation to run.",
-        links: [{ label: "Blog → Automation →", href: "/setup/automation" }, { label: "Social → Settings →", href: "/setup/schedule" }],
+        links: [{ label: "Settings → Automation →", href: "/setup/automation" }, { label: "Settings → Schedule →", href: "/setup/schedule" }],
         tags: ["autopilot", "autonomous", "generate", "schedule", "articles", "posts", "weekly"],
       },
       {
-        q: "What are campaigns on the Social page?",
+        q: "What are campaigns (Settings → Schedule)?",
         a: "A campaign is a named series of posts — “Q3 product launch” — that can carry its **own utm_campaign tag**, so analytics reports the series as a series instead of one undifferentiated stream. Admins create campaigns under **Social → Campaigns** (name, tag, color); anyone composing a post can then pick one. Archiving a campaign keeps the tag on everything already sent but removes it from the picker; deleting one keeps the posts and just unlinks them.",
         links: [{ label: "Distribute →", href: "/distribute" }],
         tags: ["campaign", "series", "utm", "social", "grouping"],
@@ -377,7 +377,7 @@ export const HELP_CATEGORIES: FaqCategory[] = [
         tags: ["csv", "import", "bulk", "social", "schedule"],
       },
       {
-        q: "What is link tagging (UTM) on the Social page?",
+        q: "What is link tagging (UTM) under Settings → Schedule?",
         a: "When it's on, links in a post get UTM parameters added **as the post is sent**, using the **network as the source** — so `utm_source=linkedin` versus `utm_source=x`. That's what lets GA4, and the search & traffic panels on **Insights**, tell which network actually drove traffic instead of lumping it all together as referral. Links you already tagged yourself are left untouched, and the text you wrote is stored exactly as written — tagging happens at send, so editing a post can never pile up duplicate parameters.",
         links: [{ label: "Distribute →", href: "/distribute" }, { label: "Insights →", href: "/insights" }],
         tags: ["utm", "links", "attribution", "ga4", "social", "tracking"],
