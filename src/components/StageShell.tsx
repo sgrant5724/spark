@@ -5,10 +5,10 @@ import { sendAssistantMessageAction } from "@/app/actions/assistant";
 
 /**
  * The stage-page skeleton (One-Loop redesign, step 3). Every stage shares it
- * so learning one teaches all seven: a header with counts by state, a tab
- * strip of the module pages that live inside the stage (their URLs are
- * unchanged — this is a re-grouping, not a re-routing), the stage's own item
- * rows, and the Ask drawer.
+ * so learning one teaches all seven: a header with counts by state, the
+ * stage's own item rows, and the Ask drawer. The tab strip of the module pages
+ * inside the stage is NOT here — it is the persistent StageStrip in the app
+ * shell, so it stays while you are inside a tab.
  *
  * Ask is a plain form into the assistant: a message with no thread id starts
  * one and lands on its transcript. It reads and drafts; it cannot publish,
@@ -16,19 +16,16 @@ import { sendAssistantMessageAction } from "@/app/actions/assistant";
  * is the safety model, and a docked box on every stage doesn't change it.
  */
 
-export type StageTab = { href: string; label: string; note?: string };
 export type StageCount = { label: string; n: number | null; href?: string; hue?: string };
 
 export function StageHeader({
   title,
   sentence,
   counts,
-  tabs,
 }: {
   title: string;
   sentence: string;
   counts: StageCount[];
-  tabs: StageTab[];
 }) {
   return (
     <div className="mb-4">
@@ -52,16 +49,6 @@ export function StageHeader({
             return c.href ? <Link key={c.label} href={c.href} className="hover:underline">{chip}</Link> : <span key={c.label}>{chip}</span>;
           })}
         </div>
-      )}
-      {tabs.length > 0 && (
-        <nav className="flex items-center gap-1 flex-wrap mt-3 border-b border-[var(--line)]" aria-label="Pages in this stage">
-          <span className="text-[11px] font-semibold px-2.5 py-1.5 border-b-2 border-[var(--accent)] -mb-px" style={{ color: "var(--accent-on)" }}>Overview</span>
-          {tabs.map((t) => (
-            <Link key={t.href} href={t.href} title={t.note} className="text-[11px] font-semibold px-2.5 py-1.5 text-[var(--mute)] hover:text-[var(--ink)] border-b-2 border-transparent -mb-px">
-              {t.label}
-            </Link>
-          ))}
-        </nav>
       )}
     </div>
   );

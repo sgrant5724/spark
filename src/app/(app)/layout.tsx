@@ -12,6 +12,7 @@ import { setActiveChannelAction } from "@/app/actions/channel";
 import { LeftRailNav, type LeftRailItem } from "@/components/LeftRailNav";
 import { MobileNav } from "@/components/MobileNav";
 import { ChannelSwitcher } from "@/components/ChannelSwitcher";
+import { StageStrip } from "@/components/StageStrip";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { setActiveWorkspaceAction } from "@/app/actions/workspace-switch";
 import { storage } from "@/lib/storage";
@@ -303,6 +304,9 @@ html[data-theme="dark"] .ws-brand {
         {/* Suspense: FlashBanner reads useSearchParams, which Next requires be
             suspended so a page can still be prerendered around it. */}
         <main className="flex-1 overflow-auto bg-[var(--panel)] p-6 @container">
+          {/* The persistent stage strip: Overview + the stage's tabs on every
+              page a stage owns, so entering a tab never loses the tabs. */}
+          <StageStrip activeChannelId={active?.id ?? null} />
           <Suspense fallback={null}><FlashBanner /></Suspense>
           {children}
         </main>

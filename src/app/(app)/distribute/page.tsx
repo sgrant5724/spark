@@ -42,13 +42,6 @@ export default async function DistributeStage() {
           { label: "replies waiting", n: unread, href: "/social/engage", hue: "cyan" },
           { label: "accounts", n: accounts, href: "/admin/connections", hue: "green" },
         ]}
-        tabs={[
-          { href: "/social/compose", label: "Compose" },
-          { href: "/social/calendar", label: "Calendar" },
-          { href: "/social/engage", label: "Engage" },
-          { href: "/social/performance", label: "Performance" },
-          { href: "/social/settings", label: "Slots & settings" },
-        ]}
       />
 
       <StageList title="The queue" empty="Nothing scheduled.">

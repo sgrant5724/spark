@@ -47,14 +47,6 @@ export default async function DraftsStage() {
           { label: "scripts", n: scripts.length, href: "/scripts", hue: "green" },
           { label: "renders", n: renders.length, href: "/videos", hue: "violet" },
         ]}
-        tabs={[
-          { href: "/blog", label: "Articles" },
-          { href: "/blog/board", label: "Board" },
-          { href: active ? `/channels/${active.id}/scripts` : "/scripts", label: "Scripts" },
-          { href: "/thumbnails", label: "Thumbnails" },
-          { href: "/videos", label: "Videos" },
-          { href: "/production", label: "Production" },
-        ]}
       />
 
       <StageList title="Articles" empty="No articles are drafting or in review.">

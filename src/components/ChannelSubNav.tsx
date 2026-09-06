@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { WithTip } from "@/components/HelpTip";
+import { stageFor } from "@/lib/stages";
 
 /**
  * The channel tab strip, with an ACTIVE state — the strip used to render every
@@ -27,6 +28,10 @@ export function ChannelSubNav({
   items: ChannelSubNavItem[];
 }) {
   const pathname = usePathname() ?? "";
+  // A channel page that a stage owns (scripts, competitors, research, an idea's
+  // detail) shows the stage strip instead — two unrelated tab bars stacked is
+  // exactly what the owner called being lost. Setup-ish channel pages keep this.
+  if (stageFor(pathname)) return null;
   const isActive = (href: string) =>
     href === "" ? pathname === base : pathname === base + href || pathname.startsWith(base + href + "/");
 

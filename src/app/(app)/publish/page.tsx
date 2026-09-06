@@ -43,11 +43,6 @@ export default async function PublishStage() {
           { label: "published", n: published.length, href: "/blog", hue: "green" },
           { label: publishDay ? `publish day · ${publishDay}` : "publish day · any", n: null, href: "/blog/automation" },
         ]}
-        tabs={[
-          { href: "/website", label: "Website" },
-          { href: "/blog/calendar", label: "Blog calendar" },
-          { href: "/blog/automation", label: "Automation" },
-        ]}
       />
 
       <StageList title="Waiting to go out" empty="Nothing at final approval. Articles arrive here once every required check passes.">

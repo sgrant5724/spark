@@ -1,39 +1,15 @@
-import { requireMembership } from "@/lib/acl";
-import { db } from "@/lib/db";
-import { BlogSubNav, type BlogNavItem } from "@/components/BlogSubNav";
-
 /**
- * Blog workspace shell: every /blog page gets the sticky sub-nav with live
- * counts. Full-bleed inside the app main (which pads 24px), hence the negative
- * margins; sticky against the app's scroll container.
+ * Blog shell. The sticky Blog tab bar that used to live here is gone (One-Loop
+ * step 4b): its pages are tabs of the stages that own them — Posts and Board
+ * under Drafts, Keywords and Experts under Ideas, Audit under Review,
+ * Calendar and Automation under Publish, Analytics and Report under Measure,
+ * Brand and Organization under Setup → Brand — and the persistent StageStrip
+ * in the app shell shows those. The full-bleed wrapper stays because every
+ * /blog page pads itself.
  */
-export default async function BlogLayout({ children }: { children: React.ReactNode }) {
-  const { workspace } = await requireMembership();
-  const [needsYou, ideasOpen, auditOpen] = await Promise.all([
-    db.blogPost.count({ where: { workspaceId: workspace.id, status: { in: ["draft_review", "final_approval"] } } }),
-    db.blogIdea.count({ where: { workspaceId: workspace.id, status: { in: ["discovered", "approved"] } } }),
-    db.contentAuditItem.count({ where: { workspaceId: workspace.id, status: "open", recommendation: { not: "keep" } } }),
-  ]);
-
-  const items: BlogNavItem[] = [
-    { href: "/blog", label: "Posts", count: needsYou, urgent: needsYou > 0 },
-    { href: "/ideas?format=article", label: "Ideas", count: ideasOpen },
-    { href: "/blog/keywords", label: "Keywords" },
-    { href: "/blog/experts", label: "Experts" },
-    { href: "/blog/audit", label: "Audit", count: auditOpen },
-    { href: "/blog/analytics", label: "Analytics" },
-    { href: "/blog/report", label: "Report" },
-    { href: "/blog/automation", label: "Automation" },
-    { href: "/blog/brand", label: "Brand" },
-    { href: "/blog/organization", label: "Organization" },
-    { href: "/website", label: "Website" },
-  ];
-
+export default function BlogLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="-m-6 min-h-full flex flex-col">
-      <div className="sticky top-0 z-30">
-        <BlogSubNav items={items} />
-      </div>
+    <div className="-mx-6 -mb-6 min-h-full flex flex-col">
       <div className="flex-1">{children}</div>
     </div>
   );

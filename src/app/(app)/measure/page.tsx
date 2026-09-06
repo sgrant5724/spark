@@ -24,12 +24,6 @@ export default async function MeasureStage() {
           { label: "clicks, latest week", n: hasAnalytics ? latest.clicks : null, href: "/blog/analytics", hue: "green" },
           { label: "tracked posts", n: perf.length, href: "/blog/analytics" },
         ]}
-        tabs={[
-          { href: "/reports", label: "Reports" },
-          { href: "/insights", label: "Insights" },
-          { href: "/blog/analytics", label: "Blog analytics" },
-          { href: "/social/performance", label: "Social performance" },
-        ]}
       />
 
       <section className="card mb-4">

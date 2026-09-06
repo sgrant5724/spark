@@ -38,12 +38,6 @@ export default async function ResearchStage() {
           { label: "strong outliers", n: outliers.length, href: "/intel", hue: "amber" },
           { label: "bookmarks", n: bookmarks, href: "/intel/bookmarks", hue: "rose" },
         ]}
-        tabs={[
-          { href: "/intel", label: "Intel" },
-          { href: "/intel/bookmarks", label: "Bookmarks" },
-          ...(active ? [{ href: `/channels/${active.id}/competitors`, label: "Competitors" }] : []),
-          { href: "/chat", label: "Chat" },
-        ]}
       />
 
       <StageList title="Outlier videos worth an idea" empty="Nothing above 2× yet. Add competitors under Intel and the outliers appear as their videos are indexed.">

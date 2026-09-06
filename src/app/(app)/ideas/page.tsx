@@ -49,10 +49,6 @@ export default async function IdeasBoard({ searchParams }: { searchParams: Promi
             : "One board for article and video ideas. Approve an article and the autopilot drafts it; approve a video and Write opens the script canvas."
         }
         counts={STATES.map((s) => ({ label: s.state, n: counts[s.state], hue: s.hue }))}
-        tabs={[
-          { href: "/blog/keywords", label: "Keywords" },
-          { href: "/blog/experts", label: "Experts" },
-        ]}
       />
 
       {/* Filter chips — the two old boards live on as filters of the one. */}

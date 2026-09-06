@@ -29,10 +29,6 @@ export default async function ReviewStage() {
           { label: "articles held", n: inbox.articles.length - ready, hue: "rose" },
           { label: "ready to advance", n: ready, hue: "green" },
         ]}
-        tabs={[
-          { href: "/social/approvals", label: "Approvals" },
-          { href: "/blog/audit", label: "Audit" },
-        ]}
       />
       <NeedsYouGroups
         inbox={inbox}

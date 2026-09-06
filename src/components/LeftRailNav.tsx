@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Bot, Home, Inbox, Layers, ShieldCheck, Telescope, Sparkles, PenLine, MessageCircle, Image as ImageIcon, KanbanSquare, Settings, HelpCircle, FileText, Clapperboard, FileBarChart, Share2, Palette, LineChart, Globe, ChevronRight } from "lucide-react";
 import { WithTip } from "@/components/HelpTip";
 import { NAV_TIPS } from "@/lib/help-tips";
+import { STAGE_HREFS, stageFor } from "@/lib/stages";
 
 // Client-side left-rail nav. Renders the chip strip and highlights the active
 // route via usePathname. Kept tiny so the rest of the app shell can stay server-rendered.
@@ -42,38 +43,17 @@ export type LeftRailItem = {
   group?: string;
 };
 
-// Active-route matcher for the rail. Match exact route OR any nested route under it
-// (e.g. /channels/abc → /channels). Special cases:
-//  - /dashboard so "/" doesn't match everything.
-//  - The "Ideas"/"Scripts" entries point at /ideas|/scripts, but those redirect into
-//    /channels/[id]/ideas|scripts. Without this, the /channels prefix would light up
-//    "Channels" on those pages. So channel-scoped ideas/scripts win over Channels.
-/**
- * Which stage a module page belongs to. The rail lights the STAGE while you
- * work inside one of its tabs — the module pages kept their URLs (One-Loop
- * step 3), so this is the only place that knows /social/calendar is Distribute.
- */
-export function stageFor(pathname: string): string | null {
-  const p = pathname;
-  if (/^\/(intel|chat)(\/|$)/.test(p) || /^\/channels\/[^/]+\/(competitors|research)(\/|$)/.test(p)) return "/research";
-  if (/^\/blog\/(ideas|keywords|experts)(\/|$)/.test(p) || /^\/channels\/[^/]+\/ideas(\/|$)/.test(p)) return "/ideas";
-  if (/^\/social\/approvals(\/|$)/.test(p) || /^\/blog\/audit(\/|$)/.test(p)) return "/review";
-  if (/^\/website(\/|$)/.test(p) || /^\/blog\/(calendar|automation)(\/|$)/.test(p)) return "/publish";
-  if (/^\/(reports|insights)(\/|$)/.test(p) || /^\/blog\/(analytics|report)(\/|$)/.test(p) || /^\/social\/performance(\/|$)/.test(p)) return "/measure";
-  if (/^\/social(\/|$)/.test(p)) return "/distribute";
-  if (/^\/(scripts|thumbnails|videos|production)(\/|$)/.test(p) || /^\/channels\/[^/]+\/scripts(\/|$)/.test(p) || /^\/blog(\/|$)/.test(p)) return "/drafts";
-  return null;
-}
-
-const STAGES = new Set(["/research", "/ideas", "/drafts", "/review", "/publish", "/distribute", "/measure"]);
-
+// Which stage a module page belongs to lives in lib/stages.ts (shared with the
+// persistent StageStrip). The rail lights the STAGE while you work inside one
+// of its tabs — the module pages kept their URLs (One-Loop step 3).
 export function isNavActive(href: string, pathname: string): boolean {
   // The Inbox is the landing page; the old Home URL redirects to it.
   if (href === "/inbox") return pathname === "/inbox" || pathname === "/dashboard" || pathname === "/";
-  if (STAGES.has(href)) return pathname === href || pathname.startsWith(href + "/") || stageFor(pathname) === href;
+  const stage = stageFor(pathname);
+  if ((STAGE_HREFS as readonly string[]).includes(href)) return stage === href;
   // A page that belongs to a stage lights only the stage — otherwise a channel's
   // scripts page would light Drafts AND Channels, and pop the Setup group open.
-  if (stageFor(pathname)) return false;
+  if (stage) return false;
   return pathname === href || pathname.startsWith(href + "/");
 }
 
