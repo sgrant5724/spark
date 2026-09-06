@@ -19,7 +19,10 @@ const TONE_COLOR: Record<TickerEvent["tone"], string> = {
   info: "var(--amber-on)",
 };
 
-export function LiveTicker({ initial }: { initial: TickerEvent[] }) {
+// `timeZone` is fixed by the caller so the server and the browser format the
+// same text — without it the server rendered UTC and the browser its own zone,
+// a hydration mismatch (React error 418) on every page load with ticker events.
+export function LiveTicker({ initial, timeZone }: { initial: TickerEvent[]; timeZone: string }) {
   const [events, setEvents] = useState(initial);
 
   useEffect(() => {
@@ -39,7 +42,7 @@ export function LiveTicker({ initial }: { initial: TickerEvent[] }) {
   if (events.length === 0) return null;
 
   const item = (e: TickerEvent, i: number) => {
-    const time = new Date(e.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const time = new Date(e.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone });
     const body = (
       <>
         <b style={{ color: TONE_COLOR[e.tone] }}>{e.label.split(" ")[0]}</b>{" "}

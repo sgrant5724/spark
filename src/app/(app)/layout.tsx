@@ -12,6 +12,7 @@ import { LeftRailNav, type LeftRailItem } from "@/components/LeftRailNav";
 import { MobileNav } from "@/components/MobileNav";
 import { studioState } from "@/lib/studio";
 import { stripCounts } from "@/lib/stage-counts";
+import { getPostingTimeZone } from "@/lib/social/slots";
 import { StageStrip } from "@/components/StageStrip";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { setActiveWorkspaceAction } from "@/app/actions/workspace-switch";
@@ -111,7 +112,7 @@ html[data-theme="dark"] .ws-brand {
     --accent-on: color-mix(in srgb, ${accent} 62%, white);
   }
 }` : null;
-  const [unread, ticker, studio, counts] = await Promise.all([
+  const [unread, ticker, studio, counts, tickerZone] = await Promise.all([
     unreadCount(workspace.id, user.id),
     tickerEvents(workspace.id, 12),
     // Whether the video studio's tabs show (lib/studio.ts) and the strip's
@@ -119,6 +120,9 @@ html[data-theme="dark"] .ws-brand {
     // is in the shell.
     studioState(workspace.id),
     stripCounts(workspace.id),
+    // The ticker formats times in this zone on both server and client (see
+    // LiveTicker) — the workspace's posting zone, UTC when none is set.
+    getPostingTimeZone(workspace.id).catch(() => "UTC"),
   ]);
 
   // Elsie, the guide. Her setup steps are filtered against what this workspace
@@ -279,7 +283,7 @@ html[data-theme="dark"] .ws-brand {
               (which the user wants wide) only gets space these two give up;
               this link duplicates the workspace-name link anyway. */}
           <Link href="/channels" className="btn !hidden @min-[88rem]:!inline-flex" title="Manage all channels">Manage channels</Link>
-          <LiveTicker initial={ticker} />
+          <LiveTicker initial={ticker} timeZone={tickerZone} />
           <div className="flex-1" />
           <AiActivity />
           <Elsie steps={elsieSteps} tracks={elsieTracks} enabled={guide.enabled} outstanding={elsieOutstanding} snoozed={guide.snoozed} />
