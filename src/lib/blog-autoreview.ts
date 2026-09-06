@@ -3,6 +3,7 @@ import { llm, resolveUsableModel } from "@/lib/llm";
 import { writeAudit, isGloballyPaused } from "@/lib/governance";
 import { notify } from "@/lib/notify";
 import { getSearchProvider } from "@/lib/search";
+import { claimsFromMarkers } from "@/lib/citations-extract";
 import { askAboutImage } from "@/lib/vision";
 import { storage } from "@/lib/storage";
 import { generateImageCore, generateBlogImagesCore } from "@/lib/blog-images";
@@ -181,9 +182,9 @@ async function autoSourceCitations(workspaceId: string, post: PostRow): Promise<
   if (post.body) {
     const existing = await db.blogCitation.findMany({ where: { postId: post.id }, select: { claim: true } });
     const known = new Set(existing.map((c) => normTail(c.claim)));
-    const claims = [...post.body.replace(/<[^>]+>/g, " ").matchAll(/([^.!?]*[.!?]?)\s*\[NEEDS SOURCE\]/g)]
-      .map((m) => m[1].trim().slice(-300))
-      .filter((c) => c.length > 8);
+    // ⚠ claimsFromMarkers, not a local regex: the old one dropped a marker
+    // whose sentence ended in a closing quote (see lib/citations-extract.ts).
+    const claims = claimsFromMarkers(post.body.replace(/<[^>]+>/g, " "), 6);
     const missing = claims.filter((c) => !known.has(normTail(c))).slice(0, 3);
     if (missing.length) {
       await db.blogCitation.createMany({ data: missing.map((claim) => ({ postId: post.id, claim })) });

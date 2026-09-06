@@ -45,6 +45,7 @@ import {
 } from "@/lib/motifs";
 import { rescoreIdeas } from "@/lib/blog-idea-scoring";
 import { isFullyAutonomous } from "@/lib/autonomy";
+import { claimsFromMarkers } from "@/lib/citations-extract";
 
 /**
  * Autopilot cores + the Phase-3 scheduler cycle. Every function here is
@@ -418,10 +419,10 @@ export async function generateDraftCore(workspaceId: string, postId: string): Pr
   await db.blogPost.update({ where: { id: post.id }, data: { body: res.content } });
   await db.blogCitation.deleteMany({ where: { postId: post.id, verified: false } });
   const text = res.content.replace(/<[^>]+>/g, " ");
-  const claims = [...text.matchAll(/([^.!?]*[.!?]?)\s*\[NEEDS SOURCE\]/g)]
-    .map((m) => m[1].trim().slice(-300))
-    .filter((c) => c.length > 8)
-    .slice(0, 20);
+  // ⚠ Shared extractor (lib/citations-extract.ts): the old local regex dropped
+  // any marker whose sentence ended in a closing quote, leaving a marker with
+  // no row that held the article for good.
+  const claims = claimsFromMarkers(text, 20);
   if (claims.length) {
     await db.blogCitation.createMany({ data: claims.map((claim) => ({ postId: post.id, claim })) });
   }
