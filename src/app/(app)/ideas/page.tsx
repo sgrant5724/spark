@@ -7,6 +7,7 @@ import { outlierBand } from "@/lib/intel";
 import { IDEA_TIPS } from "@/lib/help-tips";
 import { motifHue, motifSummaryLabel, parseMotifs } from "@/lib/motifs";
 import { loadIdeasBoard, STATES, type ArticleRow, type BoardCard, type VideoRow } from "@/lib/ideas-board";
+import { studioState } from "@/lib/studio";
 import {
   deleteBlogIdeaAction,
   discoverBlogIdeasAction,
@@ -34,8 +35,12 @@ export default async function IdeasBoard({ searchParams }: { searchParams: Promi
   const { workspace, membership } = await requireMembership();
   const editor = canEdit(membership.role);
   const sp = await searchParams;
-  const board = await loadIdeasBoard(workspace.id, sp);
-  const { cards, counts, channels, topics, pages, directives } = board;
+  const [board, studio] = await Promise.all([loadIdeasBoard(workspace.id, sp), studioState(workspace.id)]);
+  const { cards, counts, topics, pages, directives } = board;
+  // Video-idea CONTROLS (add, generate, channel filters) follow the video
+  // studio switch (lib/studio.ts); existing video cards always show — nothing
+  // is deleted by turning the studio off.
+  const channels = studio.show ? board.channels : [];
   const openArticles = cards.filter((c): c is Extract<BoardCard, { format: "article" }> => c.format === "article" && (c.state === "discovered" || c.state === "approved")).map((c) => c.row);
   const filterActive = sp.channel ? `channel:${sp.channel}` : sp.format === "article" ? "article" : sp.format === "video" ? "video" : "all";
 

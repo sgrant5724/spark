@@ -1,16 +1,23 @@
 import Link from "next/link";
-import { Users, Bot, CalendarClock, Plug, Palette, ArrowRight, OctagonPause } from "lucide-react";
+import { Users, Bot, CalendarClock, Plug, Palette, ArrowRight, OctagonPause, Clapperboard } from "lucide-react";
 import { requireMembership, canAdmin } from "@/lib/acl";
 import { setupOverview } from "@/lib/setup-status";
+import { studioState } from "@/lib/studio";
+import { SubmitButton } from "@/components/SubmitButton";
+import { Banner } from "@/components/SocialPostCard";
+import { setStudioEnabledAction } from "@/app/actions/setup";
 
 // One Settings (One-Loop step 5), organised by question. Each card answers its
 // question in a sentence from the live dials and opens the tab that holds
 // them. Brand and voice keeps its own strip (Setup → Brand) and is linked.
+// The Video studio switch (step 6) sits beneath: it is a workspace option,
+// not a question.
 
-export default async function SetupOverview() {
+export default async function SetupOverview({ searchParams }: { searchParams: Promise<{ ok?: string; err?: string }> }) {
   const { workspace, membership } = await requireMembership();
+  const { ok, err } = await searchParams;
   const admin = canAdmin(membership.role);
-  const o = await setupOverview(workspace.id);
+  const [o, studio] = await Promise.all([setupOverview(workspace.id), studioState(workspace.id)]);
   const a = o.autonomy;
   const modeLine = a.modes.map((m) => `${m.fn} ${m.mode}`).join(" · ");
 
@@ -21,6 +28,8 @@ export default async function SetupOverview() {
         <p className="text-[13px] text-[var(--mute)] m-0">Every dial for {workspace.name}, under the question it answers.</p>
       </div>
       {!admin && <p className="text-xs text-[var(--mute)] mb-4">You can read these; an admin changes them.</p>}
+      {ok && <Banner kind="ok" text={ok} />}
+      {err && <Banner kind="err" text={err} />}
       {o.paused && (
         <div className="card mb-4 flex items-center gap-2 text-sm" style={{ background: "var(--rose-soft)", color: "var(--rose-on)" }}>
           <OctagonPause className="w-4 h-4" /> Global pause is ON — every AI action is halted. <Link href="/setup/automation" className="underline">Resume under Automation</Link>.
@@ -59,6 +68,29 @@ export default async function SetupOverview() {
         <Q icon={<Palette className="w-5 h-5" />} hue="rose" title="Brand and voice" href="/brand" cta="Brand">
           Company info, the seven Motifs, the brand kit and image specs, and the <Link href="/blog/experts" className="underline">experts</Link> the writing quotes. Brand has its own pages.
         </Q>
+
+        {/* Workspace option, not a question: the studio is optional (decision 1). */}
+        <section className="card flex flex-col gap-2" style={studio.show ? { borderColor: "var(--green-on)" } : undefined}>
+          <div className="flex items-center gap-2">
+            <span className="w-8 h-8 rounded-lg grid place-items-center shrink-0" style={{ background: "var(--amber-soft)", color: "var(--amber-on)" }}><Clapperboard className="w-5 h-5" /></span>
+            <h2 className="font-mono text-[14px] font-bold m-0">Video studio</h2>
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: studio.show ? "var(--green-soft)" : "var(--zebra)", color: studio.show ? "var(--green-on)" : "var(--mute)" }}>{studio.show ? "shown" : "hidden"}</span>
+          </div>
+          <p className="text-sm m-0 leading-relaxed">
+            Scripts, thumbnails, video renders and the production board.{" "}
+            {studio.channels === 0
+              ? <>Hidden because no YouTube channel exists yet{admin ? <> — <Link href="/channels" className="underline">add one under Channels</Link></> : ""}.</>
+              : studio.on
+                ? <>Shown under Drafts because {studio.channels === 1 ? "a YouTube channel exists" : `${studio.channels} YouTube channels exist`}. Turning a short or a render out of an article stays available either way.</>
+                : <>Switched off — the tabs and controls are hidden; nothing was deleted.</>}
+          </p>
+          {admin && studio.channels > 0 && (
+            <form action={setStudioEnabledAction}>
+              <input type="hidden" name="enabled" value={studio.on ? "false" : "true"} />
+              <SubmitButton className={studio.on ? "btn sm" : "btn sm primary"} pendingText="Saving…">{studio.on ? "Hide the studio" : "Show the studio"}</SubmitButton>
+            </form>
+          )}
+        </section>
       </div>
     </div>
   );

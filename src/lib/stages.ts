@@ -17,11 +17,13 @@ export type StageTab = {
   also?: string[];
 };
 
+export type StageCtx = { channelId: string | null; studio: boolean };
+
 export type StageDef = {
   href: string;
   label: string;
-  /** Tabs may depend on the active channel; null when the workspace has none. */
-  tabs: (ctx: { channelId: string | null }) => StageTab[];
+  /** Tabs may depend on the active channel (null when the workspace has none) and on whether the video studio is shown. */
+  tabs: (ctx: StageCtx) => StageTab[];
 };
 
 export const STAGE_HREFS = ["/research", "/ideas", "/drafts", "/review", "/publish", "/distribute", "/measure", "/brand", "/setup"] as const;
@@ -48,13 +50,20 @@ export const STAGES: Record<(typeof STAGE_HREFS)[number], StageDef> = {
   "/drafts": {
     href: "/drafts",
     label: "Drafts",
-    tabs: ({ channelId }) => [
+    // The studio tabs show only when a YouTube channel exists and the Video
+    // studio switch under Settings is on (lib/studio.ts) — the owner's
+    // "optional as a studio". Articles and the board are always there.
+    tabs: ({ channelId, studio }) => [
       { href: "/blog", label: "Articles" },
       { href: "/blog/board", label: "Board" },
-      { href: channelId ? `/channels/${channelId}/scripts` : "/scripts", label: "Scripts", also: ["/scripts", "/channels/*/scripts"] },
-      { href: "/thumbnails", label: "Thumbnails" },
-      { href: "/videos", label: "Videos" },
-      { href: "/production", label: "Production" },
+      ...(studio
+        ? [
+            { href: channelId ? `/channels//scripts` : "/scripts", label: "Scripts", also: ["/scripts", "/channels/*/scripts"] },
+            { href: "/thumbnails", label: "Thumbnails" },
+            { href: "/videos", label: "Videos" },
+            { href: "/production", label: "Production" },
+          ]
+        : []),
     ],
   },
   "/review": {

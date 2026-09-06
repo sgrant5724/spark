@@ -187,7 +187,7 @@ export default async function HelpPage() {
           <Link href="/brand" className="btn sm flex items-center gap-1.5">Brand &amp; topics <ExternalLink className="w-3 h-3" /></Link>
           <Link href="/intel" className="btn sm flex items-center gap-1.5">Intel <ExternalLink className="w-3 h-3" /></Link>
           <Link href="/blog" className="btn sm flex items-center gap-1.5">Blog <ExternalLink className="w-3 h-3" /></Link>
-          <Link href="/social" className="btn sm flex items-center gap-1.5">Social <ExternalLink className="w-3 h-3" /></Link>
+          <Link href="/distribute" className="btn sm flex items-center gap-1.5">Distribute <ExternalLink className="w-3 h-3" /></Link>
           <Link href="/insights" className="btn sm flex items-center gap-1.5">Insights <ExternalLink className="w-3 h-3" /></Link>
           <Link href="/production" className="btn sm flex items-center gap-1.5">Production board <ExternalLink className="w-3 h-3" /></Link>
           <Link href="/admin" className="btn sm flex items-center gap-1.5">Admin <ExternalLink className="w-3 h-3" /></Link>

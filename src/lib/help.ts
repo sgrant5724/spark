@@ -47,7 +47,7 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       {
         q: "I don't know where to start. What's the shortest path to something real?",
         a: "Post one thing to one network. It exercises the whole publishing spine and takes about two minutes:\n\n**1.** Go to **Social**.\n**2.** Under *Post to*, click **one** account — pick LinkedIn, Facebook or X. (Instagram, Pinterest and YouTube can't accept a text-only post, so avoid those for this first run.)\n**3.** Type a sentence in the text box.\n**4.** Leave it on **Post now**, or pick **Schedule** and choose a time if you'd rather it didn't go out yet.\n**5.** Press the button.\n\nThen open the **Agenda** tab lower down the same page. *Scheduled* shows anything waiting; *History* shows what went out, with a separate status per network.",
-        links: [{ label: "Open Social →", href: "/social" }],
+        links: [{ label: "Open Distribute →", href: "/distribute" }],
         tags: ["first", "start", "lost", "quick win", "publish"],
       },
       {
@@ -337,7 +337,7 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       {
         q: "Can I edit a social post after writing it?",
         a: "Yes — **Edit** appears on any post that hasn't been sent (drafts and scheduled). It opens the full composer with everything already filled in: base text, per-network variants, targets, topic and time. Saving **never sends** — you choose \"keep as draft\" or \"schedule\", and publishing stays a separate, deliberate act from the queue. Once a post has actually gone out it can no longer be edited, because the record has to keep saying what really was published; duplicate it instead. Images stay as they are unless you tick remove or attach new ones.",
-        links: [{ label: "Social →", href: "/social" }],
+        links: [{ label: "Distribute →", href: "/distribute" }],
         tags: ["social", "edit", "draft", "reschedule", "scheduled"],
       },
       {
@@ -349,37 +349,37 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       {
         q: "What are campaigns on the Social page?",
         a: "A campaign is a named series of posts — “Q3 product launch” — that can carry its **own utm_campaign tag**, so analytics reports the series as a series instead of one undifferentiated stream. Admins create campaigns under **Social → Campaigns** (name, tag, color); anyone composing a post can then pick one. Archiving a campaign keeps the tag on everything already sent but removes it from the picker; deleting one keeps the posts and just unlinks them.",
-        links: [{ label: "Social →", href: "/social" }],
+        links: [{ label: "Distribute →", href: "/distribute" }],
         tags: ["campaign", "series", "utm", "social", "grouping"],
       },
       {
         q: "What does “evergreen” mean on a social post?",
         a: "An evergreen post is one you're happy to re-share on a cycle. Once it has actually been posted, and its cooldown (default 30 days) has passed, the scheduler can **clone it into a free queue slot** — the clone appears in the queue like any scheduled post and can be edited or cancelled before it goes. Recycling only happens when **evergreen auto-fill** is switched on under Social → Workflow (it's off by default — automatic posting should never be a surprise), only fills slots in the next 7 days, and skips accounts that are no longer connected.",
-        links: [{ label: "Social →", href: "/social" }],
+        links: [{ label: "Distribute →", href: "/distribute" }],
         tags: ["evergreen", "recycle", "queue", "auto-fill", "social"],
       },
       {
         q: "How does the social approval workflow work?",
         a: "Turn on **Require approval** under Social → Workflow and posts by non-admins are **held as drafts** until an admin approves them — held posts cannot be sent, scheduled, queued or dragged onto the calendar, and the server enforces that, not just the buttons. Admins see an **Awaiting approval** section with Approve and Request-changes (with a note); approving honors the time the author asked for if it's still in the future. Authors are notified of decisions, and editing a sent-back post resubmits it automatically.",
-        links: [{ label: "Social →", href: "/social" }, { label: "Notifications →", href: "/notifications" }],
+        links: [{ label: "Distribute →", href: "/distribute" }, { label: "Notifications →", href: "/notifications" }],
         tags: ["approval", "review", "workflow", "permissions", "social"],
       },
       {
         q: "Where do the images on my social posts come from?",
         a: "Any image you attach in the composer is used as-is. A post composed **without** one gets an image **generated automatically** in the background by your workspace's image provider (the AI derives it from the post's text, square when Instagram/Pinterest are targeted, wide otherwise) — it lands on the post within a minute or so, well before a scheduled send. Two honest rules: your own attachment always wins over generation, and if the workspace has no real image provider the post simply stays text-only — the mock never fakes it with a stock photo. Turn the default off per workspace under Social → **Workflow** (\"Auto-generate an image\"); note real renders cost the provider's per-image fee.",
-        links: [{ label: "Social →", href: "/social" }, { label: "Admin → API keys →", href: "/admin/api-keys" }],
+        links: [{ label: "Distribute →", href: "/distribute" }, { label: "Admin → API keys →", href: "/admin/api-keys" }],
         tags: ["auto-image", "image", "generate", "thumbnail", "social", "media"],
       },
       {
         q: "Can I import many social posts at once?",
         a: "Yes — **Social → Import from CSV**, one post per row, up to 200 rows. Columns: `text` (required), `scheduledAt`, `networks`, `campaign` (by name), `category`, `evergreen`, `recycleEveryDays`. Rows with a future date are scheduled, the rest land as drafts. The import is text-only, so networks that require an image (Instagram, Pinterest, YouTube…) are skipped per row with a note rather than being allowed to half-fail later. If approval is required, imported posts wait for it like everything else.",
-        links: [{ label: "Social →", href: "/social" }],
+        links: [{ label: "Distribute →", href: "/distribute" }],
         tags: ["csv", "import", "bulk", "social", "schedule"],
       },
       {
         q: "What is link tagging (UTM) on the Social page?",
         a: "When it's on, links in a post get UTM parameters added **as the post is sent**, using the **network as the source** — so `utm_source=linkedin` versus `utm_source=x`. That's what lets GA4, and the search & traffic panels on **Insights**, tell which network actually drove traffic instead of lumping it all together as referral. Links you already tagged yourself are left untouched, and the text you wrote is stored exactly as written — tagging happens at send, so editing a post can never pile up duplicate parameters.",
-        links: [{ label: "Social →", href: "/social" }, { label: "Insights →", href: "/insights" }],
+        links: [{ label: "Distribute →", href: "/distribute" }, { label: "Insights →", href: "/insights" }],
         tags: ["utm", "links", "attribution", "ga4", "social", "tracking"],
       },
       {
@@ -533,7 +533,7 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       {
         q: "How do I schedule social posts (like Buffer/Hootsuite)?",
         a: "Open **Social** in the sidebar. Pick which connected accounts to post to, write once (a live counter warns when you exceed the tightest network's limit), optionally attach images, then **Post now**, **Schedule** for a date/time, or **Add to queue** to take the next free slot on your posting schedule. Scheduled posts publish automatically within about a minute of their time. The queue below the composer shows what's scheduled (grouped by day), your drafts, and history — each post shows per-network status, so if one network fails you can **Retry** just that leg, or **Duplicate** to repost. The rest of the Buffer-style toolkit lives on the same page: **campaigns** (a named series with its own UTM tag), **evergreen recycling**, **slot categories**, an optional **approval workflow**, and **CSV import** — each has its own question in this Help centre. Connect accounts first under Admin → Connections.",
-        links: [{ label: "Open Social →", href: "/social" }, { label: "Admin → Connections →", href: "/admin/connections" }],
+        links: [{ label: "Open Distribute →", href: "/distribute" }, { label: "Admin → Connections →", href: "/admin/connections" }],
         tags: ["social", "schedule", "buffer", "hootsuite", "posting", "queue", "calendar"],
       },
       {
@@ -571,19 +571,19 @@ export const HELP_CATEGORIES: FaqCategory[] = [
       {
         q: "How do I post to several networks at once?",
         a: "Social → **Composer**: write the post once, tick the accounts, and send or schedule. Each account shows its own character count against its own limit, and you can override the text or image per network where it matters — the rest inherit what you wrote.",
-        links: [{ label: "Open Social →", href: "/social" }],
+        links: [{ label: "Open Distribute →", href: "/distribute" }],
         tags: ["social", "composer", "publish", "cross-post", "multi-network"],
       },
       {
         q: "What are queue slots, and why use them instead of picking a date?",
         a: "Slots are your standing publishing times — say 09:00 Monday to Friday. Queue a draft and it takes the next free one, so you are not choosing a date for every post. If every slot in the horizon is taken the app tells you rather than inventing a time, and pausing a slot never un-schedules a post already sitting in it.",
-        links: [{ label: "Posting schedule →", href: "/social" }],
+        links: [{ label: "Posting schedule →", href: "/setup/schedule" }],
         tags: ["queue", "slots", "schedule", "posting times"],
       },
       {
         q: "Can I dedicate certain slots to certain kinds of content?",
         a: "Yes — give a slot a **category** when you add it on the posting schedule (e.g. *tips* every Tuesday, *promo* on Fridays), and pick the matching **Slot category** on a post in the composer. Queueing then routes each post to its own lane. The matching rule is designed so nothing ever strands: a categorized post falls back to a general (uncategorized) slot when its lane is full, and an uncategorized post takes a general slot first but will use any free slot if that's all there is. Workspaces that never touch categories behave exactly as before.",
-        links: [{ label: "Posting schedule →", href: "/social" }],
+        links: [{ label: "Posting schedule →", href: "/setup/schedule" }],
         tags: ["slot", "category", "lane", "queue", "tips", "promo"],
       },
       {

@@ -225,7 +225,7 @@ export const STEPS: GuideStep[] = [
       "instead of picking a date every time. Set the timezone here too; it's what the whole schedule is anchored to.",
     anchor: "posting-schedule",
     route: "/social",
-    cta: { label: "Open Social", href: "/social" },
+    cta: { label: "Open Distribute", href: "/distribute" },
   },
   {
     id: "setup-analytics",
@@ -283,7 +283,7 @@ export const STEPS: GuideStep[] = [
       "Social is composer, calendar and queue in one place: write once, choose the accounts, and either schedule it or drop " +
       "it into the next free slot.",
     anchor: "nav/distribute",
-    cta: { label: "Open Social", href: "/social" },
+    cta: { label: "Open Distribute", href: "/distribute" },
   },
   {
     id: "tour-insights",
@@ -418,7 +418,7 @@ export const STEPS: GuideStep[] = [
       "History shows the per-network result of every send, with retry on the ones that failed. Links are tagged per network " +
       "at send time, not when you write, so the same post can be told apart by source in your analytics.",
     anchor: "nav/distribute",
-    cta: { label: "Open Social", href: "/social" },
+    cta: { label: "Open Distribute", href: "/distribute" },
   },
 
   // ── Track: measuring ─────────────────────────────────────────────────────

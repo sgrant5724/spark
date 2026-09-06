@@ -8,10 +8,9 @@ import { tickerEvents } from "@/lib/dashboard-data";
 import { signOut } from "@/auth";
 import { getActiveChannel } from "@/lib/channel";
 import { isPlatformOperator } from "@/lib/acl";
-import { setActiveChannelAction } from "@/app/actions/channel";
 import { LeftRailNav, type LeftRailItem } from "@/components/LeftRailNav";
 import { MobileNav } from "@/components/MobileNav";
-import { ChannelSwitcher } from "@/components/ChannelSwitcher";
+import { studioState } from "@/lib/studio";
 import { StageStrip } from "@/components/StageStrip";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { setActiveWorkspaceAction } from "@/app/actions/workspace-switch";
@@ -111,9 +110,12 @@ html[data-theme="dark"] .ws-brand {
     --accent-on: color-mix(in srgb, ${accent} 62%, white);
   }
 }` : null;
-  const [unread, ticker] = await Promise.all([
+  const [unread, ticker, studio] = await Promise.all([
     unreadCount(workspace.id, user.id),
     tickerEvents(workspace.id, 12),
+    // Whether the video studio's tabs show (lib/studio.ts) — read once here
+    // because the strip is in the shell.
+    studioState(workspace.id),
   ]);
 
   // Elsie, the guide. Her setup steps are filtered against what this workspace
@@ -258,11 +260,9 @@ html[data-theme="dark"] .ws-brand {
               {workspace.name}
             </Link>
           )}
-          {active && (
-            <form action={setActiveChannelAction}>
-              <ChannelSelect channels={channels} activeId={active.id} />
-            </form>
-          )}
+          {/* The header channel switcher is gone (One-Loop step 6): it claimed an
+              "active channel" on pages that had nothing to do with one. It lives
+              on the channel pages' own header now. */}
           {/* Priority order under shrinking effective width: ticker and email
               drop first, then the redundant buttons ("Manage channels" repeats
               the workspace-name link; "+ Channel" lives on /channels too). */}
@@ -307,7 +307,7 @@ html[data-theme="dark"] .ws-brand {
         <main className="flex-1 overflow-auto bg-[var(--panel)] p-6 @container">
           {/* The persistent stage strip: Overview + the stage's tabs on every
               page a stage owns, so entering a tab never loses the tabs. */}
-          <StageStrip activeChannelId={active?.id ?? null} />
+          <StageStrip activeChannelId={active?.id ?? null} studio={studio.show} />
           <Suspense fallback={null}><FlashBanner /></Suspense>
           {children}
         </main>
@@ -316,19 +316,3 @@ html[data-theme="dark"] .ws-brand {
   );
 }
 
-function ChannelSelect({ channels, activeId }: { channels: { id: string; name: string; accentColor: string | null }[]; activeId: string }) {
-  const active = channels.find((c) => c.id === activeId);
-  return (
-    <label className="flex items-center gap-2 font-mono text-[13px] font-semibold pl-1.5 pr-2 py-1 rounded-full border border-[var(--line-2)] hover:border-[var(--accent)] transition" title="Active channel — pick to switch">
-      <span
-        className="w-7 h-7 rounded-full text-white grid place-items-center text-[11px] font-bold"
-        style={{ background: active?.accentColor ?? "var(--accent)" }}
-        aria-hidden
-      >
-        {(active?.name ?? "?").slice(0, 1).toUpperCase()}
-      </span>
-      <span className="text-[10px] uppercase tracking-wider text-[var(--mute)] hidden sm:inline">Active</span>
-      <ChannelSwitcher channels={channels} activeId={activeId} />
-    </label>
-  );
-}

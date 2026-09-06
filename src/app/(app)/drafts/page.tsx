@@ -1,18 +1,22 @@
 import Link from "next/link";
-import { requireMembership } from "@/lib/acl";
+import { Clapperboard } from "lucide-react";
+import { requireMembership, canAdmin } from "@/lib/acl";
 import { getActiveChannel } from "@/lib/channel";
 import { db } from "@/lib/db";
+import { studioState } from "@/lib/studio";
 import { AskDrawer, StageHeader, StageList, StageRow, StateChip } from "@/components/StageShell";
 
-// Drafts stage: everything being written or rendered, by format — articles,
-// scripts, video renders. The studio pages (scripts, thumbnails, production)
-// are tabs here; step 6 gates them behind a connected YouTube channel.
+// Drafts stage: everything being written or rendered, by format — articles
+// always; scripts and video renders when the video studio is shown (a YouTube
+// channel exists and the switch under Settings is on — One-Loop step 6).
 
 const BLOG_HUE: Record<string, string> = { drafting: "amber", draft_review: "blue" };
 
 export default async function DraftsStage() {
-  const { workspace } = await requireMembership();
+  const { workspace, membership } = await requireMembership();
   const { active } = await getActiveChannel();
+  const admin = canAdmin(membership.role);
+  const studio = await studioState(workspace.id);
   const [posts, scripts, renders, counts] = await Promise.all([
     db.blogPost.findMany({
       where: { workspaceId: workspace.id, status: { in: ["drafting", "draft_review"] } },
@@ -20,18 +24,22 @@ export default async function DraftsStage() {
       take: 12,
       select: { id: true, title: true, status: true, updatedAt: true, body: true },
     }),
-    db.script.findMany({
-      where: { channel: { workspaceId: workspace.id }, status: "draft" },
-      orderBy: { updatedAt: "desc" },
-      take: 6,
-      select: { id: true, title: true, workflow: true, wordCount: true, updatedAt: true, channel: { select: { name: true } } },
-    }),
-    db.videoRender.findMany({
-      where: { workspaceId: workspace.id, status: { in: ["queued", "rendering"] } },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      select: { id: true, status: true, createdAt: true },
-    }),
+    studio.show
+      ? db.script.findMany({
+          where: { channel: { workspaceId: workspace.id }, status: "draft" },
+          orderBy: { updatedAt: "desc" },
+          take: 6,
+          select: { id: true, title: true, workflow: true, wordCount: true, updatedAt: true, channel: { select: { name: true } } },
+        })
+      : Promise.resolve([]),
+    studio.show
+      ? db.videoRender.findMany({
+          where: { workspaceId: workspace.id, status: { in: ["queued", "rendering"] } },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+          select: { id: true, status: true, createdAt: true },
+        })
+      : Promise.resolve([]),
     db.blogPost.groupBy({ by: ["status"], where: { workspaceId: workspace.id, status: { in: ["drafting", "draft_review"] } }, _count: { _all: true } }),
   ]);
   const n = (s: string) => counts.find((c) => c.status === s)?._count._all ?? 0;
@@ -44,8 +52,12 @@ export default async function DraftsStage() {
         counts={[
           { label: "drafting", n: n("drafting"), href: "/blog/board", hue: "amber" },
           { label: "in review", n: n("draft_review"), href: "/review", hue: "blue" },
-          { label: "scripts", n: scripts.length, href: "/scripts", hue: "green" },
-          { label: "renders", n: renders.length, href: "/videos", hue: "violet" },
+          ...(studio.show
+            ? [
+                { label: "scripts", n: scripts.length, href: active ? `/channels/${active.id}/scripts` : "/scripts", hue: "green" },
+                { label: "renders", n: renders.length, href: "/videos", hue: "violet" },
+              ]
+            : []),
         ]}
       />
 
@@ -64,7 +76,7 @@ export default async function DraftsStage() {
         )) : undefined}
       </StageList>
 
-      {scripts.length > 0 && (
+      {studio.show && scripts.length > 0 && (
         <StageList title="Scripts">
           {scripts.map((s) => (
             <StageRow key={s.id}>
@@ -79,7 +91,7 @@ export default async function DraftsStage() {
         </StageList>
       )}
 
-      {renders.length > 0 && (
+      {studio.show && renders.length > 0 && (
         <StageList title="Video renders">
           {renders.map((r) => (
             <StageRow key={r.id}>
@@ -89,6 +101,15 @@ export default async function DraftsStage() {
             </StageRow>
           ))}
         </StageList>
+      )}
+
+      {!studio.show && (
+        <p className="text-[11px] text-[var(--mute)] mb-4 flex items-center gap-1.5">
+          <Clapperboard className="w-3.5 h-3.5" />
+          {studio.channels === 0
+            ? <>Scripts, thumbnails, video renders and the production board appear here once a YouTube channel exists{admin ? <> — <Link href="/channels" className="underline">add one under Channels</Link></> : " (an admin adds one under Channels)"}.</>
+            : <>The video studio is switched off for this workspace{admin ? <> — <Link href="/setup" className="underline">turn it on under Settings</Link></> : ""}. Nothing was deleted.</>}
+        </p>
       )}
 
       <AskDrawer stage="drafts" placeholder="e.g. Draft the article for the approved idea about donor fatigue." />

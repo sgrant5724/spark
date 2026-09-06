@@ -15,12 +15,12 @@ import { STAGES, currentTab, stageFor } from "@/lib/stages";
  * Renders nothing outside a stage (Inbox, Assistant, Setup, Help). Client-side
  * purely for usePathname; the stage data itself is plain and shared.
  */
-export function StageStrip({ activeChannelId }: { activeChannelId: string | null }) {
+export function StageStrip({ activeChannelId, studio }: { activeChannelId: string | null; studio: boolean }) {
   const pathname = usePathname() ?? "";
   const key = stageFor(pathname);
   if (!key) return null;
   const stage = STAGES[key];
-  const tabs = stage.tabs({ channelId: activeChannelId });
+  const tabs = stage.tabs({ channelId: activeChannelId, studio });
   const onOverview = pathname === stage.href;
   const current = onOverview ? null : currentTab(pathname, tabs);
 
