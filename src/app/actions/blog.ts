@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/acl";
 import { db } from "@/lib/db";
 import { runBlogChecks, requiredChecksPass } from "@/lib/blog-checks";
 import { writeAudit } from "@/lib/governance";
+import { removeMarkerForClaim } from "@/lib/blog-autoreview";
 import { generateDraftCore } from "@/lib/blog-autopilot";
 import { richTextToPlainText, sanitizeRichHtml, unwrapBlockParagraphs } from "@/lib/richtext";
 import { jobs } from "@/lib/jobs";
@@ -382,11 +383,25 @@ export async function verifyCitationAction(formData: FormData) {
 
 export async function deleteCitationAction(formData: FormData) {
   const id = String(formData.get("id"));
-  const { workspace } = await requireRole("EDITOR");
+  const { workspace, user } = await requireRole("EDITOR");
   const cit = await db.blogCitation.findFirst({ where: { id, post: { workspaceId: workspace.id } } });
   if (!cit) return;
   await db.blogCitation.delete({ where: { id } });
+  // The marker is what the required check counts, and auto-review mints a
+  // fresh row for any marker without one — so dropping the record alone
+  // brought the claim straight back on the next sweep. Drop the marker too.
+  const markerRemoved = await removeMarkerForClaim(cit.postId, cit.claim);
+  await writeAudit({
+    workspaceId: workspace.id,
+    actorId: user.id,
+    action: "blog.citation_dropped",
+    entityType: "blog_post",
+    entityId: cit.postId,
+    meta: { citationId: id, claim: cit.claim.slice(0, 200), markerRemoved },
+  });
   revalidatePath(`/blog/${cit.postId}`);
+  revalidatePath("/inbox");
+  revalidatePath("/review");
 }
 
 // ---- Org profile -------------------------------------------------------------

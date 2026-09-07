@@ -134,7 +134,7 @@ export function NeedsYouGroups({
                   </form>
                   <form action={deleteCitationAction}>
                     <input type="hidden" name="id" value={c.id} />
-                    <SubmitButton className="btn sm" pendingText="…" title="Remove the claim's citation record — edit the sentence out in the editor too">Drop the claim</SubmitButton>
+                    <SubmitButton className="btn sm" pendingText="…" title="Removes the [NEEDS SOURCE] marker and its record, so the sentence stands unsourced — edit it in the editor if it should go too">Drop the claim</SubmitButton>
                   </form>
                   <Link href={`/blog/${c.postId}`} className="btn sm">Open</Link>
                 </div>

@@ -207,6 +207,18 @@ async function autoSourceCitations(workspaceId: string, post: PostRow): Promise<
   let verified = 0;
 
   for (const cit of open) {
+    // A claim already held as unsourceable is searched again at most once a
+    // day. Without this it was searched (and judged) on every half-hour
+    // sweep, forever — the citation twin of the image re-inspection loop
+    // (LSI, 2026-09-06: held 23:47, searched again 00:04). A person who
+    // verifies or drops the claim removes the row, so the day's wait only
+    // ever applies to a claim nobody has touched.
+    const heldRecently = await db.auditLog.findFirst({
+      where: { workspaceId, action: "blog.citation_unsourceable", meta: { contains: cit.id }, createdAt: { gte: new Date(Date.now() - 24 * 3_600_000) } },
+      select: { id: true },
+    });
+    if (heldRecently) continue;
+
     const results = await provider.search(cit.claim.slice(0, 300), 5).catch(() => []);
     const usable = results.filter((r) => /^https?:\/\//i.test(r.url) && !/["<>]/.test(r.url));
     if (usable.length === 0) {
@@ -280,13 +292,14 @@ async function holdUnsourceable(workspaceId: string, post: PostRow, citationId: 
 
 /**
  * Replace the [NEEDS SOURCE] marker belonging to this claim with a source
- * link. Markers and citation rows were minted from the same sentences, so the
- * marker whose preceding text ends with the claim is the right one; if the
- * body has been edited since, the first remaining marker is the best match.
+ * link — or, with `url` null, remove it. Markers and citation rows were
+ * minted from the same sentences, so the marker whose preceding text ends
+ * with the claim is the right one; if the body has been edited since, the
+ * first remaining marker is the best match.
  */
-async function resolveMarker(post: PostRow, claim: string, url: string): Promise<void> {
+async function resolveMarker(post: { id: string }, claim: string, url: string | null): Promise<boolean> {
   const body = (await db.blogPost.findUnique({ where: { id: post.id }, select: { body: true } }))?.body;
-  if (!body) return;
+  if (!body) return false;
   const tail = normTail(claim);
 
   let firstIdx = -1;
@@ -296,11 +309,24 @@ async function resolveMarker(post: PostRow, claim: string, url: string): Promise
     if (tail && normText(body.slice(Math.max(0, i - 400), i)).endsWith(tail)) { matchIdx = i; break; }
   }
   const idx = matchIdx !== -1 ? matchIdx : firstIdx;
-  if (idx === -1) return;
+  if (idx === -1) return false;
 
-  const link = `<a href="${url}">(source)</a>`;
-  const next = body.slice(0, idx) + link + body.slice(idx + MARKER.length);
+  const replacement = url ? `<a href="${url}">(source)</a>` : "";
+  // Removing: take the space before the marker with it, so "fund." [NEEDS SOURCE]" reads "fund."".
+  const start = !url && body[idx - 1] === " " ? idx - 1 : idx;
+  const next = body.slice(0, start) + replacement + body.slice(idx + MARKER.length);
   await db.blogPost.update({ where: { id: post.id }, data: { body: next } });
+  return true;
+}
+
+/**
+ * Drop a claim's marker from the body. Used when a person drops the claim's
+ * citation record: the marker is what the required check counts, and the
+ * orphan-marker reconciliation would otherwise mint a fresh row for it on the
+ * next sweep — a loop with a person inside it.
+ */
+export async function removeMarkerForClaim(postId: string, claim: string): Promise<boolean> {
+  return resolveMarker({ id: postId }, claim, null);
 }
 
 /** One notification per entity per 24h — held items re-check every cycle. */
